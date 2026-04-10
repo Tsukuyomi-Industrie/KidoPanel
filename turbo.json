@@ -1,4 +1,5 @@
 {
+    "globalPassThroughEnv": ["DATABASE_URL", "GATEWAY_JWT_SECRET"],
     "tasks": {
       "build": {
         "dependsOn": ["^build"],
@@ -12,6 +13,10 @@
       },
       "lint": {
         "dependsOn": ["^lint"]
+      },
+      "test": {
+        "dependsOn": ["^build"],
+        "cache": false
       }
     }
   }

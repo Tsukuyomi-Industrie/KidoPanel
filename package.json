@@ -9,6 +9,7 @@
     "build": "turbo build",
     "typecheck": "turbo typecheck",
     "lint": "turbo lint",
+    "test": "turbo test",
     "clean": "rm -rf node_modules **/node_modules **/dist"
   },
   "keywords": [

@@ -12,12 +12,15 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/main.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "node -e \"\""
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^24.12.2",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@kydopanel/database": "workspace:*",
