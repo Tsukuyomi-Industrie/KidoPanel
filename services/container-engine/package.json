@@ -2,6 +2,9 @@
   "name": "container-engine",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=18.12"
+  },
   "type": "module",
   "description": "API de cycle de vie des conteneurs Docker pour KydoPanel",
   "main": "./dist/index.js",
@@ -20,7 +23,11 @@
     "start": "node dist/main.js"
   },
   "dependencies": {
-    "dockerode": "^4.0.9"
+    "@hono/node-server": "^1.19.13",
+    "@hono/zod-validator": "^0.7.6",
+    "dockerode": "^4.0.9",
+    "hono": "^4.12.12",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/dockerode": "^4.0.1",
