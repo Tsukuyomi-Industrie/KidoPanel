@@ -1,0 +1,17 @@
+{
+  "name": "gateway",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Passerelle API : unique point d’entrée HTTP pour le frontend vers les services métier",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "node -e \"\""
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.2",
+    "typescript": "^6.0.2"
+  }
+}

@@ -1,6 +1,15 @@
 #fichier de developement 
 
+.cursorrules
+Lore.md
 .env
+
+#fichier de dependances
+
+node_modules
+dist
+.turbo
+*.tsbuildinfo
 
 #fichier de distribution
 

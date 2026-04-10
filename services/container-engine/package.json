@@ -1,0 +1,30 @@
+{
+  "name": "container-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "API de cycle de vie des conteneurs Docker pour KydoPanel",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "node -e \"\"",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "dockerode": "^4.0.9"
+  },
+  "devDependencies": {
+    "@types/dockerode": "^4.0.1",
+    "@types/node": "^24.12.2",
+    "typescript": "^6.0.2"
+  }
+}
