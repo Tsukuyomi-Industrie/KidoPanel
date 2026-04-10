@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { prisma } from "@kydopanel/database";
+import { prisma } from "@kidopanel/database";
 import { ServiceAuth } from "../auth/auth.service.js";
 import { ContainerOwnershipRepository } from "../auth/container-ownership-repository.prisma.js";
 import { UserRepository } from "../auth/user-repository.prisma.js";

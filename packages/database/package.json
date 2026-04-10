@@ -1,9 +1,9 @@
 {
-  "name": "@kydopanel/database",
+  "name": "@kidopanel/database",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Client Prisma partagé et schéma PostgreSQL pour KydoPanel",
+  "description": "Client Prisma partagé et schéma PostgreSQL pour KidoPanel",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

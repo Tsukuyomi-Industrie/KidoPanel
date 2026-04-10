@@ -1,4 +1,4 @@
-import { Prisma, type PrismaClient } from "@kydopanel/database";
+import { Prisma, type PrismaClient } from "@kidopanel/database";
 
 export type DonneesCreationUtilisateur = {
   id: string;

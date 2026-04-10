@@ -1,4 +1,4 @@
-# Application web KydoPanel
+# Application web KidoPanel
 
 Interface **React** servie par **Vite**. Le frontend ne contacte pas Docker : il appellera la passerelle `apps/gateway` une fois celle-ci en place.
 

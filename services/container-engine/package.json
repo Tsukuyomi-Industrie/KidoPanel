@@ -6,7 +6,7 @@
     "node": ">=18.12"
   },
   "type": "module",
-  "description": "API de cycle de vie des conteneurs Docker pour KydoPanel",
+  "description": "API de cycle de vie des conteneurs Docker pour KidoPanel",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

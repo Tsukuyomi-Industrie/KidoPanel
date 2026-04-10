@@ -23,7 +23,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@kydopanel/database": "workspace:*",
+    "@kidopanel/database": "workspace:*",
     "@hono/node-server": "^1.19.13",
     "@hono/zod-validator": "^0.7.6",
     "bcrypt": "^6.0.0",

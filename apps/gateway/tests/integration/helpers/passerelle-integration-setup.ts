@@ -1,4 +1,4 @@
-import { prisma } from "@kydopanel/database";
+import { prisma } from "@kidopanel/database";
 
 const URL_MOTEUR_FICTIF = "http://127.0.0.1:19999";
 const SECRET_JWT_DEFAUT_TEST =

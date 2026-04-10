@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Interface React du panel KydoPanel (frontend uniquement)",
+  "description": "Interface React du panel KidoPanel (frontend uniquement)",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

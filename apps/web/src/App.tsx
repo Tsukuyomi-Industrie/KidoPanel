@@ -18,7 +18,7 @@ function App() {
           <img src={viteLogo} className="vite" alt="Logo Vite" />
         </div>
         <div>
-          <h1>KydoPanel</h1>
+          <h1>KidoPanel</h1>
           <p>
             Modifiez <code>src/App.tsx</code> et enregistrez pour tester le{" "}
             <code>HMR</code>

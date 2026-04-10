@@ -23,7 +23,7 @@ importers:
       '@hono/zod-validator':
         specifier: ^0.7.6
         version: 0.7.6(hono@4.12.12)(zod@4.3.6)
-      '@kydopanel/database':
+      '@kidopanel/database':
         specifier: workspace:*
         version: link:../../packages/database
       bcrypt:

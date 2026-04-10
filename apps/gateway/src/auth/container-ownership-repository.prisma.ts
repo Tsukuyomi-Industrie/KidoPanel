@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@kydopanel/database";
+import type { PrismaClient } from "@kidopanel/database";
 import { prefixeDocker } from "./docker-identifiant-conteneur.js";
 
 /**

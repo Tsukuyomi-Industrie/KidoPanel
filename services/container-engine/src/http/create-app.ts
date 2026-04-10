@@ -10,7 +10,7 @@ export function createEngineHttpApp(engine: ContainerEngine): Hono {
   app.get("/", (c) =>
     c.json({
       service: "container-engine",
-      description: "API HTTP du moteur de conteneurs KydoPanel",
+      description: "API HTTP du moteur de conteneurs KidoPanel",
     }),
   );
 
