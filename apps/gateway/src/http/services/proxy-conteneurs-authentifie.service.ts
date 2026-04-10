@@ -1,6 +1,9 @@
 import type { Context } from "hono";
 import type { ContainerOwnershipRepository } from "../../auth/container-ownership-repository.prisma.js";
-import { estConteneurPossede } from "../../auth/docker-identifiant-conteneur.js";
+import {
+  filtrerConteneursParProprieteUtilisateur,
+  verifyContainerOwnership,
+} from "../../auth/verify-container-ownership.js";
 import type { UtilisateurPublic } from "../../auth/user.types.js";
 import { forwardRequestToContainerEngine } from "../proxy/container-engine-proxy.js";
 
@@ -54,10 +57,10 @@ export async function proxyConteneursAvecPropriete(
         );
       }
       const liste = Array.isArray(parse.containers) ? parse.containers : [];
-      const idsPossedes =
-        await depotPropriete.getContainerIdsByUser(utilisateur.id);
-      const filtrees = liste.filter((cont) =>
-        estConteneurPossede(idsPossedes, cont.id),
+      const filtrees = await filtrerConteneursParProprieteUtilisateur(
+        depotPropriete,
+        utilisateur.id,
+        liste,
       );
       return new Response(JSON.stringify({ containers: filtrees }), {
         status: amont.status,
@@ -92,17 +95,30 @@ export async function proxyConteneursAvecPropriete(
     }
   }
 
-  const idParam = c.req.param("id");
-  if (idParam) {
-    const idsPossedes =
-      await depotPropriete.getContainerIdsByUser(utilisateur.id);
-    if (!estConteneurPossede(idsPossedes, idParam)) {
+  let idConteneurPourSuppression: string | undefined;
+
+  if (!estRouteRacineConteneurs(chemin)) {
+    const idParam = (c.req.param("id") ?? "").trim();
+    if (idParam.length === 0) {
       return reponseJsonErreur(
         "CONTAINER_ACCESS_DENIED",
         "Ce conteneur n’existe pas pour votre compte ou ne vous appartient pas.",
         403,
       );
     }
+    const autorise = await verifyContainerOwnership(
+      depotPropriete,
+      utilisateur.id,
+      idParam,
+    );
+    if (!autorise) {
+      return reponseJsonErreur(
+        "CONTAINER_ACCESS_DENIED",
+        "Ce conteneur n’existe pas pour votre compte ou ne vous appartient pas.",
+        403,
+      );
+    }
+    idConteneurPourSuppression = idParam;
   }
 
   const amont = await forwardRequestToContainerEngine(c);
@@ -111,9 +127,12 @@ export async function proxyConteneursAvecPropriete(
     methode === "DELETE" &&
     amont.status >= 200 &&
     amont.status < 300 &&
-    idParam
+    idConteneurPourSuppression !== undefined
   ) {
-    await depotPropriete.removeOwnership(idParam);
+    await depotPropriete.removeOwnershipForUser(
+      utilisateur.id,
+      idConteneurPourSuppression,
+    );
   }
 
   return amont;
