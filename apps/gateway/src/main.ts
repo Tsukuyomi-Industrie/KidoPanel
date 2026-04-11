@@ -6,9 +6,15 @@ import {
 import { createGatewayApp } from "./http/create-gateway-app.js";
 
 const port = Number(process.env.GATEWAY_PORT ?? process.env.PORT ?? 3000);
-/** Adresse d’écoute : 0.0.0.0 = toutes les interfaces (accès distant au VPS) ; 127.0.0.1 = local seulement. */
+
+/** Toutes les interfaces IPv4 : le service accepte les connexions depuis n’importe quelle IP de la machine (dont l’IP publique si le pare-feu ouvre le port). */
+const ECOUTE_TOUTES_INTERFACES_IPV4 = "0.0.0.0";
+
+const brutEcoute = process.env.GATEWAY_LISTEN_HOST?.trim();
 const adresseEcoute =
-  process.env.GATEWAY_LISTEN_HOST?.trim() || "0.0.0.0";
+  brutEcoute !== undefined && brutEcoute !== ""
+    ? brutEcoute
+    : ECOUTE_TOUTES_INTERFACES_IPV4;
 
 if (!Number.isFinite(port) || port < 1 || port > 65_535) {
   journaliserPasserelle({
