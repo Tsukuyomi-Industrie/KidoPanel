@@ -1,5 +1,9 @@
 import { useFluxJournauxConteneur } from "../hooks/useFluxJournauxConteneur.js";
-import { urlBasePasserelle } from "./passerelleClient.js";
+import {
+  composerUrlPasserelle,
+  enrichirTexteErreurPourAffichage,
+  urlBasePasserelle,
+} from "./passerelleClient.js";
 import { styleBlocLab, stylePreLab } from "./stylesCommunsLab.js";
 
 type PropsSectionJournauxSseLab = {
@@ -62,13 +66,21 @@ export function SectionJournauxSseLab({
             ...stylePreLab,
             marginTop: 6,
             fontSize: "0.8rem",
-            maxHeight: 220,
+            maxHeight: "min(55vh, 420px)",
+            minHeight: "3rem",
             overflow: "auto",
             borderColor: "#a33",
             color: "#f8b4b4",
           }}
         >
-          {dernierMessageErreur}
+          {enrichirTexteErreurPourAffichage(
+            dernierMessageErreur,
+            idSelectionne.trim() === ""
+              ? `${urlBasePasserelle()}/containers/…/logs/stream`
+              : composerUrlPasserelle(
+                  `/containers/${encodeURIComponent(idSelectionne.trim())}/logs/stream`,
+                ),
+          )}
         </pre>
       ) : null}
       <pre style={{ ...stylePreLab, maxHeight: 320 }}>{lignes.join("\n")}</pre>

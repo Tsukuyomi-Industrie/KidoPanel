@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SectionAuthLab } from "./SectionAuthLab.js";
 import {
   SectionCreationConteneurLab,
@@ -9,6 +9,7 @@ import {
   appelerPasserelle,
   composerUrlPasserelle,
   corpsErreurDepuisReponse,
+  enrichirTexteErreurPourAffichage,
   enregistrerJetonStockage,
   formaterErreurAffichage,
   formaterErreurPourAffichagePanel,
@@ -40,6 +41,7 @@ export function InterfaceTestPasserelle() {
     "en_cours" | "ok" | "echec"
   >("en_cours");
   const [texteSondePasserelle, setTexteSondePasserelle] = useState("");
+  const refUrlContexteErreur = useRef<string>(composerUrlPasserelle("/containers"));
 
   useEffect(() => {
     enregistrerJetonStockage(jeton);
@@ -82,6 +84,7 @@ export function InterfaceTestPasserelle() {
     setChargementListe(true);
     setMessageErreur(null);
     try {
+      refUrlContexteErreur.current = composerUrlPasserelle("/containers");
       const reponse = await appelerPasserelle("/containers", { method: "GET" });
       if (!(await afficherErreurSiBesoin(reponse))) {
         return;
@@ -106,6 +109,7 @@ export function InterfaceTestPasserelle() {
   const surInscription = async () => {
     setMessageErreur(null);
     try {
+      refUrlContexteErreur.current = composerUrlPasserelle("/auth/register");
       const reponse = await appelerPasserelle("/auth/register", {
         method: "POST",
         jetonBearer: "",
@@ -135,6 +139,7 @@ export function InterfaceTestPasserelle() {
   const surConnexion = async () => {
     setMessageErreur(null);
     try {
+      refUrlContexteErreur.current = composerUrlPasserelle("/auth/login");
       const reponse = await appelerPasserelle("/auth/login", {
         method: "POST",
         jetonBearer: "",
@@ -171,6 +176,7 @@ export function InterfaceTestPasserelle() {
       corps.name = nom;
     }
     try {
+      refUrlContexteErreur.current = composerUrlPasserelle("/containers");
       const reponse = await appelerPasserelle("/containers", {
         method: "POST",
         body: JSON.stringify(corps),
@@ -197,6 +203,9 @@ export function InterfaceTestPasserelle() {
   ) => {
     setMessageErreur(null);
     try {
+      refUrlContexteErreur.current = composerUrlPasserelle(
+        `/containers/${encodeURIComponent(id)}${cheminSuffixe}`,
+      );
       const reponse = await appelerPasserelle(
         `/containers/${encodeURIComponent(id)}${cheminSuffixe}`,
         { method: methode },
@@ -245,7 +254,10 @@ export function InterfaceTestPasserelle() {
           </p>
         ) : (
           <pre style={{ ...stylePreLab, marginTop: "0.35rem" }}>
-            {texteSondePasserelle}
+            {enrichirTexteErreurPourAffichage(
+              texteSondePasserelle,
+              composerUrlPasserelle("/health"),
+            )}
           </pre>
         )}
         <button
@@ -268,7 +280,18 @@ export function InterfaceTestPasserelle() {
           }}
         >
           <strong>Erreur</strong>
-          <pre style={stylePreLab}>{messageErreur}</pre>
+          <pre
+            style={{
+              ...stylePreLab,
+              maxHeight: "min(70vh, 560px)",
+              minHeight: "4.5rem",
+            }}
+          >
+            {enrichirTexteErreurPourAffichage(
+              messageErreur,
+              refUrlContexteErreur.current,
+            )}
+          </pre>
         </div>
       ) : null}
 

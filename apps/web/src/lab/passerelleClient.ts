@@ -113,13 +113,56 @@ const MOTIFS_ERREUR_RESEAU_GENERIQUE_NAVIGATEUR = [
   "Load failed",
   "NetworkError when attempting to fetch resource",
   "Network request failed",
+  "NetworkError",
+  "La récupération a échoué",
+  "L'accès réseau a échoué",
+  "L’accès réseau a échoué",
+  "Une erreur réseau s'est produite",
+  "Une erreur réseau s’est produite",
+  "Impossible de contacter le serveur",
+  "Impossible de se connecter au serveur",
+  "Réponse vide pour une requête",
+  "Cross-Origin Request Blocked",
 ] as const;
 
 export function estErreurReseauNavigateurGenerique(erreur: unknown): boolean {
   const msg = erreur instanceof Error ? erreur.message : String(erreur);
-  return MOTIFS_ERREUR_RESEAU_GENERIQUE_NAVIGATEUR.some(
-    (g) => msg === g || msg.includes(g),
-  );
+  const normalise = msg.replace(/\s+/g, " ").trim();
+  if (MOTIFS_ERREUR_RESEAU_GENERIQUE_NAVIGATEUR.some((g) => normalise.includes(g))) {
+    return true;
+  }
+  return /failed\s+to\s+fetch/i.test(normalise);
+}
+
+/**
+ * Dernière couche avant affichage : si le texte stocké ressemble encore à un échec réseau minimal,
+ * on ajoute le bloc d’aide (utile si bundle obsolète, message localisé atypique ou corps HTTP très court).
+ */
+export function enrichirTexteErreurPourAffichage(
+  texteBrut: string,
+  urlContexteAbsolue: string,
+): string {
+  const t = texteBrut.trim();
+  if (t.includes("Vérifications :")) {
+    return texteBrut;
+  }
+  if (t.length > 2000) {
+    return texteBrut;
+  }
+  const uneLigne = t.replace(/\s+/g, " ");
+  const ressembleEchecFetch =
+    estErreurReseauNavigateurGenerique(new Error(uneLigne)) ||
+    (/^typeerror\s*:/i.test(t) && /fetch|réseau|network|cors/i.test(t));
+  if (!ressembleEchecFetch) {
+    return texteBrut;
+  }
+  return [
+    "— Message d’origine —",
+    texteBrut.trim(),
+    "",
+    "— Aide diagnostic (contexte URL) —",
+    formaterErreurReseauFetch(urlContexteAbsolue, new Error(uneLigne)),
+  ].join("\n");
 }
 
 /** Assemble l’URL absolue d’un chemin sur la passerelle (diagnostic d’erreur). */
