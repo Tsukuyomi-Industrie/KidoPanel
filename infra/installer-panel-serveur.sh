@@ -311,7 +311,7 @@ demarrer_panel() {
     >>"${LOG_DIR}/passerelle.log" 2>&1 &
   echo $! >"$PID_PASSERELLE"
 
-  nohup bash -c "cd \"$RACINE_DEPOT\" && exec pnpm --filter web dev -- --host 0.0.0.0" \
+  nohup bash -c "cd \"$RACINE_DEPOT\" && exec pnpm --filter web run dev -- --host 0.0.0.0" \
     >>"${LOG_DIR}/web.log" 2>&1 &
   echo $! >"$PID_WEB"
 
