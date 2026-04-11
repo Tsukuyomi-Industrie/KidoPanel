@@ -228,13 +228,20 @@ preparer_fichier_env_racine() {
 }
 
 preparer_env_web() {
-  local defaut="http://127.0.0.1:3000"
   if [[ -f "$RACINE_DEPOT/apps/web/.env" ]] || [[ -f "$RACINE_DEPOT/apps/web/.env.local" ]]; then
     echo "apps/web : .env déjà présent."
     return 0
   fi
-  printf 'VITE_GATEWAY_BASE_URL=%s\n' "$defaut" >"$RACINE_DEPOT/apps/web/.env"
-  echo "Créé apps/web/.env (VITE_GATEWAY_BASE_URL=${defaut})."
+  if [[ -f "$RACINE_DEPOT/apps/web/.env.example" ]]; then
+    cp "$RACINE_DEPOT/apps/web/.env.example" "$RACINE_DEPOT/apps/web/.env"
+    echo "Créé apps/web/.env depuis .env.example (VITE_GATEWAY_BASE_URL commenté : en dev, même hôte que la page, port 3000)."
+  else
+    printf '%s\n' \
+      "# Optionnel : en pnpm dev sans ligne active, le front utilise http(s)://<hôte de la page>:3000." \
+      "# VITE_GATEWAY_BASE_URL=http://127.0.0.1:3000" \
+      >"$RACINE_DEPOT/apps/web/.env"
+    echo "Créé apps/web/.env minimal (passerelle dev = hôte de la page :3000 si variable absente)."
+  fi
 }
 
 demarrer_postgres_et_attendre() {
