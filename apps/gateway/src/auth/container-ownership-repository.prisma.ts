@@ -21,7 +21,7 @@ export class ContainerOwnershipRepository {
       where: { userId },
       select: { containerId: true },
     });
-    return lignes.map((l) => l.containerId);
+    return lignes.map((ligne: { containerId: string }) => ligne.containerId);
   }
 
   /**

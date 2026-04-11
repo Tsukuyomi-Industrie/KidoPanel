@@ -25,14 +25,14 @@ export class UserRepository {
           password: donnees.password,
         },
       });
-    } catch (erreur) {
-      if (
-        erreur instanceof Prisma.PrismaClientKnownRequestError &&
-        erreur.code === "P2002"
-      ) {
-        throw new Error("EMAIL_DEJA_UTILISE");
+    } catch (brut: unknown) {
+      if (brut instanceof Prisma.PrismaClientKnownRequestError) {
+        const erreurPrisma = brut;
+        if (erreurPrisma.code === "P2002") {
+          throw new Error("EMAIL_DEJA_UTILISE");
+        }
       }
-      throw erreur;
+      throw brut;
     }
   }
 }
