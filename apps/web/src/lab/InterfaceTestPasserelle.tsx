@@ -4,6 +4,7 @@ import {
   SectionCreationConteneurLab,
   SectionListeConteneursLab,
 } from "./SectionConteneursEtCreationLab.js";
+import { texteAvertissementPasserelleLoopbackHoteDistant } from "./diagnosticUrlPasserelleLab.js";
 import { SectionJournauxSseLab } from "./SectionJournauxSseLab.js";
 import {
   appelerPasserelle,
@@ -227,6 +228,8 @@ export function InterfaceTestPasserelle() {
     }
   };
 
+  const avertissementHoteDistant = texteAvertissementPasserelleLoopbackHoteDistant();
+
   return (
     <main style={{ padding: "1rem", fontFamily: "system-ui, sans-serif" }}>
       <h1 style={{ fontSize: "1.25rem" }}>KidoPanel — test passerelle</h1>
@@ -234,6 +237,29 @@ export function InterfaceTestPasserelle() {
         Passerelle : <code>{urlBasePasserelle()}</code> (variable{" "}
         <code>VITE_GATEWAY_BASE_URL</code>)
       </p>
+
+      {avertissementHoteDistant ? (
+        <div
+          role="status"
+          style={{
+            ...styleBlocLab,
+            marginBottom: "0.75rem",
+            borderColor: "#a62",
+            background: "#2a2218",
+          }}
+        >
+          <strong>Configuration probablement incorrecte</strong>
+          <pre
+            style={{
+              ...stylePreLab,
+              marginTop: "0.35rem",
+              maxHeight: "min(45vh, 320px)",
+            }}
+          >
+            {avertissementHoteDistant}
+          </pre>
+        </div>
+      ) : null}
 
       <div
         style={{
