@@ -1,5 +1,6 @@
-# Version explicite pour rester compatible avec l’exécutable « docker-compose » 1.x (VPS sans plugin Compose V2).
-version: "3.8"
+# Format 3.3 : pris en charge par les « docker-compose » 1.x très anciens (3.8 et + souvent refusés).
+# Pas de healthcheck ici (réservé aux schémas ≥ 3.4) : le script infra attend quand même pg_isready.
+version: "3.3"
 
 services:
   postgres:
@@ -13,11 +14,6 @@ services:
       - "5432:5432"
     volumes:
       - kydopanel_pg_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kydopanel -d kydopanel"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
 volumes:
   kydopanel_pg_data:
