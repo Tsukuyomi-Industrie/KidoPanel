@@ -33,6 +33,8 @@ export function enregistrerJetonStockage(jeton: string): void {
 
 export type CorpsErreurPasserelle = {
   statutHttp: number;
+  /** Libellé HTTP renvoyé par le navigateur (ex. « Not Found »), vide si absent. */
+  libelleStatut?: string;
   texteBrut: string;
   jsonParse?: unknown;
 };
@@ -48,12 +50,22 @@ export async function corpsErreurDepuisReponse(
   } catch {
     /* corps non JSON */
   }
-  return { statutHttp: reponse.status, texteBrut, jsonParse };
+  const libelleStatut = reponse.statusText.trim();
+  return {
+    statutHttp: reponse.status,
+    ...(libelleStatut !== "" ? { libelleStatut } : {}),
+    texteBrut,
+    jsonParse,
+  };
 }
 
 /** Formate une erreur HTTP pour affichage dans l’interface de test. */
 export function formaterErreurAffichage(corps: CorpsErreurPasserelle): string {
-  const lignes = [`HTTP ${corps.statutHttp}`];
+  const enteteStatut =
+    corps.libelleStatut !== undefined && corps.libelleStatut !== ""
+      ? `HTTP ${corps.statutHttp} ${corps.libelleStatut}`
+      : `HTTP ${corps.statutHttp}`;
+  const lignes = [enteteStatut];
   if (corps.jsonParse !== undefined) {
     lignes.push(JSON.stringify(corps.jsonParse, null, 2));
   } else if (corps.texteBrut.trim() !== "") {
@@ -84,6 +96,75 @@ export function formaterErreurReseauFetch(
     "• Page en HTTPS qui appelle une API en HTTP : le navigateur bloque (contenu mixte).",
     "• Après mise à jour du code : rebuild (pnpm run build) et redémarrage des services.",
   ].join("\n");
+}
+
+const MARQUEURS_MESSAGE_DEJA_ENRICHI = [
+  "Impossible de joindre la passerelle",
+  "Vérifications :",
+] as const;
+
+function messageErreurDejaEnrichiPourPanel(message: string): boolean {
+  return MARQUEURS_MESSAGE_DEJA_ENRICHI.some((s) => message.includes(s));
+}
+
+/** Libellés réseau vagues renvoyés par les navigateurs quand la requête échoue avant un corps HTTP lisible. */
+const MOTIFS_ERREUR_RESEAU_GENERIQUE_NAVIGATEUR = [
+  "Failed to fetch",
+  "Load failed",
+  "NetworkError when attempting to fetch resource",
+  "Network request failed",
+] as const;
+
+export function estErreurReseauNavigateurGenerique(erreur: unknown): boolean {
+  const msg = erreur instanceof Error ? erreur.message : String(erreur);
+  return MOTIFS_ERREUR_RESEAU_GENERIQUE_NAVIGATEUR.some(
+    (g) => msg === g || msg.includes(g),
+  );
+}
+
+/** Assemble l’URL absolue d’un chemin sur la passerelle (diagnostic d’erreur). */
+export function composerUrlPasserelle(cheminRelatif: string): string {
+  const base = urlBasePasserelle();
+  const chemin = cheminRelatif.startsWith("/")
+    ? cheminRelatif
+    : `/${cheminRelatif}`;
+  return `${base}${chemin}`;
+}
+
+/**
+ * Texte pour le bandeau d’erreur du panel : remplace « Failed to fetch » seul par l’aide complète,
+ * et ajoute URL / action pour les autres exceptions (JSON, TypeError, etc.).
+ */
+export function formaterErreurPourAffichagePanel(
+  erreur: unknown,
+  urlComplete: string,
+  libelleAction?: string,
+): string {
+  if (
+    erreur instanceof Error &&
+    messageErreurDejaEnrichiPourPanel(erreur.message)
+  ) {
+    return erreur.message;
+  }
+  if (estErreurReseauNavigateurGenerique(erreur)) {
+    return formaterErreurReseauFetch(urlComplete, erreur);
+  }
+  const parties: string[] = [];
+  if (libelleAction !== undefined && libelleAction !== "") {
+    parties.push(`Action : ${libelleAction}`, "");
+  }
+  parties.push(`URL : ${urlComplete}`);
+  if (erreur instanceof Error) {
+    parties.push("", `${erreur.name} : ${erreur.message}`);
+    if (erreur.cause instanceof Error) {
+      parties.push(
+        `Cause : ${erreur.cause.name} : ${erreur.cause.message}`,
+      );
+    }
+  } else {
+    parties.push("", String(erreur));
+  }
+  return parties.join("\n");
 }
 
 /** Indique si GET /health répond ; utile pour diagnostiquer avant login. */

@@ -55,10 +55,22 @@ export function SectionJournauxSseLab({
       </div>
       <p style={{ fontSize: "0.85rem", marginTop: 8 }}>
         État connexion : <strong>{etatConnexion}</strong>
-        {dernierMessageErreur ? (
-          <span style={{ color: "#e66" }}> — {dernierMessageErreur}</span>
-        ) : null}
       </p>
+      {dernierMessageErreur ? (
+        <pre
+          style={{
+            ...stylePreLab,
+            marginTop: 6,
+            fontSize: "0.8rem",
+            maxHeight: 220,
+            overflow: "auto",
+            borderColor: "#a33",
+            color: "#f8b4b4",
+          }}
+        >
+          {dernierMessageErreur}
+        </pre>
+      ) : null}
       <pre style={{ ...stylePreLab, maxHeight: 320 }}>{lignes.join("\n")}</pre>
     </section>
   );

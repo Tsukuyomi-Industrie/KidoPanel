@@ -7,9 +7,11 @@ import {
 import { SectionJournauxSseLab } from "./SectionJournauxSseLab.js";
 import {
   appelerPasserelle,
+  composerUrlPasserelle,
   corpsErreurDepuisReponse,
   enregistrerJetonStockage,
   formaterErreurAffichage,
+  formaterErreurPourAffichagePanel,
   lireJetonStockage,
   sondageSantePasserelle,
   urlBasePasserelle,
@@ -90,7 +92,11 @@ export function InterfaceTestPasserelle() {
       setConteneurs(Array.isArray(donnees.containers) ? donnees.containers : []);
     } catch (e) {
       setMessageErreur(
-        e instanceof Error ? e.message : "Échec réseau lors du listage.",
+        formaterErreurPourAffichagePanel(
+          e,
+          composerUrlPasserelle("/containers"),
+          "liste des conteneurs",
+        ),
       );
     } finally {
       setChargementListe(false);
@@ -117,7 +123,11 @@ export function InterfaceTestPasserelle() {
       }
     } catch (e) {
       setMessageErreur(
-        e instanceof Error ? e.message : "Échec réseau à l’inscription.",
+        formaterErreurPourAffichagePanel(
+          e,
+          composerUrlPasserelle("/auth/register"),
+          "inscription",
+        ),
       );
     }
   };
@@ -142,7 +152,11 @@ export function InterfaceTestPasserelle() {
       }
     } catch (e) {
       setMessageErreur(
-        e instanceof Error ? e.message : "Échec réseau à la connexion.",
+        formaterErreurPourAffichagePanel(
+          e,
+          composerUrlPasserelle("/auth/login"),
+          "connexion",
+        ),
       );
     }
   };
@@ -167,7 +181,11 @@ export function InterfaceTestPasserelle() {
       await rafraichirListe();
     } catch (e) {
       setMessageErreur(
-        e instanceof Error ? e.message : "Échec réseau à la création.",
+        formaterErreurPourAffichagePanel(
+          e,
+          composerUrlPasserelle("/containers"),
+          "création de conteneur",
+        ),
       );
     }
   };
@@ -189,7 +207,13 @@ export function InterfaceTestPasserelle() {
       await rafraichirListe();
     } catch (e) {
       setMessageErreur(
-        e instanceof Error ? e.message : "Échec réseau sur l’action conteneur.",
+        formaterErreurPourAffichagePanel(
+          e,
+          composerUrlPasserelle(
+            `/containers/${encodeURIComponent(id)}${cheminSuffixe}`,
+          ),
+          "action sur un conteneur",
+        ),
       );
     }
   };

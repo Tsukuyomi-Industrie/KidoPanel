@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  formaterErreurPourAffichagePanel,
+} from "../lab/passerelleClient.js";
 
 export type OptionsFluxJournauxConteneur = {
   urlBasePasserelle: string;
@@ -122,8 +125,11 @@ export function useFluxJournauxConteneur(
       }
 
       try {
-        const reponse = await fetch(url.toString(), {
+        const urlFlux = url.toString();
+        const reponse = await fetch(urlFlux, {
           method: "GET",
+          mode: "cors",
+          cache: "no-store",
           headers: {
             Authorization: `Bearer ${jetonBearer}`,
             Accept: "text/event-stream",
@@ -144,6 +150,27 @@ export function useFluxJournauxConteneur(
         }
 
         if (!reponse.ok || !reponse.body) {
+          let detailHttp = `HTTP ${reponse.status}`;
+          if (reponse.statusText.trim() !== "") {
+            detailHttp += ` ${reponse.statusText}`;
+          }
+          try {
+            const corps = await reponse.clone().text();
+            if (corps.trim() !== "") {
+              detailHttp += `\n\nCorps de la réponse :\n${corps.slice(0, 4000)}`;
+            }
+          } catch {
+            /* corps illisible */
+          }
+          setDernierMessageErreur(
+            [
+              "Flux journaux SSE : réponse refusée ou sans corps lisible.",
+              "",
+              `URL : ${urlFlux}`,
+              "",
+              detailHttp,
+            ].join("\n"),
+          );
           programmerReconnexion();
           return;
         }
@@ -212,7 +239,11 @@ export function useFluxJournauxConteneur(
           return;
         }
         setDernierMessageErreur(
-          err instanceof Error ? err.message : "Erreur réseau sur le flux journaux.",
+          formaterErreurPourAffichagePanel(
+            err,
+            url.toString(),
+            "flux SSE journaux conteneur",
+          ),
         );
         programmerReconnexion();
       }
