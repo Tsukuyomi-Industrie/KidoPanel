@@ -1,4 +1,7 @@
-import { Prisma, type PrismaClient } from "@kidopanel/database";
+import {
+  PrismaClientKnownRequestError,
+  type PrismaClient,
+} from "@kidopanel/database";
 
 export type DonneesCreationUtilisateur = {
   id: string;
@@ -26,11 +29,11 @@ export class UserRepository {
         },
       });
     } catch (brut: unknown) {
-      if (brut instanceof Prisma.PrismaClientKnownRequestError) {
-        const erreurPrisma = brut;
-        if (erreurPrisma.code === "P2002") {
-          throw new Error("EMAIL_DEJA_UTILISE");
-        }
+      if (
+        brut instanceof PrismaClientKnownRequestError &&
+        brut.code === "P2002"
+      ) {
+        throw new Error("EMAIL_DEJA_UTILISE");
       }
       throw brut;
     }
