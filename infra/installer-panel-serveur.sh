@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
-# Installe les dépendances et prépare l’environnement pour exécuter KidoPanel sur une machine
-# (Node, pnpm, PostgreSQL via Docker Compose, migrations Prisma, build monorepo).
-# Tente d’installer Docker Compose V2 s’il manque (paquets ou binaire officiel).
-# Ne démarre pas les services applicatifs : voir les instructions affichées en fin de script.
+# Installe ou met à jour KidoPanel, démarre le panel en arrière-plan (moteur, passerelle, Vite).
+# Réexécution : menu (mise à jour, redémarrage, arrêt, désinstallation). Option --verifier inchangée.
 
 set -euo pipefail
 
 RACINE_DEPOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$RACINE_DEPOT"
 
-# Version du binaire Compose (repli si les paquets système échouent).
+DIR_RUN="${RACINE_DEPOT}/infra/run"
+LOG_DIR="${RACINE_DEPOT}/infra/logs"
+FICHIER_MARQUEUR="${DIR_RUN}/.panel-pret"
+PID_MOTEUR="${DIR_RUN}/pid-moteur.txt"
+PID_PASSERELLE="${DIR_RUN}/pid-passerelle.txt"
+PID_WEB="${DIR_RUN}/pid-web.txt"
+
 VERSION_COMPOSE_BINAIRE="v2.32.2"
 
 echo_err() {
@@ -31,9 +35,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     -h | --help)
       echo "Usage : $0 [options]"
-      echo "  --verifier             Vérifie uniquement les prérequis (Node, Docker, pnpm)."
-      echo "  --sans-postgres-docker N’exécute pas « docker compose » (PostgreSQL déjà joignable via DATABASE_URL)."
-      echo "Variable d’environnement : PANEL_INSTALLER_SANS_AUTO=1 désactive l’installation automatique de Compose."
+      echo "  --verifier              Vérifie uniquement les prérequis."
+      echo "  --sans-postgres-docker  N’utilise pas docker compose pour PostgreSQL."
+      echo "Après la première installation, le panel démarre en arrière-plan ; journaux dans infra/logs/."
+      echo "Variable : PANEL_INSTALLER_SANS_AUTO=1 désactive l’installation auto de Compose."
+      echo "Variable : PANEL_INSTALLER_ACTION=mettre-a-jour|redemarrer|arreter (sans menu, pour scripts)."
       exit 0
       ;;
     *)
@@ -43,7 +49,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Commande Compose effective : tableau (« docker » « compose ») ou (« docker-compose »).
 DOCKER_COMPOSE=()
 
 definir_commande_compose_si_disponible() {
@@ -71,25 +76,15 @@ executer_avec_privileges() {
 
 architecture_compose_github() {
   case "$(uname -m)" in
-    x86_64 | amd64)
-      echo "x86_64"
-      ;;
-    aarch64 | arm64)
-      echo "aarch64"
-      ;;
-    armv7l)
-      echo "armv7"
-      ;;
-    *)
-      echo ""
-      ;;
+    x86_64 | amd64) echo "x86_64" ;;
+    aarch64 | arm64) echo "aarch64" ;;
+    armv7l) echo "armv7" ;;
+    *) echo "" ;;
   esac
 }
 
 installer_compose_via_paquets() {
-  if [[ "${PANEL_INSTALLER_SANS_AUTO:-}" == "1" ]]; then
-    return 1
-  fi
+  [[ "${PANEL_INSTALLER_SANS_AUTO:-}" == "1" ]] && return 1
   echo "Tentative d’installation du plugin Docker Compose via le gestionnaire de paquets…"
   if command -v apt-get >/dev/null 2>&1; then
     if executer_avec_privileges env DEBIAN_FRONTEND=noninteractive apt-get update -qq &&
@@ -97,42 +92,20 @@ installer_compose_via_paquets() {
       return 0
     fi
   fi
-  if command -v dnf >/dev/null 2>&1; then
-    if executer_avec_privileges dnf install -y docker-compose-plugin 2>/dev/null; then
-      return 0
-    fi
-  fi
-  if command -v yum >/dev/null 2>&1; then
-    if executer_avec_privileges yum install -y docker-compose-plugin 2>/dev/null; then
-      return 0
-    fi
-  fi
-  if command -v zypper >/dev/null 2>&1; then
-    if executer_avec_privileges zypper install -y docker-compose-plugin 2>/dev/null; then
-      return 0
-    fi
-  fi
-  if command -v apk >/dev/null 2>&1; then
-    if executer_avec_privileges apk add --no-cache docker-cli-compose 2>/dev/null; then
-      return 0
-    fi
-  fi
+  command -v dnf >/dev/null 2>&1 && executer_avec_privileges dnf install -y docker-compose-plugin 2>/dev/null && return 0
+  command -v yum >/dev/null 2>&1 && executer_avec_privileges yum install -y docker-compose-plugin 2>/dev/null && return 0
+  command -v zypper >/dev/null 2>&1 && executer_avec_privileges zypper install -y docker-compose-plugin 2>/dev/null && return 0
+  command -v apk >/dev/null 2>&1 && executer_avec_privileges apk add --no-cache docker-cli-compose 2>/dev/null && return 0
   return 1
 }
 
 installer_compose_via_binaire_officiel() {
-  if [[ "${PANEL_INSTALLER_SANS_AUTO:-}" == "1" ]]; then
-    return 1
-  fi
+  [[ "${PANEL_INSTALLER_SANS_AUTO:-}" == "1" ]] && return 1
   local arch url dest dir_plugin
   arch="$(architecture_compose_github)"
-  if [[ -z "$arch" ]]; then
-    echo_err "Architecture $(uname -m) non prise en charge pour le binaire Compose."
-    return 1
-  fi
+  [[ -z "$arch" ]] && echo_err "Architecture $(uname -m) non prise en charge pour Compose." && return 1
   url="https://github.com/docker/compose/releases/download/${VERSION_COMPOSE_BINAIRE}/docker-compose-linux-${arch}"
   echo "Téléchargement de Docker Compose ${VERSION_COMPOSE_BINAIRE} depuis GitHub…"
-
   if [[ "$(id -u)" -eq 0 ]]; then
     dir_plugin="/usr/local/lib/docker/cli-plugins"
     executer_avec_privileges mkdir -p "$dir_plugin"
@@ -142,13 +115,12 @@ installer_compose_via_binaire_officiel() {
     elif command -v wget >/dev/null 2>&1; then
       wget -qO "$dest" "$url"
     else
-      echo_err "Installez « curl » ou « wget » pour le téléchargement de Compose."
+      echo_err "Installez « curl » ou « wget »."
       return 1
     fi
     chmod +x "$dest"
     return 0
   fi
-
   dir_plugin="${HOME}/.docker/cli-plugins"
   mkdir -p "$dir_plugin"
   dest="${dir_plugin}/docker-compose"
@@ -157,7 +129,7 @@ installer_compose_via_binaire_officiel() {
   elif command -v wget >/dev/null 2>&1; then
     wget -qO "$dest" "$url"
   else
-    echo_err "Installez « curl » ou « wget », ou relancez le script en root pour une installation système."
+    echo_err "Installez « curl » ou « wget »."
     return 1
   fi
   chmod +x "$dest"
@@ -166,64 +138,53 @@ installer_compose_via_binaire_officiel() {
 
 assurer_docker_compose() {
   if definir_commande_compose_si_disponible; then
-    echo "Prérequis OK : Compose disponible (« ${DOCKER_COMPOSE[*]} »)"
+    echo "Prérequis OK : Compose (« ${DOCKER_COMPOSE[*]} »)"
     return 0
   fi
-  if [[ "${PANEL_INSTALLER_SANS_AUTO:-}" == "1" ]]; then
-    echo_err "« docker compose » indisponible et installation automatique désactivée (PANEL_INSTALLER_SANS_AUTO=1)."
-    return 1
-  fi
-  echo "« docker compose » absent : installation automatique…"
+  [[ "${PANEL_INSTALLER_SANS_AUTO:-}" == "1" ]] && echo_err "Compose indisponible (PANEL_INSTALLER_SANS_AUTO=1)." && return 1
+  echo "Compose absent : installation automatique…"
   installer_compose_via_paquets || true
   if definir_commande_compose_si_disponible; then
-    echo "Prérequis OK : Docker Compose installé via paquets (« ${DOCKER_COMPOSE[*]} »)"
+    echo "Prérequis OK : Compose installé via paquets."
     return 0
   fi
-  if installer_compose_via_binaire_officiel; then
-    if definir_commande_compose_si_disponible; then
-      echo "Prérequis OK : Docker Compose installé (binaire plugin « ${DOCKER_COMPOSE[*]} »)"
-      return 0
-    fi
+  if installer_compose_via_binaire_officiel && definir_commande_compose_si_disponible; then
+    echo "Prérequis OK : Compose installé (binaire plugin)."
+    return 0
   fi
   echo_err "Impossible d’installer Docker Compose automatiquement."
-  echo_err "Installez le paquet « docker-compose-plugin » (Debian/Ubuntu : apt install docker-compose-plugin) ou consultez :"
-  echo_err "https://docs.docker.com/compose/install/linux/"
   return 1
 }
 
 verifier_version_node() {
-  if ! command -v node >/dev/null 2>&1; then
-    echo_err "Node.js est absent : installez Node 18.12 ou supérieur (ex. via https://nodejs.org ou votre gestionnaire de paquets)."
+  command -v node >/dev/null 2>&1 || {
+    echo_err "Node.js absent (≥ 18.12 requis)."
     return 1
-  fi
+  }
   local maj
   maj="$(node -p "parseInt(process.versions.node.split('.')[0], 10)")"
-  if [[ "$maj" -lt 18 ]]; then
-    echo_err "Node.js $(node -v) est trop ancien : version minimale 18.12."
-    return 1
-  fi
+  [[ "$maj" -lt 18 ]] && echo_err "Node $(node -v) trop ancien." && return 1
   echo "Prérequis OK : Node $(node -v)"
 }
 
 verifier_docker() {
-  if ! command -v docker >/dev/null 2>&1; then
-    echo_err "Docker CLI absent : installez Docker Engine et ajoutez l’utilisateur au groupe « docker » si besoin."
+  command -v docker >/dev/null 2>&1 || {
+    echo_err "Docker CLI absent."
     return 1
-  fi
-  if ! docker info >/dev/null 2>&1; then
-    echo_err "Docker ne répond pas (« docker info » échoue). Démarrez le démon et vérifiez les permissions."
+  }
+  docker info >/dev/null 2>&1 || {
+    echo_err "Docker ne répond pas."
     return 1
-  fi
+  }
   echo "Prérequis OK : Docker joignable"
 }
 
 verifier_compose_uniquement() {
-  if definir_commande_compose_si_disponible; then
-    echo "Prérequis OK : « ${DOCKER_COMPOSE[*]} » disponible"
-    return 0
-  fi
-  echo_err "« docker compose » indisponible : installez Docker Compose V2 ou relancez le script sans --verifier pour installation auto."
-  return 1
+  definir_commande_compose_si_disponible || {
+    echo_err "Compose indisponible."
+    return 1
+  }
+  echo "Prérequis OK : « ${DOCKER_COMPOSE[*]} »"
 }
 
 activer_pnpm() {
@@ -232,25 +193,25 @@ activer_pnpm() {
     return 0
   fi
   if command -v corepack >/dev/null 2>&1; then
-    echo "Activation de pnpm via corepack (version du dépôt)…"
+    echo "Activation de pnpm via corepack…"
     corepack enable
     corepack prepare pnpm@10.33.0 --activate
     echo "Prérequis OK : pnpm $(pnpm -v)"
     return 0
   fi
-  echo_err "pnpm absent et corepack indisponible : installez Node récent ou « npm install -g pnpm »."
+  echo_err "pnpm absent : installez Node récent ou corepack."
   return 1
 }
 
 preparer_fichier_env_racine() {
   if [[ -f "$RACINE_DEPOT/.env" ]]; then
-    echo "Fichier .env à la racine déjà présent (non écrasé)."
+    echo "Fichier .env présent (non écrasé)."
     return 0
   fi
-  if [[ ! -f "$RACINE_DEPOT/.env.example" ]]; then
-    echo_err "Fichier .env.example introuvable à la racine du dépôt."
+  [[ -f "$RACINE_DEPOT/.env.example" ]] || {
+    echo_err ".env.example introuvable."
     return 1
-  fi
+  }
   cp "$RACINE_DEPOT/.env.example" "$RACINE_DEPOT/.env"
   local secret
   if command -v openssl >/dev/null 2>&1; then
@@ -263,35 +224,35 @@ preparer_fichier_env_racine() {
   else
     echo "GATEWAY_JWT_SECRET=${secret}" >>"$RACINE_DEPOT/.env"
   fi
-  echo "Fichier .env créé depuis .env.example avec un GATEWAY_JWT_SECRET généré."
+  echo "Fichier .env créé avec GATEWAY_JWT_SECRET généré."
 }
 
 preparer_env_web() {
   local defaut="http://127.0.0.1:3000"
   if [[ -f "$RACINE_DEPOT/apps/web/.env" ]] || [[ -f "$RACINE_DEPOT/apps/web/.env.local" ]]; then
-    echo "apps/web : .env ou .env.local déjà présent (non modifié)."
+    echo "apps/web : .env déjà présent."
     return 0
   fi
   printf 'VITE_GATEWAY_BASE_URL=%s\n' "$defaut" >"$RACINE_DEPOT/apps/web/.env"
-  echo "Créé apps/web/.env avec VITE_GATEWAY_BASE_URL=${defaut} (à adapter si le navigateur n’est pas sur la même machine)."
+  echo "Créé apps/web/.env (VITE_GATEWAY_BASE_URL=${defaut})."
 }
 
 demarrer_postgres_et_attendre() {
   verifier_docker
   assurer_docker_compose
   "${DOCKER_COMPOSE[@]}" -f "$RACINE_DEPOT/docker-compose.yml" up -d
-  echo "Attente de la disponibilité de PostgreSQL…"
-  local tentatives=0
-  while [[ $tentatives -lt 60 ]]; do
+  echo "Attente PostgreSQL…"
+  local t=0
+  while [[ $t -lt 60 ]]; do
     if "${DOCKER_COMPOSE[@]}" -f "$RACINE_DEPOT/docker-compose.yml" exec -T postgres \
       pg_isready -U kydopanel -d kydopanel >/dev/null 2>&1; then
       echo "PostgreSQL prêt."
       return 0
     fi
-    tentatives=$((tentatives + 1))
+    t=$((t + 1))
     sleep 1
   done
-  echo_err "PostgreSQL n’est pas devenu joignable à temps (vérifiez « ${DOCKER_COMPOSE[*]} logs postgres »)."
+  echo_err "PostgreSQL injoignable (voir compose logs postgres)."
   return 1
 }
 
@@ -302,59 +263,210 @@ charger_env_pour_prisma() {
   set +a
 }
 
+etapes_dependances_build() {
+  echo "pnpm install…"
+  pnpm install --frozen-lockfile
+  echo "Migrations Prisma…"
+  charger_env_pour_prisma
+  [[ -n "${DATABASE_URL:-}" ]] || {
+    echo_err "DATABASE_URL vide dans .env."
+    return 1
+  }
+  pnpm --filter @kidopanel/database run db:migrate
+  echo "Build turbo…"
+  pnpm run build
+}
+
+arreter_processus_pidfichier() {
+  local f="$1"
+  [[ -f "$f" ]] || return 0
+  local pid
+  pid="$(cat "$f")"
+  if [[ -n "${pid:-}" ]] && kill -0 "$pid" 2>/dev/null; then
+    kill "$pid" 2>/dev/null || true
+    sleep 1
+    kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
+  fi
+  rm -f "$f"
+}
+
+arreter_panel() {
+  mkdir -p "$DIR_RUN"
+  echo "Arrêt des processus du panel (si actifs)…"
+  arreter_processus_pidfichier "$PID_WEB"
+  arreter_processus_pidfichier "$PID_PASSERELLE"
+  arreter_processus_pidfichier "$PID_MOTEUR"
+}
+
+demarrer_panel() {
+  mkdir -p "$DIR_RUN" "$LOG_DIR"
+  cd "$RACINE_DEPOT"
+  echo "Démarrage du panel en arrière-plan (journaux : ${LOG_DIR}/)…"
+
+  nohup bash -c "cd \"$RACINE_DEPOT\" && set -a && source .env && set +a && exec pnpm --filter container-engine start" \
+    >>"${LOG_DIR}/moteur.log" 2>&1 &
+  echo $! >"$PID_MOTEUR"
+
+  nohup bash -c "cd \"$RACINE_DEPOT\" && set -a && source .env && set +a && exec pnpm --filter gateway start" \
+    >>"${LOG_DIR}/passerelle.log" 2>&1 &
+  echo $! >"$PID_PASSERELLE"
+
+  nohup bash -c "cd \"$RACINE_DEPOT\" && exec pnpm --filter web dev -- --host 0.0.0.0" \
+    >>"${LOG_DIR}/web.log" 2>&1 &
+  echo $! >"$PID_WEB"
+
+  sleep 3
+  echo "Processus lancés : moteur PID $(cat "$PID_MOTEUR"), passerelle $(cat "$PID_PASSERELLE"), web $(cat "$PID_WEB")."
+}
+
+afficher_acces_panel() {
+  echo ""
+  echo "=== Panel démarré ==="
+  echo "Interface : http://127.0.0.1:5173 (ou http://IP_DU_SERVEUR:5173 — Vite écoute sur 0.0.0.0)"
+  echo "Passerelle : http://127.0.0.1:3000"
+  echo "Journaux : tail -f \"${LOG_DIR}/moteur.log\" … passerelle.log … web.log"
+  echo "Arrêt / mise à jour : relancez ce script pour le menu."
+  echo ""
+}
+
+panel_marque_comme_pret() {
+  mkdir -p "$DIR_RUN"
+  touch "$FICHIER_MARQUEUR"
+}
+
+installation_premiere_fois() {
+  verifier_version_node
+  activer_pnpm
+  if [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]]; then
+    demarrer_postgres_et_attendre
+  else
+    echo "Sans postgres docker : vérifiez DATABASE_URL."
+    verifier_docker
+  fi
+  preparer_fichier_env_racine
+  preparer_env_web
+  [[ -f "$RACINE_DEPOT/.env" ]] || exit 1
+  etapes_dependances_build
+  panel_marque_comme_pret
+  demarrer_panel
+  afficher_acces_panel
+}
+
+mettre_a_jour_et_redemarrer() {
+  verifier_version_node
+  activer_pnpm
+  [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] && demarrer_postgres_et_attendre || verifier_docker
+  [[ -f "$RACINE_DEPOT/.env" ]] || {
+    echo_err ".env manquant."
+    return 1
+  }
+  arreter_panel
+  etapes_dependances_build
+  demarrer_panel
+  afficher_acces_panel
+}
+
+redemarrer_seulement() {
+  verifier_version_node
+  activer_pnpm
+  [[ -f "$RACINE_DEPOT/.env" ]] || {
+    echo_err ".env manquant."
+    return 1
+  }
+  [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] && demarrer_postgres_et_attendre || true
+  arreter_panel
+  demarrer_panel
+  afficher_acces_panel
+}
+
+menu_desinstaller() {
+  echo ""
+  echo "Désinstallation : arrêt des services, puis options destructives."
+  read -r -p "Confirmer l’arrêt immédiat du panel ? [o/N] " c1
+  [[ "$c1" == "o" || "$c1" == "O" ]] || {
+    echo "Annulé."
+    return 0
+  }
+  arreter_panel
+  read -r -p "Supprimer node_modules à la racine du dépôt ? [o/N] " c2
+  if [[ "$c2" == "o" || "$c2" == "O" ]]; then
+    rm -rf "${RACINE_DEPOT}/node_modules"
+    echo "node_modules racine supprimé."
+  fi
+  read -r -p "Supprimer le fichier .env à la racine ? [o/N] " c3
+  if [[ "$c3" == "o" || "$c3" == "O" ]]; then
+    rm -f "${RACINE_DEPOT}/.env"
+    echo ".env supprimé."
+  fi
+  read -r -p "Exécuter « docker compose down » (arrêt Postgres du compose) ? [o/N] " c4
+  if [[ "$c4" == "o" || "$c4" == "O" ]]; then
+    if definir_commande_compose_si_disponible; then
+      "${DOCKER_COMPOSE[@]}" -f "$RACINE_DEPOT/docker-compose.yml" down
+      echo "Compose arrêté."
+    else
+      echo_err "Compose indisponible : arrêt manuel du stack si besoin."
+    fi
+  fi
+  read -r -p "Supprimer aussi le volume Postgres (docker compose down -v) ? [o/N] " c5
+  if [[ "$c5" == "o" || "$c5" == "O" ]]; then
+    if definir_commande_compose_si_disponible; then
+      "${DOCKER_COMPOSE[@]}" -f "$RACINE_DEPOT/docker-compose.yml" down -v
+      echo "Volumes compose supprimés."
+    fi
+  fi
+  rm -f "$FICHIER_MARQUEUR"
+  echo "Marqueur d’installation retiré : une prochaine exécution refait une installation initiale."
+}
+
+menu_reexecution() {
+  local action="${PANEL_INSTALLER_ACTION:-}"
+  if [[ -n "$action" ]]; then
+    case "$action" in
+      mettre-a-jour) mettre_a_jour_et_redemarrer ;;
+      redemarrer) redemarrer_seulement ;;
+      arreter) arreter_panel && echo "Panel arrêté." ;;
+      *) echo_err "PANEL_INSTALLER_ACTION inconnu : $action" && exit 1 ;;
+    esac
+    return 0
+  fi
+  echo ""
+  echo "KidoPanel est déjà installé dans ce dépôt."
+  echo "  1) Mettre à jour (pnpm, migrations, build) et redémarrer le panel"
+  echo "  2) Redémarrer le panel uniquement (sans rebuild)"
+  echo "  3) Arrêter le panel (processus en arrière-plan)"
+  echo "  4) Désinstaller (choix interactifs : fichiers, compose…)"
+  echo "  0) Quitter"
+  read -r -p "Choix [0-4] : " choix
+  case "$choix" in
+    1) mettre_a_jour_et_redemarrer ;;
+    2) redemarrer_seulement ;;
+    3) arreter_panel && echo "Panel arrêté." ;;
+    4) menu_desinstaller ;;
+    0) echo "Au revoir." ;;
+    *) echo_err "Choix invalide." && exit 1 ;;
+  esac
+}
+
+# --- Point d’entrée ---
+
 if [[ "$MODE_VERIFIER_SEULEMENT" -eq 1 ]]; then
   verifier_version_node
   verifier_docker
   verifier_compose_uniquement
   activer_pnpm
-  echo "Toutes les vérifications demandées ont réussi."
+  echo "Vérifications OK."
   exit 0
 fi
 
-verifier_version_node
-activer_pnpm
-
-if [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]]; then
-  demarrer_postgres_et_attendre
-else
-  echo "Option --sans-postgres-docker : aucun conteneur PostgreSQL lancé par ce script."
-  verifier_docker
+if [[ -f "$FICHIER_MARQUEUR" ]]; then
+  if [[ -t 0 ]] || [[ -n "${PANEL_INSTALLER_ACTION:-}" ]]; then
+    menu_reexecution
+  else
+    echo_err "Entrée non interactive et panel déjà marqué installé."
+    echo_err "Utilisez PANEL_INSTALLER_ACTION=mettre-a-jour|redemarrer|arreter ou lancez dans un terminal."
+    exit 1
+  fi
+  exit 0
 fi
 
-preparer_fichier_env_racine
-preparer_env_web
-
-if [[ ! -f "$RACINE_DEPOT/.env" ]]; then
-  echo_err "Impossible de poursuivre sans fichier .env à la racine."
-  exit 1
-fi
-
-echo "Installation des dépendances pnpm (monorepo)…"
-pnpm install --frozen-lockfile
-
-echo "Migrations Prisma (package @kidopanel/database)…"
-charger_env_pour_prisma
-if [[ -z "${DATABASE_URL:-}" ]]; then
-  echo_err "DATABASE_URL est vide dans .env : corrigez avant de relancer."
-  exit 1
-fi
-pnpm --filter @kidopanel/database run db:migrate
-
-echo "Build complet (turbo)…"
-pnpm run build
-
-echo ""
-echo "=== Installation terminée ==="
-echo "Variables chargées depuis la racine : utilisez « set -a », « source .env », « set +a » avant de lancer les services."
-echo ""
-echo "Terminal 1 — moteur conteneurs (accès Docker requis) :"
-echo "  cd \"$RACINE_DEPOT\" && set -a && source .env && set +a && pnpm --filter container-engine start"
-echo ""
-echo "Terminal 2 — passerelle API :"
-echo "  cd \"$RACINE_DEPOT\" && set -a && source .env && set +a && pnpm --filter gateway start"
-echo ""
-echo "Terminal 3 — interface web (développement) :"
-echo "  cd \"$RACINE_DEPOT\" && pnpm --filter web dev"
-echo ""
-echo "Contrôles rapides : curl -s \"http://127.0.0.1:8787/health\" (moteur) ; curl -s \"http://127.0.0.1:3000/health\" (passerelle)."
-echo ""
+installation_premiere_fois

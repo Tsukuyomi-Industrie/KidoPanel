@@ -15,3 +15,7 @@ dist
 #fichier de distribution
 
 .directory
+
+# État et journaux du script infra/installer-panel-serveur.sh (PIDs, marqueur, logs locaux)
+infra/run/
+infra/logs/
