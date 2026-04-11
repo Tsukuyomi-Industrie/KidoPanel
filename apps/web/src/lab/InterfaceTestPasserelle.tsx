@@ -231,9 +231,9 @@ export function InterfaceTestPasserelle() {
     <main style={{ padding: "1rem", fontFamily: "system-ui, sans-serif" }}>
       <h1 style={{ fontSize: "1.25rem" }}>KidoPanel — test passerelle</h1>
       <p style={{ fontSize: "0.9rem", opacity: 0.85 }}>
-        Passerelle : <code>{urlBasePasserelle()}</code> (priorité à{" "}
-        <code>VITE_GATEWAY_BASE_URL</code> ; sans variable en dev, même hôte que la page,
-        port 3000)
+        Passerelle : <code>{urlBasePasserelle()}</code> — en{" "}
+        <code>pnpm dev</code>, relais Vite vers <code>127.0.0.1:3000</code> sauf si{" "}
+        <code>VITE_GATEWAY_BASE_URL</code> pointe vers une autre origine (non-loopback).
       </p>
 
       <div

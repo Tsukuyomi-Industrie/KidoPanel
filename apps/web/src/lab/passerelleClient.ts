@@ -1,32 +1,72 @@
+import { CHEMIN_PROXY_PASSERELLE_DEV } from "../config/chemin-proxy-passerelle-dev.js";
+
+function hoteEstLoopback(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  return h === "127.0.0.1" || h === "localhost" || h === "[::1]";
+}
+
+function urlDepuisVariableEnv(): string | null {
+  const b = import.meta.env.VITE_GATEWAY_BASE_URL?.trim();
+  if (!b || b.length === 0) {
+    return null;
+  }
+  return b.replace(/\/$/, "");
+}
+
 /**
- * URL par défaut quand `VITE_GATEWAY_BASE_URL` est absent : en mode dev Vite, si la page
- * n’est pas servie en loopback, on réutilise le même hôte que la barre d’adresse (port 3000).
- * Ainsi un accès `http://IP_DU_VPS:5173` appelle la passerelle sur `http://IP_DU_VPS:3000`.
+ * `http://127.0.0.1:3000` (ou localhost) inliné par Vite : depuis un onglet servi par
+ * `http://IP:5173`, le navigateur envoie la requête au port 3000 de la machine du client,
+ * pas du serveur — d’où « Failed to fetch » alors que la passerelle écoute sur le VPS.
  */
-function urlPasserelleParDefautSansVariable(): string {
-  if (!import.meta.env.DEV || typeof window === "undefined") {
+function envLoopbackIncompatibleAvecPage(urlAbsolue: string): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  try {
+    const u = new URL(urlAbsolue);
+    if (!hoteEstLoopback(u.hostname)) {
+      return false;
+    }
+    return !hoteEstLoopback(window.location.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function urlPasserelleHorsEnvSurMemeHoteQueLaPage(): string {
+  if (typeof window === "undefined") {
     return "http://127.0.0.1:3000";
   }
   const h = window.location.hostname;
-  if (
-    h === "" ||
-    h === "localhost" ||
-    h === "127.0.0.1" ||
-    h === "[::1]"
-  ) {
+  if (h === "" || hoteEstLoopback(h)) {
     return "http://127.0.0.1:3000";
   }
   const scheme = window.location.protocol === "https:" ? "https" : "http";
   return `${scheme}://${h}:3000`;
 }
 
-/** URL de base de la passerelle (variable Vite `VITE_GATEWAY_BASE_URL`, sans slash final). */
+/**
+ * Base des appels à la passerelle : en dev, proxy Vite (même origine) si aucune URL absolue
+ * valide ; en prod, variable d’environnement ou même hôte que la page sur le port 3000.
+ */
 export function urlBasePasserelle(): string {
-  const brute = import.meta.env.VITE_GATEWAY_BASE_URL?.trim();
-  if (brute && brute.length > 0) {
-    return brute.replace(/\/$/, "");
+  let depuisEnv = urlDepuisVariableEnv();
+  if (depuisEnv !== null && envLoopbackIncompatibleAvecPage(depuisEnv)) {
+    depuisEnv = null;
   }
-  return urlPasserelleParDefautSansVariable();
+
+  if (import.meta.env.DEV && typeof window !== "undefined") {
+    if (depuisEnv === null) {
+      return `${window.location.origin}${CHEMIN_PROXY_PASSERELLE_DEV}`;
+    }
+    return depuisEnv;
+  }
+
+  if (depuisEnv !== null) {
+    return depuisEnv;
+  }
+
+  return urlPasserelleHorsEnvSurMemeHoteQueLaPage();
 }
 
 const CLE_JWT_LAB = "kido-panel-lab-jwt";
