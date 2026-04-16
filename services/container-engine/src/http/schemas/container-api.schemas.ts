@@ -1,32 +1,9 @@
 import { z } from "zod";
 
-/** Schéma d’une liaison hôte pour un port conteneur (ex. `80/tcp`). */
-const portBindingSchema = z.object({
-  hostIp: z.string().optional(),
-  hostPort: z.string().min(1),
-});
-
-/** Schéma de la configuration hôte transmise dans le corps de création. */
-const hostConfigBodySchema = z.object({
-  memoryBytes: z.number().int().positive().optional(),
-  nanoCpus: z.number().int().positive().optional(),
-  portBindings: z.record(z.string(), z.array(portBindingSchema)).optional(),
-  autoRemove: z.boolean().optional(),
-  binds: z.array(z.string()).optional(),
-});
-
-/** Corps JSON pour `POST /containers` (création), aligné sur `ContainerCreateSpec`. */
-export const createContainerJsonSchema = z.object({
-  name: z.string().min(1).max(255).optional(),
-  image: z.string().min(1),
-  cmd: z.array(z.string()).optional(),
-  env: z.record(z.string(), z.string()).optional(),
-  labels: z.record(z.string(), z.string()).optional(),
-  exposedPorts: z.array(z.string().min(1)).optional(),
-  hostConfig: hostConfigBodySchema.optional(),
-  openStdin: z.boolean().optional(),
-  tty: z.boolean().optional(),
-});
+export {
+  createContainerJsonSchema,
+  type CreateContainerJson,
+} from "./creation-conteneur-corps.schema.js";
 
 /** Paramètre de requête `all` pour lister aussi les conteneurs arrêtés. */
 export const listContainersQuerySchema = z.object({
@@ -59,4 +36,3 @@ export const stopContainerJsonSchema = z.object({
   timeoutSeconds: z.number().int().min(1).max(300).optional(),
 });
 
-export type CreateContainerJson = z.infer<typeof createContainerJsonSchema>;

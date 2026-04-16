@@ -1,14 +1,10 @@
 import type {
-  ContainerCreateOptions,
   ContainerInspectInfo,
   ContainerInfo,
-  HostConfig,
-  PortBinding as DockerPortBinding,
 } from "dockerode";
 import {
   type CreateContainerResult,
   type ContainerCreateSpec,
-  type ContainerHostConfig,
   type ContainerStatus,
   type ContainerSummary,
 } from "./types.js";
@@ -29,47 +25,7 @@ import {
   ouvrirFluxSuiviJournaux,
   type FluxSuiviJournaux,
 } from "./container-engine-logs.js";
-
-/** Construit le champ Docker `ExposedPorts` à partir d’une liste de ports (`"80/tcp"`). */
-function mapExposedPorts(
-  ports: string[] | undefined,
-): Record<string, object> | undefined {
-  if (!ports?.length) return undefined;
-  const out: Record<string, object> = {};
-  for (const p of ports) {
-    out[p] = {};
-  }
-  return out;
-}
-
-/** Traduit les liaisons métier vers le format `PortBindings` de l’API Docker. */
-function mapPortBindings(
-  bindings: ContainerHostConfig["portBindings"],
-): Record<string, DockerPortBinding[]> | undefined {
-  if (!bindings) return undefined;
-  const out: Record<string, DockerPortBinding[]> = {};
-  for (const [containerPort, list] of Object.entries(bindings)) {
-    out[containerPort] = list.map((b) => ({
-      HostIp: b.hostIp ?? "",
-      HostPort: b.hostPort,
-    }));
-  }
-  return out;
-}
-
-/** Projette la configuration hôte métier sur un `HostConfig` Docker. */
-function mapHostConfig(
-  host?: ContainerHostConfig,
-): HostConfig | undefined {
-  if (!host) return undefined;
-  return {
-    Memory: host.memoryBytes,
-    NanoCpus: host.nanoCpus,
-    PortBindings: mapPortBindings(host.portBindings),
-    AutoRemove: host.autoRemove,
-    Binds: host.binds,
-  };
-}
+import { traduireOptionsCreationConteneur } from "./docker/traduction-options-creation-conteneur.js";
 
 /** Normalise l’état brut Docker vers le type `ContainerStatus` du domaine. */
 function mapDockerState(state: string | undefined): ContainerStatus {
@@ -172,21 +128,10 @@ export class ContainerEngine {
 
     const referenceImage = spec.image.trim();
 
-    const env = spec.env
-      ? Object.entries(spec.env).map(([k, v]) => `${k}=${v}`)
-      : undefined;
-
-    const opts: ContainerCreateOptions = {
-      name: spec.name,
-      Image: referenceImage,
-      Cmd: spec.cmd,
-      Env: env,
-      Labels: spec.labels,
-      ExposedPorts: mapExposedPorts(spec.exposedPorts),
-      HostConfig: mapHostConfig(spec.hostConfig),
-      OpenStdin: spec.openStdin,
-      Tty: spec.tty,
-    };
+    const opts = traduireOptionsCreationConteneur({
+      ...spec,
+      image: referenceImage,
+    });
 
     try {
       await this.serviceImages.ensureImageAvailable(referenceImage);

@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SectionAuthLab } from "./SectionAuthLab.js";
+import { construireCorpsCreationConteneurDepuisEtat } from "./corpsCreationConteneurLab.js";
 import {
-  SectionCreationConteneurLab,
-  SectionListeConteneursLab,
-} from "./SectionConteneursEtCreationLab.js";
+  etatInitialCreationConteneurLab,
+  type EtatCreationConteneurLab,
+} from "./etatCreationConteneurLab.js";
+import { SectionCreationConteneurAvanceLab } from "./SectionCreationConteneurAvanceLab.js";
+import { SectionListeConteneursLab } from "./SectionConteneursEtCreationLab.js";
 import { SectionJournauxSseLab } from "./SectionJournauxSseLab.js";
 import {
   appelerPasserelle,
@@ -14,12 +17,9 @@ import {
   lireJetonStockage,
   urlBasePasserelle,
 } from "./passerelleClient.js";
-import {
-  enrichirTexteErreurPourAffichage,
-  formaterErreurPourAffichagePanel,
-} from "./passerelleErreursAffichageLab.js";
+import { formaterErreurPourAffichagePanel } from "./passerelleErreursAffichageLab.js";
+import { PanneauSanteEtErreurPasserelleLab } from "./PanneauSanteEtErreurPasserelleLab.js";
 import { sondageSantePasserelle } from "./passerelleSondeLab.js";
-import { styleBlocLab, stylePreLab } from "./stylesCommunsLab.js";
 import type { ResumeConteneurLab } from "./typesConteneurLab.js";
 
 /**
@@ -34,8 +34,12 @@ export function InterfaceTestPasserelle() {
   const [motDePasseConnexion, setMotDePasseConnexion] = useState("");
   const [conteneurs, setConteneurs] = useState<ResumeConteneurLab[]>([]);
   const [idSelectionne, setIdSelectionne] = useState("");
-  const [imageCreation, setImageCreation] = useState("nginx:alpine");
-  const [nomCreation, setNomCreation] = useState("");
+  const [etatCreation, setEtatCreation] = useState<EtatCreationConteneurLab>(
+    etatInitialCreationConteneurLab,
+  );
+  const majEtatCreation = useCallback((partiel: Partial<EtatCreationConteneurLab>) => {
+    setEtatCreation((courant) => ({ ...courant, ...partiel }));
+  }, []);
   const [messageErreur, setMessageErreur] = useState<string | null>(null);
   const [chargementListe, setChargementListe] = useState(false);
   const [fluxJournauxActif, setFluxJournauxActif] = useState(false);
@@ -170,12 +174,18 @@ export function InterfaceTestPasserelle() {
 
   const surCreer = async () => {
     setMessageErreur(null);
-    const corps: { image: string; name?: string } = {
-      image: imageCreation.trim(),
-    };
-    const nom = nomCreation.trim();
-    if (nom !== "") {
-      corps.name = nom;
+    let corps: Record<string, unknown>;
+    try {
+      corps = construireCorpsCreationConteneurDepuisEtat(etatCreation);
+    } catch (e) {
+      setMessageErreur(
+        formaterErreurPourAffichagePanel(
+          e,
+          composerUrlPasserelle("/containers"),
+          "préparation du corps de création",
+        ),
+      );
+      return;
     }
     try {
       refUrlContexteErreur.current = composerUrlPasserelle("/containers");
@@ -239,65 +249,13 @@ export function InterfaceTestPasserelle() {
         <code>apps/web/.env.example</code>.
       </p>
 
-      <div
-        style={{
-          ...styleBlocLab,
-          marginBottom: "0.75rem",
-          borderColor:
-            etatSondePasserelle === "ok"
-              ? "#2a5a2a"
-              : etatSondePasserelle === "echec"
-                ? "#a33"
-                : "#555",
-        }}
-      >
-        <strong>Sonde GET /health</strong>
-        {etatSondePasserelle === "en_cours" ? (
-          <p style={{ margin: "0.35rem 0 0", fontSize: "0.9rem" }}>
-            Vérification en cours…
-          </p>
-        ) : (
-          <pre style={{ ...stylePreLab, marginTop: "0.35rem" }}>
-            {enrichirTexteErreurPourAffichage(
-              texteSondePasserelle,
-              composerUrlPasserelle("/health"),
-            )}
-          </pre>
-        )}
-        <button
-          type="button"
-          onClick={() => void reverifierPasserelle()}
-          disabled={etatSondePasserelle === "en_cours"}
-          style={{ marginTop: "0.5rem" }}
-        >
-          Revérifier la connexion
-        </button>
-      </div>
-
-      {messageErreur ? (
-        <div
-          role="alert"
-          style={{
-            ...styleBlocLab,
-            borderColor: "#a33",
-            background: "#2a1515",
-          }}
-        >
-          <strong>Erreur</strong>
-          <pre
-            style={{
-              ...stylePreLab,
-              maxHeight: "min(70vh, 560px)",
-              minHeight: "4.5rem",
-            }}
-          >
-            {enrichirTexteErreurPourAffichage(
-              messageErreur,
-              refUrlContexteErreur.current,
-            )}
-          </pre>
-        </div>
-      ) : null}
+      <PanneauSanteEtErreurPasserelleLab
+        etatSondePasserelle={etatSondePasserelle}
+        texteSondePasserelle={texteSondePasserelle}
+        surReverifierPasserelle={reverifierPasserelle}
+        messageErreur={messageErreur}
+        refUrlContexteErreur={refUrlContexteErreur}
+      />
 
       <SectionAuthLab
         emailInscription={emailInscription}
@@ -323,11 +281,9 @@ export function InterfaceTestPasserelle() {
         actionConteneur={actionConteneur}
       />
 
-      <SectionCreationConteneurLab
-        imageCreation={imageCreation}
-        setImageCreation={setImageCreation}
-        nomCreation={nomCreation}
-        setNomCreation={setNomCreation}
+      <SectionCreationConteneurAvanceLab
+        etat={etatCreation}
+        majEtat={majEtatCreation}
         surCreer={surCreer}
       />
 
