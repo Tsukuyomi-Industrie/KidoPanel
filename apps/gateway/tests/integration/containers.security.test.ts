@@ -27,8 +27,10 @@ describe("vérification statique du montage des routes proxy conteneurs", () => 
       new URL("../../src/http/routes/containers-proxy.routes.ts", import.meta.url),
     );
     const source = readFileSync(cheminFichier, "utf8");
-    expect(source).toContain('conteneurs.get("/", relayer)');
-    expect(source).toContain('conteneurs.post("/", relayer)');
+    expect(source).toContain("proxyListeConteneursGet");
+    expect(source).toContain("proxyCreationConteneursPost");
+    expect(source).toMatch(/conteneurs\.get\("\/",/);
+    expect(source).toMatch(/conteneurs\.post\("\/",/);
     expect(source).toContain('conteneurs.post("/:id/start", relayer)');
     expect(source).toContain('conteneurs.post("/:id/stop", relayer)');
     expect(source).toContain('conteneurs.delete("/:id", relayer)');

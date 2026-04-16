@@ -27,7 +27,8 @@ export async function forwardRequestToContainerEngine(
   c: Context<{ Variables: VariablesGateway }>,
 ): Promise<Response> {
   const base = getContainerEngineBaseUrl();
-  const entrant = new URL(c.req.url);
+  // Base factice : `c.req.url` peut être une URL relative (« /containers ») selon l’hôte Hono.
+  const entrant = new URL(c.req.url, "http://127.0.0.1");
   const cible = new URL(entrant.pathname + entrant.search, `${base}/`);
 
   const enTetes = new Headers();

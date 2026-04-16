@@ -2,7 +2,11 @@ import { Hono } from "hono";
 import type { ContainerOwnershipRepository } from "../../auth/container-ownership-repository.prisma.js";
 import { creerMiddlewareAuthObligatoire } from "../../auth/auth.middleware.js";
 import type { VariablesGateway } from "../types/gateway-variables.js";
-import { proxyConteneursAvecPropriete } from "../services/proxy-conteneurs-authentifie.service.js";
+import {
+  proxyConteneursAvecPropriete,
+  proxyCreationConteneursPost,
+  proxyListeConteneursGet,
+} from "../services/proxy-conteneurs-authentifie.service.js";
 
 /**
  * Proxy REST des conteneurs vers le container-engine, protégé par JWT et cloisonné par utilisateur.
@@ -15,18 +19,25 @@ export function monterRoutesProxyConteneurs(
   const conteneurs = new Hono<{ Variables: VariablesGateway }>();
   conteneurs.use("*", creerMiddlewareAuthObligatoire(secretJwt));
 
-  const relayer = (c: Parameters<typeof proxyConteneursAvecPropriete>[0]) => {
+  const exigerUtilisateur = (c: Parameters<typeof proxyConteneursAvecPropriete>[0]) => {
     const utilisateur = c.get("utilisateur");
     if (utilisateur === undefined) {
       throw new Error(
         "Invariant : absence d’utilisateur après authentification JWT.",
       );
     }
-    return proxyConteneursAvecPropriete(c, utilisateur, depotPropriete);
+    return utilisateur;
   };
 
-  conteneurs.get("/", relayer);
-  conteneurs.post("/", relayer);
+  conteneurs.get("/", (c) =>
+    proxyListeConteneursGet(c, exigerUtilisateur(c), depotPropriete),
+  );
+  conteneurs.post("/", (c) =>
+    proxyCreationConteneursPost(c, exigerUtilisateur(c), depotPropriete),
+  );
+
+  const relayer = (c: Parameters<typeof proxyConteneursAvecPropriete>[0]) =>
+    proxyConteneursAvecPropriete(c, exigerUtilisateur(c), depotPropriete);
   conteneurs.post("/:id/start", relayer);
   conteneurs.post("/:id/stop", relayer);
   conteneurs.delete("/:id", relayer);
