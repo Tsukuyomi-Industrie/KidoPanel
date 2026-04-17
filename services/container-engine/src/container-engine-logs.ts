@@ -10,7 +10,7 @@ import { ContainerEngineError } from "./errors.js";
 export async function lireJournauxConteneur(
   docker: DockerClient,
   id: string,
-  options?: { tail?: number; timestamps?: boolean },
+  options?: { tail?: number; timestamps?: boolean; since?: number },
 ): Promise<string> {
   try {
     const container = docker.getContainer(id);
@@ -19,6 +19,7 @@ export async function lireJournauxConteneur(
       stderr: true,
       timestamps: options?.timestamps,
       tail: options?.tail,
+      since: options?.since,
     });
     return Buffer.isBuffer(buf) ? buf.toString("utf8") : String(buf);
   } catch (e) {
@@ -39,7 +40,7 @@ export type FluxSuiviJournaux = {
 export async function ouvrirFluxSuiviJournaux(
   docker: DockerClient,
   containerId: string,
-  options?: { tail?: number; timestamps?: boolean },
+  options?: { tail?: number; timestamps?: boolean; since?: number },
 ): Promise<FluxSuiviJournaux> {
   const container = docker.getContainer(containerId);
   let tty = false;
@@ -58,6 +59,7 @@ export async function ouvrirFluxSuiviJournaux(
       stderr: true,
       timestamps: options?.timestamps ?? false,
       tail: options?.tail,
+      since: options?.since,
     });
     if (Buffer.isBuffer(resultat)) {
       throw new ContainerEngineError(

@@ -1,11 +1,7 @@
-import type {
-  ContainerInspectInfo,
-  ContainerInfo,
-} from "dockerode";
+import type { ContainerInspectInfo } from "dockerode";
 import {
   type CreateContainerResult,
   type ContainerCreateSpec,
-  type ContainerStatus,
   type ContainerSummary,
 } from "./types.js";
 import { isContainerEngineError } from "./errors.js";
@@ -29,51 +25,20 @@ import { creerServiceTirageImageCatalogue } from "./image-puller.service.js";
 import { validerImageCatalogueAvantCreation } from "./image-validator.service.js";
 import type { ServiceTirageImageCatalogue } from "./image-puller.service.js";
 import { journaliserMoteur } from "./observabilite/journal-json.js";
-
-/** Normalise l’état brut Docker vers le type `ContainerStatus` du domaine. */
-function mapDockerState(state: string | undefined): ContainerStatus {
-  switch (state) {
-    case "created":
-    case "running":
-    case "paused":
-    case "restarting":
-    case "removing":
-    case "exited":
-    case "dead":
-      return state;
-    default:
-      return "unknown";
-  }
-}
-
-/** Transforme une entrée de `listContainers` Docker en résumé métier. */
-function mapListItem(c: ContainerInfo): ContainerSummary {
-  const ports =
-    c.Ports?.map((p) => ({
-      privatePort: p.PrivatePort,
-      publicPort: p.PublicPort,
-      type: p.Type,
-      ip: p.IP,
-    })) ?? [];
-
-  return {
-    id: c.Id,
-    names: c.Names ?? [],
-    image: c.Image,
-    imageId: c.ImageID,
-    command: c.Command,
-    created: c.Created,
-    status: c.Status,
-    state: mapDockerState(c.State),
-    labels: c.Labels ?? {},
-    ports,
-  };
-}
+import {
+  creerServiceJournauxFichierConteneur,
+  type ServiceJournauxFichierConteneur,
+} from "./journaux-fichier-conteneur/journaux-fichier-conteneur.service.js";
+import { mapEntreeListeDockerVersResume } from "./conteneur-liste-docker.mapper.js";
 
 /** Options du constructeur : client injecté ou paramètres de connexion explicites. */
 export interface ContainerEngineOptions {
   docker?: DockerClient;
   connection?: DockerConnectionOptions;
+  /**
+   * Service de journaux `.log` par conteneur : instance dédiée, ou `false` pour désactiver (tests).
+   */
+  journauxFichierConteneur?: ServiceJournauxFichierConteneur | false;
 }
 
 /**
@@ -83,6 +48,7 @@ export interface ContainerEngineOptions {
 export class ContainerEngine {
   private readonly docker: DockerClient;
   private readonly serviceTirageCatalogue: ServiceTirageImageCatalogue;
+  private readonly journauxFichierConteneur: ServiceJournauxFichierConteneur | undefined;
 
   constructor(options?: ContainerEngineOptions) {
     if (options?.docker) {
@@ -91,6 +57,13 @@ export class ContainerEngine {
       this.docker = createDockerClient(options?.connection);
     }
     this.serviceTirageCatalogue = creerServiceTirageImageCatalogue(this.docker);
+    if (options?.journauxFichierConteneur === false) {
+      this.journauxFichierConteneur = undefined;
+    } else {
+      this.journauxFichierConteneur =
+        options?.journauxFichierConteneur ??
+        creerServiceJournauxFichierConteneur(this.docker);
+    }
   }
 
   /** Indique si le démon répond au ping. */
@@ -106,7 +79,7 @@ export class ContainerEngine {
   async listContainers(all = false): Promise<ContainerSummary[]> {
     try {
       const list = await this.docker.listContainers({ all });
-      return list.map(mapListItem);
+      return list.map(mapEntreeListeDockerVersResume);
     } catch (e) {
       wrapDockerError(e);
     }
@@ -147,22 +120,36 @@ export class ContainerEngine {
           referenceDocker: entree.referenceDocker,
         },
       });
-      return {
+      const resultat: CreateContainerResult = {
         id: container.id,
         warnings: [],
       };
+      void this.journauxFichierConteneur
+        ?.notifierCreation(resultat.id, {
+          idCatalogueImage: spec.imageCatalogId,
+          nomConteneur: spec.name,
+          hostname: spec.hostname,
+          idRequete: requestId,
+        })
+        .catch(() => {});
+      return resultat;
     } catch (e) {
       wrapDockerError(e);
     }
   }
 
   async startContainer(id: string): Promise<void> {
+    const depuisEpochSecondes = Math.floor(Date.now() / 1000) - 1;
     try {
       const container = this.docker.getContainer(id);
       await container.start();
     } catch (e) {
       wrapDockerError(e);
     }
+    this.journauxFichierConteneur?.notifierDemarrageEtDemarrerSuiviSortie(
+      id,
+      depuisEpochSecondes,
+    );
   }
 
   async stopContainer(id: string, timeoutSeconds = 10): Promise<void> {
@@ -171,18 +158,33 @@ export class ContainerEngine {
       await container.stop({ t: timeoutSeconds });
     } catch (e) {
       if (estErreurArretConteneurDejaArrete(e)) {
+        void this.journauxFichierConteneur?.arreterSuiviSortie(id);
+        void this.journauxFichierConteneur
+          ?.notifierArret(id, { delaiSeconde: timeoutSeconds })
+          .catch(() => {});
         return;
       }
       wrapDockerError(e);
     }
+    void this.journauxFichierConteneur?.arreterSuiviSortie(id);
+    void this.journauxFichierConteneur
+      ?.notifierArret(id, { delaiSeconde: timeoutSeconds })
+      .catch(() => {});
   }
 
   async removeContainer(id: string, options?: { force?: boolean }): Promise<void> {
+    const idComplet = await this.journauxFichierConteneur?.obtenirIdCompletSiPossible(id);
+    await this.journauxFichierConteneur?.arreterSuiviSortie(id);
     try {
       const container = this.docker.getContainer(id);
       await container.remove({ force: options?.force });
     } catch (e) {
       wrapDockerError(e);
+    }
+    if (idComplet !== undefined) {
+      void this.journauxFichierConteneur
+        ?.notifierSuppressionApresDocker(idComplet, { force: options?.force })
+        .catch(() => {});
     }
   }
 
@@ -241,7 +243,14 @@ export class ContainerEngine {
     id: string,
     options?: { tail?: number; timestamps?: boolean },
   ): Promise<string> {
-    return lireJournauxConteneur(this.docker, id, options);
+    const texte = await lireJournauxConteneur(this.docker, id, options);
+    void this.journauxFichierConteneur
+      ?.notifierLectureJournauxJson(id, {
+        nombreLignes: options?.tail,
+        horodatages: options?.timestamps ?? false,
+      })
+      .catch(() => {});
+    return texte;
   }
 
   /**
