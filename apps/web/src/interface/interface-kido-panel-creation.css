@@ -1,0 +1,90 @@
+/* Page et assistant de création de conteneur dans le panel. */
+
+.kp-creation-page__hero {
+  margin-bottom: 1.25rem;
+  padding: 1.15rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--workspace-surface) 88%, #0ea5e9) 0%,
+    var(--workspace-surface) 65%
+  );
+}
+
+.kp-creation-page__fil {
+  margin-bottom: 0.65rem;
+}
+
+.kp-creation-page__titre {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.45rem, 3.5vw, 1.85rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text-h);
+}
+
+.kp-creation-page__sous {
+  margin: 0 0 0.85rem;
+  max-width: 40rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.kp-creation-racine {
+  padding: 1.15rem 1.25rem 1.35rem;
+}
+
+.kp-creation-racine > h2:first-of-type {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-h);
+  letter-spacing: -0.02em;
+}
+
+.kp-creation-avertissement {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--code-bg) 35%, var(--workspace-surface));
+}
+
+.kp-creation-avertissement summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.kp-creation-avertissement[open] summary {
+  margin-bottom: 0.5rem;
+}
+
+.kp-creation-sous-carte {
+  margin-bottom: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--code-bg) 22%, var(--workspace-surface));
+}
+
+.kp-creation-sous-carte h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.kp-creation-actions {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.kp-creation-actions .bouton-principal-kido {
+  min-width: 12rem;
+}

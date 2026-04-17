@@ -25,9 +25,6 @@ export function RailNavigationKidoPanel({ surDeconnexion }: PropsRailNavigationK
           <NavLink to="/coeur-docker" className={classeLienRail}>
             Cœur Docker
           </NavLink>
-          <NavLink to="/coeur-docker/nouveau" className={classeLienRail}>
-            Nouveau conteneur
-          </NavLink>
           <NavLink to="/parametres" className={classeLienRail}>
             Paramètres
           </NavLink>

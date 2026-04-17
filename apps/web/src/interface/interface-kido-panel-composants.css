@@ -230,3 +230,34 @@
   font-weight: 500;
   color: var(--text-h);
 }
+
+.kp-erreur-passerelle {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #ef4444 45%, var(--border));
+  background: color-mix(in srgb, #ef4444 9%, var(--workspace-surface));
+}
+
+.kp-erreur-passerelle__titre {
+  display: block;
+  font-size: 0.88rem;
+  margin-bottom: 0.4rem;
+  color: var(--text-h);
+}
+
+.kp-erreur-passerelle__corps {
+  margin: 0;
+  max-height: min(55vh, 420px);
+  min-height: 3.5rem;
+  overflow: auto;
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  background: var(--code-bg);
+  color: var(--text-h);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

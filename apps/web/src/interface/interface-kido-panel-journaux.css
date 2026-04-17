@@ -1,0 +1,205 @@
+/* Panneau journaux conteneur : en-tête repliable et console de lecture. */
+
+.kp-journaux {
+  margin-top: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--workspace-surface);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.kp-journaux__deplier {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  padding: 0.85rem 1rem;
+  border: none;
+  background: color-mix(in srgb, var(--code-bg) 40%, var(--workspace-surface));
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--text-h);
+  transition: background 0.15s ease;
+}
+
+.kp-journaux__deplier:hover {
+  background: color-mix(in srgb, var(--accent-bg) 25%, var(--workspace-surface));
+}
+
+.kp-journaux__deplier:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.kp-journaux__chevron {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid var(--text-h);
+  border-bottom: 2px solid var(--text-h);
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.kp-journaux__chevron[data-ouvert="true"] {
+  transform: rotate(45deg);
+  margin-top: -0.15rem;
+}
+
+.kp-journaux__titre-bloc {
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+}
+
+.kp-journaux__resume {
+  flex: 1 1 auto;
+  font-size: 0.8rem;
+  color: var(--text);
+  font-family: var(--mono);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kp-journaux__corps {
+  padding: 0.85rem 1rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.kp-journaux__aide {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.kp-journaux__aide code {
+  font-size: 0.78rem;
+}
+
+.kp-journaux__barre {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.85rem;
+  align-items: center;
+  margin-bottom: 0.65rem;
+  font-size: 0.8rem;
+}
+
+.kp-journaux__barre label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-h);
+}
+
+.kp-journaux__select,
+.kp-journaux__champ {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.kp-journaux__champ-recherche {
+  flex: 1 1 200px;
+  min-width: 140px;
+}
+
+.kp-journaux__compteur {
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.kp-journaux__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.65rem;
+}
+
+.kp-journaux__btn {
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.4rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--workspace-surface);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.kp-journaux__btn:hover:not(:disabled) {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.kp-journaux__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.kp-journaux__btn--primaire {
+  border-color: transparent;
+  background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+  color: #f8fafc;
+}
+
+.kp-journaux__etat {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.kp-journaux__etat strong {
+  color: var(--text-h);
+}
+
+.kp-journaux__erreur {
+  margin: 0 0 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, #ef4444 45%, var(--border));
+  background: color-mix(in srgb, #ef4444 10%, var(--workspace-surface));
+  font-size: 0.78rem;
+  max-height: min(40vh, 280px);
+  overflow: auto;
+  color: var(--text-h);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.kp-journaux__vue {
+  margin: 0;
+  min-height: min(42vh, 360px);
+  max-height: min(58vh, 520px);
+  overflow: auto;
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #0b1220;
+  color: #cbd5e1;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.kp-journaux__vue--wrap {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.kp-journaux__vue--nowrap {
+  white-space: pre;
+  word-break: normal;
+}

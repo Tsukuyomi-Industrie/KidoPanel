@@ -35,20 +35,24 @@ export function SectionCreationConteneurAvanceLab({
   jetonSession,
   masquerParagrapheDocumentationApi = false,
 }: Props) {
+  const modePanel = masquerParagrapheDocumentationApi;
+
   return (
     <section
       className={
-        masquerParagrapheDocumentationApi
-          ? "section-creation-conteneur-panel"
-          : undefined
+        modePanel ? "section-creation-conteneur-panel kp-creation-racine" : undefined
       }
-      style={styleBlocLab}
+      style={modePanel ? undefined : styleBlocLab}
     >
-      <h2 style={{ fontSize: "1rem", marginTop: 0 }}>
+      <h2 style={modePanel ? undefined : { fontSize: "1rem", marginTop: 0 }}>
         Créer un conteneur (aide par champ)
       </h2>
-      <details open style={{ marginBottom: 12 }}>
-        <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+      <details
+        className={modePanel ? "kp-creation-avertissement" : undefined}
+        open
+        style={modePanel ? undefined : { marginBottom: 12 }}
+      >
+        <summary style={modePanel ? undefined : { cursor: "pointer", fontWeight: 600 }}>
           Lire avant de remplir : création, démarrage, conteneur qui s’arrête tout de suite
         </summary>
         <TexteAideChampCreationConteneurLab texte={AIDE_CREATION_CONTENEUR_ENTETE} />
@@ -66,6 +70,7 @@ export function SectionCreationConteneurAvanceLab({
         etatFormulaire={etat}
         surRemplirFormulaire={surRemplirFormulaire}
         surErreur={surErreurConfiguration}
+        presentationPanel={modePanel}
       />
       <BlocJsonCorpsSupplementaireCreationConteneurLab etat={etat} majEtat={majEtat} />
 
@@ -79,9 +84,17 @@ export function SectionCreationConteneurAvanceLab({
       <BlocHoteRuntimeEtMemoireCreationConteneurLab etat={etat} majEtat={majEtat} />
       <BlocSecuriteRessourcesEtJsonCreationConteneurLab etat={etat} majEtat={majEtat} />
 
-      <button type="button" onClick={() => void surCreer()}>
-        Créer le conteneur
-      </button>
+      {modePanel ? (
+        <div className="kp-creation-actions">
+          <button type="button" className="bouton-principal-kido" onClick={() => void surCreer()}>
+            Créer le conteneur
+          </button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => void surCreer()}>
+          Créer le conteneur
+        </button>
+      )}
     </section>
   );
 }

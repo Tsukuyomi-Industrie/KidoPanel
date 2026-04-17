@@ -24,6 +24,8 @@ type Props = {
   etatFormulaire: EtatCreationConteneurLab;
   surRemplirFormulaire: (nouvelEtat: EtatCreationConteneurLab) => void;
   surErreur: (message: string) => void;
+  /** Style carte du panel : sans encadré sombre du lab. */
+  presentationPanel?: boolean;
 };
 
 type ModeModal = "ferme" | "creation" | "edition";
@@ -36,6 +38,7 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
   etatFormulaire,
   surRemplirFormulaire,
   surErreur,
+  presentationPanel = false,
 }: Props) {
   const [liste, setListe] = useState<ConfigurationCreationConteneurSauvegardee[]>([]);
   const [idSelection, setIdSelection] = useState("");
@@ -195,7 +198,10 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
   const stockageOk = stockageLocalDisponible();
 
   return (
-    <section style={{ ...styleBlocLab, marginBottom: 12 }}>
+    <section
+      className={presentationPanel ? "kp-creation-sous-carte" : undefined}
+      style={presentationPanel ? undefined : { ...styleBlocLab, marginBottom: 12 }}
+    >
       <h2 style={{ fontSize: "1rem", marginTop: 0 }}>
         Configurations sauvegardées (navigateur)
       </h2>

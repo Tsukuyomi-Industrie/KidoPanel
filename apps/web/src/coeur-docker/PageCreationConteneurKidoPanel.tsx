@@ -1,37 +1,33 @@
 import { Link } from "react-router-dom";
+import { BandeauErreurPasserelleKidoPanel } from "../interface/BandeauErreurPasserelleKidoPanel.js";
 import { SectionCreationConteneurAvanceLab } from "../lab/SectionCreationConteneurAvanceLab.js";
-import { PanneauSanteEtErreurPasserelleLab } from "../lab/PanneauSanteEtErreurPasserelleLab.js";
 import { useGestionConteneursPasserelle } from "./GestionConteneursPasserelleProvider.js";
 
 /**
- * Assistant de création : même moteur de validation que l’ancien formulaire, présentation cartographiée.
+ * Assistant de création : accès principal depuis le cœur Docker, formulaire avancé et bandeau d’erreur seul.
  */
 export function PageCreationConteneurKidoPanel() {
   const g = useGestionConteneursPasserelle();
 
   return (
-    <div className="kidopanel-page-centree kidopanel-page-creation">
-      <nav className="kidopanel-fil-ariane" aria-label="Fil d’Ariane">
-        <Link to="/coeur-docker">Cœur Docker</Link>
-        <span aria-hidden="true"> / </span>
-        <span>Nouveau conteneur</span>
-      </nav>
-
-      <header className="kidopanel-hero-tableau kidopanel-hero-compact">
-        <h1 className="kidopanel-titre-page">Création de conteneur</h1>
-        <p className="kidopanel-sous-titre-page">
-          Paramètres alignés sur l’API Docker : validation côté passerelle et moteur, catalogue d’images
-          contrôlé.
+    <div className="kidopanel-page-centree kidopanel-page-creation kp-creation-page">
+      <header className="kp-creation-page__hero">
+        <nav className="kidopanel-fil-ariane kp-creation-page__fil" aria-label="Fil d’Ariane">
+          <Link to="/coeur-docker">Cœur Docker</Link>
+          <span aria-hidden="true"> / </span>
+          <span>Nouveau conteneur</span>
+        </nav>
+        <h1 className="kp-creation-page__titre">Nouveau conteneur</h1>
+        <p className="kp-creation-page__sous">
+          Image issue du catalogue contrôlé, paramètres alignés sur l’API Docker : validation côté passerelle
+          puis moteur.
         </p>
         <Link to="/coeur-docker" className="bouton-secondaire-kido kidopanel-lien-bouton-secondaire">
           Retour au cœur Docker
         </Link>
       </header>
 
-      <PanneauSanteEtErreurPasserelleLab
-        etatSondePasserelle={g.etatSondePasserelle}
-        texteSondePasserelle={g.texteSondePasserelle}
-        surReverifierPasserelle={() => void g.reverifierPasserelle()}
+      <BandeauErreurPasserelleKidoPanel
         messageErreur={g.messageErreur}
         refUrlContexteErreur={g.refUrlContexteErreur}
       />

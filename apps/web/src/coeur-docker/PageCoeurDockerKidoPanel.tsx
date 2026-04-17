@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
-import { PanneauSanteEtErreurPasserelleLab } from "../lab/PanneauSanteEtErreurPasserelleLab.js";
+import { BandeauErreurPasserelleKidoPanel } from "../interface/BandeauErreurPasserelleKidoPanel.js";
 import { SectionJournauxSseLab } from "../lab/SectionJournauxSseLab.js";
 import { useGestionConteneursPasserelle } from "./GestionConteneursPasserelleProvider.js";
 import { GrilleConteneursCoeurDocker } from "./GrilleConteneursCoeurDocker.js";
 
 /**
- * Cœur Docker : supervision des conteneurs, actions rapides et accès aux journaux temps réel.
+ * Cœur Docker : liste des conteneurs, actions et journaux repliables ; erreurs réseau sans sonde HTTP visible.
  */
 export function PageCoeurDockerKidoPanel() {
   const g = useGestionConteneursPasserelle();
@@ -25,10 +25,7 @@ export function PageCoeurDockerKidoPanel() {
         </Link>
       </header>
 
-      <PanneauSanteEtErreurPasserelleLab
-        etatSondePasserelle={g.etatSondePasserelle}
-        texteSondePasserelle={g.texteSondePasserelle}
-        surReverifierPasserelle={() => void g.reverifierPasserelle()}
+      <BandeauErreurPasserelleKidoPanel
         messageErreur={g.messageErreur}
         refUrlContexteErreur={g.refUrlContexteErreur}
       />

@@ -5,6 +5,9 @@ import "./App.css";
 import "./interface/interface-kido-panel.css";
 import "./interface/interface-kido-panel-composants.css";
 import "./interface/interface-kido-panel-coque.css";
+import "./interface/interface-kido-panel-tableau.css";
+import "./interface/interface-kido-panel-journaux.css";
+import "./interface/interface-kido-panel-creation.css";
 
 /**
  * Racine React : routage navigateur et feuille de style du panel authentifié.
