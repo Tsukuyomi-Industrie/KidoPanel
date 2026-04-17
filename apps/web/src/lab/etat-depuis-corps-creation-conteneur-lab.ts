@@ -87,6 +87,34 @@ function octetsVersChaineMo(octets: number): string {
 }
 
 /**
+ * Supprime récursivement les valeurs `null` pour interpréter un JSON « modèle complet »
+ * comme un corps partiel classique avant remplissage du formulaire.
+ */
+function retirerNullProfond(valeur: unknown): unknown {
+  if (valeur === null) {
+    return undefined;
+  }
+  if (Array.isArray(valeur)) {
+    const elements = valeur
+      .map(retirerNullProfond)
+      .filter((x) => x !== undefined);
+    return elements;
+  }
+  if (typeof valeur === "object") {
+    const enregistrement = valeur as Record<string, unknown>;
+    const sortie: Record<string, unknown> = {};
+    for (const [cle, v] of Object.entries(enregistrement)) {
+      const r = retirerNullProfond(v);
+      if (r !== undefined) {
+        sortie[cle] = r;
+      }
+    }
+    return sortie;
+  }
+  return valeur;
+}
+
+/**
  * Projette un corps `POST /containers` (objet JSON) sur l’état du formulaire laboratoire.
  * Lève une erreur si la structure minimale (objet avec `image` non vide) est absente.
  */
@@ -96,7 +124,15 @@ export function etatDepuisCorpsCreationConteneurLab(
   if (brut === null || typeof brut !== "object" || Array.isArray(brut)) {
     throw new Error("La configuration doit être un objet JSON.");
   }
-  const c = brut as Record<string, unknown>;
+  const nettoye = retirerNullProfond(brut);
+  if (
+    nettoye === undefined ||
+    typeof nettoye !== "object" ||
+    Array.isArray(nettoye)
+  ) {
+    throw new Error("La configuration doit rester un objet après nettoyage des valeurs nulles.");
+  }
+  const c = nettoye as Record<string, unknown>;
   const imageBrut = c.image;
   if (typeof imageBrut !== "string" || imageBrut.trim().length === 0) {
     throw new Error(

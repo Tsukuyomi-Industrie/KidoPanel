@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { construireCorpsCreationConteneurDepuisEtat } from "./corpsCreationConteneurLab.js";
+import {
+  construireCorpsJsonConfigurationComplet,
+  normaliserCorpsJsonVersConfigurationComplete,
+} from "./construire-corps-json-configuration-complet-lab.js";
 import { etatDepuisCorpsCreationConteneurLab } from "./etat-depuis-corps-creation-conteneur-lab.js";
 import type { EtatCreationConteneurLab } from "./etatCreationConteneurLab.js";
 import {
@@ -50,7 +53,7 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
 
   const ouvrirCreation = useCallback(() => {
     try {
-      const corps = construireCorpsCreationConteneurDepuisEtat(etatFormulaire);
+      const corps = construireCorpsJsonConfigurationComplet(etatFormulaire);
       setNomEdition("");
       setJsonEdition(JSON.stringify(corps, null, 2));
       setIdEditee(null);
@@ -71,7 +74,13 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
       return;
     }
     setNomEdition(trouvee.nom);
-    setJsonEdition(JSON.stringify(trouvee.corps, null, 2));
+    setJsonEdition(
+      JSON.stringify(
+        normaliserCorpsJsonVersConfigurationComplete(trouvee.corps),
+        null,
+        2,
+      ),
+    );
     setIdEditee(trouvee.id);
     setModal("edition");
   }, [idSelection, liste, surErreur]);
@@ -122,17 +131,18 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
       );
       return;
     }
+    const corpsComplet = normaliserCorpsJsonVersConfigurationComplete(corps);
     if (modal === "creation") {
       const entree: ConfigurationCreationConteneurSauvegardee = {
         id: genererIdConfigurationCreationConteneurLab(),
         nom,
-        corps,
+        corps: corpsComplet,
       };
       persisterListe([...liste, entree]);
       setIdSelection(entree.id);
     } else if (modal === "edition" && idEditee !== null) {
       const suivante = liste.map((x) =>
-        x.id === idEditee ? { ...x, nom, corps } : x,
+        x.id === idEditee ? { ...x, nom, corps: corpsComplet } : x,
       );
       persisterListe(suivante);
     }
@@ -188,9 +198,12 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
         Configurations sauvegardées (navigateur)
       </h2>
       <p style={{ fontSize: "0.82rem", opacity: 0.88, marginTop: 0 }}>
-        Chaque configuration est un corps JSON complet pour <code>POST /containers</code>, stocké
-        uniquement dans ce navigateur (localStorage). Sélectionnez une entrée puis appliquez-la au
-        formulaire avant de créer le conteneur, ou modifiez-la au format JSON.
+        Chaque configuration est un corps JSON <strong>complet</strong> pour <code>POST /containers</code>{" "}
+        (toutes les clés reconnues par le lab, y compris tout le bloc <code>hostConfig</code>), stocké
+        uniquement dans ce navigateur (localStorage). Les valeurs <code>null</code> ou tableaux vides
+        signifient « non utilisé » ; à l’application sur le formulaire, les entrées nulles sont ignorées.
+        Sélectionnez une entrée puis appliquez-la au formulaire avant de créer le conteneur, ou modifiez
+        le JSON puis enregistrez.
       </p>
       {!stockageOk ? (
         <p style={{ fontSize: "0.88rem", color: "#c66" }}>
@@ -294,7 +307,9 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
               />
             </label>
             <label style={styleLabelChampCreation}>
-              <span style={styleTitreChampCreation}>Corps JSON (POST /containers)</span>
+              <span style={styleTitreChampCreation}>
+                Corps JSON complet (toutes les options, pas seulement le nom du conteneur)
+              </span>
               <textarea
                 value={jsonEdition}
                 onChange={(e) => setJsonEdition(e.target.value)}
