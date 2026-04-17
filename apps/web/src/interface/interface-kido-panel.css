@@ -215,3 +215,366 @@
 .carte-tableau-bord h2 {
   margin-top: 0;
 }
+
+.barre-app-kido__marque-lien {
+  text-decoration: none;
+  color: inherit;
+}
+
+.barre-app-kido__marque-lien:hover {
+  color: var(--accent);
+}
+
+.barre-app-kido__email {
+  font-size: 0.88rem;
+  color: var(--text);
+  margin-right: 0.25rem;
+}
+
+.barre-app-kido__lien {
+  text-decoration: none;
+  font-size: 0.88rem;
+  color: var(--text);
+  padding: 0.35rem 0.55rem;
+  border-radius: 8px;
+}
+
+.barre-app-kido__lien:hover {
+  background: var(--accent-bg);
+  color: var(--text-h);
+}
+
+.barre-app-kido__lien--actif {
+  background: var(--accent-bg);
+  color: var(--text-h);
+  border: 1px solid var(--accent-border);
+}
+
+.kidopanel-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+.kidopanel-zone-principale {
+  flex: 1;
+  width: 100%;
+  max-width: min(1200px, 100%);
+  margin: 0 auto;
+}
+
+.kidopanel-page-centree {
+  max-width: min(1120px, 100%);
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.kidopanel-hero-tableau {
+  text-align: center;
+  padding: clamp(1.5rem, 5vw, 3rem) 0 clamp(1.25rem, 4vw, 2rem);
+}
+
+.kidopanel-hero-compact {
+  text-align: left;
+  padding: 1rem 0 1.25rem;
+}
+
+.kidopanel-sur-titre {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text);
+}
+
+.kidopanel-titre-page {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  color: var(--text-h);
+}
+
+.kidopanel-sous-titre-page {
+  margin: 0 auto;
+  max-width: 42rem;
+  color: var(--text);
+  line-height: 1.55;
+  font-size: 1rem;
+}
+
+.kidopanel-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: center;
+  margin-top: 1.35rem;
+}
+
+.kidopanel-lien-bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.kidopanel-lien-bouton-secondaire {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.kidopanel-grille-metriques {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.kidopanel-tuile-metrique {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.1rem 1.2rem;
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--border) 50%, transparent);
+}
+
+.kidopanel-tuile-metrique--large {
+  grid-column: 1 / -1;
+}
+
+.kidopanel-tuile-metrique h3 {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.kidopanel-chiffre-metrique {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--text-h);
+}
+
+.kidopanel-detail-metrique {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.kidopanel-etat-ok {
+  margin: 0;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.kidopanel-etat-ko {
+  margin: 0;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.kidopanel-texte-muted {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.kidopanel-url-passe {
+  word-break: break-all;
+  font-size: 0.82rem;
+}
+
+.kidopanel-carte-principale {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem 1.35rem;
+  margin-bottom: 1.25rem;
+  background: color-mix(in srgb, var(--bg) 96%, transparent);
+}
+
+.kidopanel-carte-muted {
+  opacity: 0.92;
+}
+
+.kidopanel-entete-section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.kidopanel-titre-section {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.kidopanel-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.kidopanel-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.kidopanel-table th,
+.kidopanel-table td {
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.kidopanel-table th {
+  font-weight: 600;
+  color: var(--text-h);
+  background: color-mix(in srgb, var(--code-bg) 70%, transparent);
+}
+
+.kidopanel-table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent-bg) 35%, transparent);
+}
+
+.kidopanel-ligne-selectionnee {
+  background: color-mix(in srgb, var(--accent-bg) 55%, transparent);
+}
+
+.kidopanel-nom-docker {
+  display: block;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.kidopanel-id-court {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.75;
+  font-family: var(--mono);
+}
+
+.kidopanel-pill-etat {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kidopanel-etat--running {
+  background: color-mix(in srgb, #16a34a 18%, transparent);
+  color: #166534;
+}
+
+.kidopanel-etat--exited,
+.kidopanel-etat--created {
+  background: color-mix(in srgb, #64748b 20%, transparent);
+  color: var(--text-h);
+}
+
+.kidopanel-etat--paused {
+  background: color-mix(in srgb, #eab308 22%, transparent);
+  color: #713f12;
+}
+
+.kidopanel-status-secondaire {
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  color: var(--text);
+}
+
+.kidopanel-cellule-mono {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.kidopanel-actions-ligne {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.bouton-ghost-kido {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0.2rem 0.35rem;
+  border-radius: 6px;
+}
+
+.bouton-ghost-kido:hover {
+  background: var(--accent-bg);
+}
+
+.kidopanel-action-danger {
+  color: #dc2626;
+}
+
+.kidopanel-entete-page-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.kidopanel-fil-ariane {
+  font-size: 0.88rem;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+}
+
+.kidopanel-fil-ariane a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.kidopanel-fil-ariane a:hover {
+  text-decoration: underline;
+}
+
+.kidopanel-grille-creation {
+  display: grid;
+  gap: 1rem;
+}
+
+.section-creation-conteneur-panel {
+  border-radius: 16px !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow);
+}
+
+.kidopanel-liste-definitions {
+  margin: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.kidopanel-liste-definitions dt {
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.kidopanel-liste-definitions dd {
+  margin: 0.2rem 0 0;
+  font-weight: 500;
+  color: var(--text-h);
+}

@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { enregistrerJetonApresAuthentificationPanel } from "../lab/passerelleClient.js";
 import {
   connecterViaPasserelle,
   inscrireViaPasserelle,
@@ -8,20 +10,11 @@ import { messagePolitiqueMotDePasseInscription } from "./politiqueMotDePassePane
 
 type ModeOngletAuth = "connexion" | "inscription";
 
-type PropsPageAuthentificationKidoPanel = {
-  surSessionEtablie: (parametres: {
-    jeton: string;
-    email: string;
-    seSouvenir: boolean;
-  }) => void;
-};
-
 /**
  * Écran unique de connexion et d’inscription : validation locale renforcée, option de persistance, textes entièrement en français.
  */
-export function PageAuthentificationKidoPanel({
-  surSessionEtablie,
-}: PropsPageAuthentificationKidoPanel) {
+export function PageAuthentificationKidoPanel() {
+  const navigate = useNavigate();
   const [onglet, setOnglet] = useState<ModeOngletAuth>("connexion");
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
@@ -36,15 +29,9 @@ export function PageAuthentificationKidoPanel({
     setErreur(null);
     setChargement(true);
     try {
-      const { jeton, utilisateur } = await connecterViaPasserelle(
-        email.trim(),
-        motDePasse,
-      );
-      surSessionEtablie({
-        jeton,
-        email: utilisateur.email,
-        seSouvenir,
-      });
+      const { jeton } = await connecterViaPasserelle(email.trim(), motDePasse);
+      enregistrerJetonApresAuthentificationPanel(jeton, seSouvenir);
+      void navigate("/", { replace: true });
     } catch (e) {
       setErreur(e instanceof Error ? e.message : "Connexion impossible.");
     } finally {
@@ -65,15 +52,9 @@ export function PageAuthentificationKidoPanel({
     }
     setChargement(true);
     try {
-      const { jeton, utilisateur } = await inscrireViaPasserelle(
-        email.trim(),
-        motDePasse,
-      );
-      surSessionEtablie({
-        jeton,
-        email: utilisateur.email,
-        seSouvenir,
-      });
+      const { jeton } = await inscrireViaPasserelle(email.trim(), motDePasse);
+      enregistrerJetonApresAuthentificationPanel(jeton, seSouvenir);
+      void navigate("/", { replace: true });
     } catch (e) {
       setErreur(e instanceof Error ? e.message : "Inscription impossible.");
     } finally {

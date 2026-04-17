@@ -18,6 +18,11 @@ type Props = {
   surErreurConfiguration: (message: string) => void;
   /** Jeton JWT pour charger le catalogue `GET /images` côté formulaire. */
   jetonSession: string;
+  /**
+   * Masque le paragraphe technique long : utile sur la page « nouveau conteneur » du panel,
+   * où l’en-tête de page porte déjà le contexte.
+   */
+  masquerParagrapheDocumentationApi?: boolean;
 };
 
 /** Formulaire avancé de création (image catalogue, commande, réseau, ressources, JSON santé / réseau / host). */
@@ -28,9 +33,17 @@ export function SectionCreationConteneurAvanceLab({
   surRemplirFormulaire,
   surErreurConfiguration,
   jetonSession,
+  masquerParagrapheDocumentationApi = false,
 }: Props) {
   return (
-    <section style={styleBlocLab}>
+    <section
+      className={
+        masquerParagrapheDocumentationApi
+          ? "section-creation-conteneur-panel"
+          : undefined
+      }
+      style={styleBlocLab}
+    >
       <h2 style={{ fontSize: "1rem", marginTop: 0 }}>
         Créer un conteneur (aide par champ)
       </h2>
@@ -40,12 +53,14 @@ export function SectionCreationConteneurAvanceLab({
         </summary>
         <TexteAideChampCreationConteneurLab texte={AIDE_CREATION_CONTENEUR_ENTETE} />
       </details>
-      <p style={{ fontSize: "0.88rem", opacity: 0.88, marginTop: 0 }}>
-        Chaque champ ci-dessous comporte un titre lisible et un court texte d’explication. Les noms entre
-        parenthèses renvoient aux champs de l’API Docker lorsqu’ils aident à croiser la documentation
-        officielle ou Portainer. Le JSON « hostConfig additionnel » accepte les mêmes clés que le moteur
-        Docker (souvent en tête PascalCase).
-      </p>
+      {masquerParagrapheDocumentationApi ? null : (
+        <p style={{ fontSize: "0.88rem", opacity: 0.88, marginTop: 0 }}>
+          Chaque champ ci-dessous comporte un titre lisible et un court texte d’explication. Les noms entre
+          parenthèses renvoient aux champs de l’API Docker lorsqu’ils aident à croiser la documentation
+          officielle ou Portainer. Le JSON « hostConfig additionnel » accepte les mêmes clés que le moteur
+          Docker (souvent en tête PascalCase).
+        </p>
+      )}
 
       <PanneauConfigurationsSauvegardeesCreationConteneurLab
         etatFormulaire={etat}

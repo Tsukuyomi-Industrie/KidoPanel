@@ -23,8 +23,8 @@ import { sondageSantePasserelle } from "./passerelleSondeLab.js";
 import type { ResumeConteneurLab } from "./typesConteneurLab.js";
 
 /**
- * Interface minimale pour enregistrer un compte, se connecter, piloter les conteneurs
- * et afficher le flux SSE des journaux via la passerelle.
+ * Outil de débogage tout-en-un (auth + liste + création + SSE) : conservé pour essais hors routeur
+ * principal ; l’application KidoPanel utilise désormais les pages « Cœur Docker » et création dédiées.
  */
 export function InterfaceTestPasserelle() {
   const [jeton, setJeton] = useState(lireJetonStockage);
