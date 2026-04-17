@@ -18,12 +18,17 @@ export function createEngineHttpApp(engine: ContainerEngine): Hono<{
 
   app.use("*", middlewareCorrelationRequeteMoteur);
 
-  app.get("/", (c) =>
-    c.json({
+  app.get("/", (c) => {
+    const repertoireJournauxFichier = engine.obtenirRepertoireJournauxFichierConteneur();
+    return c.json({
       service: "container-engine",
       description: "API HTTP du moteur de conteneurs KidoPanel",
-    }),
-  );
+      journauxFichierConteneur: {
+        actif: repertoireJournauxFichier !== undefined,
+        repertoireAbsolu: repertoireJournauxFichier ?? null,
+      },
+    });
+  });
 
   app.get("/health", async (c) => {
     try {

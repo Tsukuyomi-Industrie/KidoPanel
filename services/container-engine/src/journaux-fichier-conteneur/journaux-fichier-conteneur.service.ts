@@ -36,6 +36,11 @@ export class ServiceJournauxFichierConteneur {
     );
   }
 
+  /** Répertoire absolu où sont écrits les fichiers `<id>.log` (utile pour vérification sans deviner le `cwd`). */
+  obtenirRepertoireAbsolu(): string {
+    return this.repertoire;
+  }
+
   private async assurerRepertoire(): Promise<void> {
     await mkdir(this.repertoire, { recursive: true });
   }

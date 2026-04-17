@@ -254,6 +254,13 @@ export class ContainerEngine {
   }
 
   /**
+   * Répertoire absolu des fichiers `.log` par conteneur, ou `undefined` si l’écriture disque est désactivée.
+   */
+  obtenirRepertoireJournauxFichierConteneur(): string | undefined {
+    return this.journauxFichierConteneur?.obtenirRepertoireAbsolu();
+  }
+
+  /**
    * Ouvre un flux Docker en suivi continu (`follow`) pour exposition SSE ou proxy HTTP.
    */
   openLogFollowStream(
