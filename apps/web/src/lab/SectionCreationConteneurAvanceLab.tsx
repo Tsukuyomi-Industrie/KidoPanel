@@ -1,10 +1,12 @@
 import { BlocIdentiteEtCommandeCreationConteneurLab } from "./BlocIdentiteEtCommandeCreationConteneurLab.js";
 import { BlocHoteRuntimeEtMemoireCreationConteneurLab } from "./BlocHoteRuntimeEtMemoireCreationConteneurLab.js";
+import { BlocJsonCorpsSupplementaireCreationConteneurLab } from "./BlocJsonCorpsSupplementaireCreationConteneurLab.js";
 import { BlocOptionsMoteurDockerCreationConteneurLab } from "./BlocOptionsMoteurDockerCreationConteneurLab.js";
 import { BlocReseauEtEnvironnementCreationConteneurLab } from "./BlocReseauEtEnvironnementCreationConteneurLab.js";
 import { BlocSecuriteRessourcesEtJsonCreationConteneurLab } from "./BlocSecuriteRessourcesEtJsonCreationConteneurLab.js";
 import { AIDE_CREATION_CONTENEUR_ENTETE } from "./definitionsAidesCreationConteneurLab.js";
 import type { EtatCreationConteneurLab } from "./etatCreationConteneurLab.js";
+import { PanneauConfigurationsSauvegardeesCreationConteneurLab } from "./PanneauConfigurationsSauvegardeesCreationConteneurLab.js";
 import { styleBlocLab } from "./stylesCommunsLab.js";
 import { TexteAideChampCreationConteneurLab } from "./TexteAideChampCreationConteneurLab.js";
 
@@ -12,6 +14,8 @@ type Props = {
   etat: EtatCreationConteneurLab;
   majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
   surCreer: () => void;
+  surRemplirFormulaire: (nouvelEtat: EtatCreationConteneurLab) => void;
+  surErreurConfiguration: (message: string) => void;
 };
 
 /** Formulaire avancé de création (image, commande, réseau, ressources, JSON santé / réseau / host). */
@@ -19,6 +23,8 @@ export function SectionCreationConteneurAvanceLab({
   etat,
   majEtat,
   surCreer,
+  surRemplirFormulaire,
+  surErreurConfiguration,
 }: Props) {
   return (
     <section style={styleBlocLab}>
@@ -37,6 +43,13 @@ export function SectionCreationConteneurAvanceLab({
         officielle ou Portainer. Le JSON « hostConfig additionnel » accepte les mêmes clés que le moteur
         Docker (souvent en tête PascalCase).
       </p>
+
+      <PanneauConfigurationsSauvegardeesCreationConteneurLab
+        etatFormulaire={etat}
+        surRemplirFormulaire={surRemplirFormulaire}
+        surErreur={surErreurConfiguration}
+      />
+      <BlocJsonCorpsSupplementaireCreationConteneurLab etat={etat} majEtat={majEtat} />
 
       <BlocIdentiteEtCommandeCreationConteneurLab etat={etat} majEtat={majEtat} />
       <BlocOptionsMoteurDockerCreationConteneurLab etat={etat} majEtat={majEtat} />

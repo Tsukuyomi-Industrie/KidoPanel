@@ -40,6 +40,9 @@ export function InterfaceTestPasserelle() {
   const majEtatCreation = useCallback((partiel: Partial<EtatCreationConteneurLab>) => {
     setEtatCreation((courant) => ({ ...courant, ...partiel }));
   }, []);
+  const remplirFormulaireCreation = useCallback((nouvelEtat: EtatCreationConteneurLab) => {
+    setEtatCreation(nouvelEtat);
+  }, []);
   const [messageErreur, setMessageErreur] = useState<string | null>(null);
   const [chargementListe, setChargementListe] = useState(false);
   const [fluxJournauxActif, setFluxJournauxActif] = useState(false);
@@ -285,6 +288,8 @@ export function InterfaceTestPasserelle() {
         etat={etatCreation}
         majEtat={majEtatCreation}
         surCreer={surCreer}
+        surRemplirFormulaire={remplirFormulaireCreation}
+        surErreurConfiguration={(msg) => setMessageErreur(msg)}
       />
 
       <SectionJournauxSseLab

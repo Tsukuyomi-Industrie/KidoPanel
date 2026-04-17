@@ -106,7 +106,26 @@ export function construireCorpsCreationConteneurDepuisEtat(
   if (image.length === 0) {
     throw new Error("L’image est obligatoire.");
   }
-  const corps: Record<string, unknown> = { image };
+  const corps: Record<string, unknown> = {};
+  const supplementTop = etat.jsonCorpsSupplementaireTop.trim();
+  if (supplementTop.length > 0) {
+    let parseTop: unknown;
+    try {
+      parseTop = JSON.parse(supplementTop) as unknown;
+    } catch {
+      throw new Error(
+        "Le JSON supplémentaire au corps (racine) n’est pas un JSON valide.",
+      );
+    }
+    if (
+      parseTop !== null &&
+      typeof parseTop === "object" &&
+      !Array.isArray(parseTop)
+    ) {
+      Object.assign(corps, parseTop as Record<string, unknown>);
+    }
+  }
+  corps.image = image;
   const nom = etat.nom.trim();
   if (nom.length > 0) {
     corps.name = nom;

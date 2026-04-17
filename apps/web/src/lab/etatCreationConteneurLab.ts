@@ -59,6 +59,11 @@ export type EtatCreationConteneurLab = {
   jsonHealthcheck: string;
   jsonConfigurationReseau: string;
   jsonHostConfigExtra: string;
+  /**
+   * Champs de premier niveau du corps `POST /containers` non couverts par les contrôles du formulaire,
+   * conservés en JSON pour les configurations sauvegardées (ex. volumes, onBuild, shell).
+   */
+  jsonCorpsSupplementaireTop: string;
 };
 
 /** Valeurs initiales du formulaire de création (laboratoire). */
@@ -123,5 +128,6 @@ export function etatInitialCreationConteneurLab(): EtatCreationConteneurLab {
     jsonHealthcheck: "",
     jsonConfigurationReseau: "",
     jsonHostConfigExtra: "",
+    jsonCorpsSupplementaireTop: "",
   };
 }
