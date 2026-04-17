@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { chargerLignesHistoriqueJournauxConteneur } from "./flux-journaux-conteneur.charger-historique.js";
 import { extraireEvenementsSseDepuisTampon } from "./flux-journaux-conteneur.parser-sse.js";
 import { formaterErreurPourAffichagePanel } from "../lab/passerelleErreursAffichageLab.js";
 
@@ -12,13 +11,15 @@ export type OptionsFluxJournauxConteneur = {
   horodatageDocker?: boolean;
   lignesMaxAffichage?: number;
   /**
-   * Avant le premier SSE de la session : même `GET /containers/:id/logs` que Portainer
-   * pour afficher les dernières lignes puis le flux (reconnexion réseau ne recharge pas l’historique).
+   * Appelé quand le flux SSE se termine normalement (fin Docker / conteneur arrêté), pour resynchroniser l’UI parente.
+   * Mis à jour chaque rendu via une référence interne : ne pas s’appuyer sur l’identité de la fonction.
    */
-  chargementHistoriqueInitial?: boolean;
+  surFinFluxNaturelle?: () => void;
 };
 
 type EtatConnexion = "inactif" | "connecte" | "reconnexion" | "erreur";
+
+const MAX_TENTATIVES_RECONNEXION = 8;
 
 function delaiReconnexionMs(tentative: number): number {
   const base = 1000 * 2 ** Math.min(tentative, 5);
@@ -44,8 +45,11 @@ export function useFluxJournauxConteneur(
     tailEntrees,
     horodatageDocker,
     lignesMaxAffichage = 5000,
-    chargementHistoriqueInitial,
+    surFinFluxNaturelle,
   } = options;
+
+  const refSurFinFluxNaturelle = useRef(surFinFluxNaturelle);
+  refSurFinFluxNaturelle.current = surFinFluxNaturelle;
 
   const [lignes, setLignes] = useState<string[]>([]);
   const [etatConnexion, setEtatConnexion] = useState<EtatConnexion>("inactif");
@@ -53,7 +57,6 @@ export function useFluxJournauxConteneur(
     null,
   );
   const refTentatives = useRef(0);
-  const refHistoriqueInitialCharge = useRef(false);
 
   const effacer = useCallback(() => {
     setLignes([]);
@@ -62,7 +65,6 @@ export function useFluxJournauxConteneur(
   useEffect(() => {
     if (!actif || !jetonBearer.trim() || !idConteneur.trim()) {
       setEtatConnexion("inactif");
-      refHistoriqueInitialCharge.current = false;
       return;
     }
 
@@ -74,10 +76,24 @@ export function useFluxJournauxConteneur(
       if (executionAnnulee) {
         return;
       }
+      if (refTentatives.current >= MAX_TENTATIVES_RECONNEXION) {
+        setDernierMessageErreur(
+          [
+            "Flux journaux : trop de tentatives de reconnexion consécutives.",
+            "Fermez puis rouvrez le flux, ou vérifiez la passerelle et le conteneur.",
+          ].join("\n"),
+        );
+        setEtatConnexion("erreur");
+        return;
+      }
       refTentatives.current += 1;
       setEtatConnexion("reconnexion");
+      if (idTemporisation !== undefined) {
+        clearTimeout(idTemporisation);
+      }
       const attente = delaiReconnexionMs(refTentatives.current);
       idTemporisation = setTimeout(() => {
+        idTemporisation = undefined;
         void etablirFlux();
       }, attente);
     };
@@ -90,25 +106,6 @@ export function useFluxJournauxConteneur(
       controleurAnnulation = new AbortController();
 
       const base = urlBasePasserelle.replace(/\/$/, "");
-      const doitInjecterHistorique =
-        (chargementHistoriqueInitial ?? true) &&
-        !refHistoriqueInitialCharge.current;
-      if (doitInjecterHistorique) {
-        refHistoriqueInitialCharge.current = true;
-        try {
-          const morceaux = await chargerLignesHistoriqueJournauxConteneur({
-            urlBasePasserelle,
-            idConteneur,
-            jetonBearer,
-            tailEntrees,
-            horodatageDocker,
-            signal: controleurAnnulation.signal,
-          });
-          setLignes(morceaux);
-        } catch {
-          setLignes([]);
-        }
-      }
 
       const url = new URL(
         `${base}/containers/${encodeURIComponent(idConteneur)}/logs/stream`,
@@ -134,12 +131,14 @@ export function useFluxJournauxConteneur(
         });
 
         if (reponse.status === 401) {
+          refTentatives.current = 0;
           setDernierMessageErreur("Authentification requise ou jeton invalide.");
           setEtatConnexion("erreur");
           return;
         }
 
         if (reponse.status === 403) {
+          refTentatives.current = 0;
           setDernierMessageErreur("Accès au conteneur refusé.");
           setEtatConnexion("erreur");
           return;
@@ -174,15 +173,17 @@ export function useFluxJournauxConteneur(
         refTentatives.current = 0;
         setDernierMessageErreur(null);
         setEtatConnexion("connecte");
+        setLignes([]);
 
         const lecteur = reponse.body.getReader();
         const decodeur = new TextDecoder();
         let tamponSse = "";
+        let abandonSurEvenementErreurSse = false;
 
-        while (!executionAnnulee) {
+        lectureFlux: while (!executionAnnulee) {
           const { done, value } = await lecteur.read();
           if (done) {
-            break;
+            break lectureFlux;
           }
           tamponSse += decodeur.decode(value, { stream: true });
           const { tamponRestant, evenements } =
@@ -200,7 +201,8 @@ export function useFluxJournauxConteneur(
               } catch {
                 setDernierMessageErreur(ev.donnees);
               }
-              continue;
+              abandonSurEvenementErreurSse = true;
+              break lectureFlux;
             }
             try {
               const parse = JSON.parse(ev.donnees) as { line?: string };
@@ -219,8 +221,17 @@ export function useFluxJournauxConteneur(
           }
         }
 
+        if (abandonSurEvenementErreurSse && !executionAnnulee) {
+          refTentatives.current = 0;
+          setEtatConnexion("erreur");
+          refSurFinFluxNaturelle.current?.();
+          return;
+        }
+
         if (!executionAnnulee) {
-          programmerReconnexion();
+          refTentatives.current = 0;
+          setEtatConnexion("inactif");
+          refSurFinFluxNaturelle.current?.();
         }
       } catch (err) {
         if (executionAnnulee) {
@@ -255,7 +266,6 @@ export function useFluxJournauxConteneur(
         clearTimeout(idTemporisation);
       }
       refTentatives.current = 0;
-      refHistoriqueInitialCharge.current = false;
     };
   }, [
     actif,
@@ -265,7 +275,6 @@ export function useFluxJournauxConteneur(
     tailEntrees,
     horodatageDocker,
     lignesMaxAffichage,
-    chargementHistoriqueInitial,
   ]);
 
   return { lignes, etatConnexion, dernierMessageErreur, effacer };

@@ -40,7 +40,7 @@ const styleChampCompact: CSSProperties = {
 };
 
 /**
- * Console de journaux conteneur façon Portainer : historique `GET /logs` puis flux SSE,
+ * Console de journaux conteneur : flux SSE unique (paramètre `tail` côté Docker, sans doublon GET),
  * réglages tail / horodatages, filtre, défilement auto, copie et téléchargement.
  */
 export function SectionJournauxSseLab({
@@ -55,16 +55,19 @@ export function SectionJournauxSseLab({
   const [filtreTexte, setFiltreTexte] = useState("");
   const [defilementAuto, setDefilementAuto] = useState(true);
   const refConteneurVue = useRef<HTMLPreElement>(null);
+  const urlBaseMemoisee = useMemo(() => urlBasePasserelle(), []);
 
   const { lignes, etatConnexion, dernierMessageErreur, effacer } =
     useFluxJournauxConteneur({
-      urlBasePasserelle: urlBasePasserelle(),
+      urlBasePasserelle: urlBaseMemoisee,
       idConteneur: idSelectionne,
       jetonBearer: jeton,
       actif: fluxJournauxActif,
       tailEntrees,
       horodatageDocker: horodatagesDocker,
-      chargementHistoriqueInitial: true,
+      surFinFluxNaturelle: () => {
+        setFluxJournauxActif(false);
+      },
     });
 
   const lignesFiltrees = useMemo(() => {
@@ -124,9 +127,9 @@ export function SectionJournauxSseLab({
         Identifiant :{" "}
         <code>{idSelectionne || "(aucun — sélectionner une ligne)"}</code>
         {" — "}
-        À l’ouverture du flux : dernières lignes via{" "}
-        <code>GET /containers/…/logs</code> puis <code>…/logs/stream</code>{" "}
-        (comportement proche de Portainer).
+        Flux unique <code>…/logs/stream</code> (paramètre <code>tail</code>{" "}
+        côté Docker). À la fin du flux (conteneur arrêté ou fermeture amont),
+        l’onglet se désactive automatiquement.
       </p>
 
       <div style={styleBarreOutils}>
