@@ -3,6 +3,8 @@ import { BrowserRouter } from "react-router-dom";
 import { RoutesKidoPanel } from "./app/RoutesKidoPanel.js";
 import "./App.css";
 import "./interface/interface-kido-panel.css";
+import "./interface/interface-kido-panel-composants.css";
+import "./interface/interface-kido-panel-coque.css";
 
 /**
  * Racine React : routage navigateur et feuille de style du panel authentifié.

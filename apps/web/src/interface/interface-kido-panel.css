@@ -7,12 +7,17 @@
   box-sizing: border-box;
 }
 
-.fond-app-kido {
+.fond-app-kido:not(.kidopanel-app-root) {
   min-height: 100svh;
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(170, 59, 255, 0.12), transparent 55%),
-    radial-gradient(900px 500px at 100% 0%, rgba(59, 130, 246, 0.1), transparent 50%),
+    radial-gradient(1100px 520px at 12% -8%, rgba(14, 165, 233, 0.1), transparent 52%),
+    radial-gradient(800px 420px at 96% 4%, rgba(2, 132, 199, 0.08), transparent 48%),
     var(--bg);
+}
+
+.fond-app-kido.kidopanel-app-root {
+  min-height: 100svh;
+  background: var(--workspace-bg);
 }
 
 .grille-centre-auth {
@@ -23,13 +28,12 @@
 }
 
 .carte-auth-kido {
-  width: min(440px, 100%);
+  width: min(420px, 100%);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 12px;
   padding: clamp(1.25rem, 3vw, 2rem);
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  background: var(--workspace-surface);
   box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
 }
 
 .marque-kido {
@@ -117,13 +121,14 @@
 
 .bouton-principal-kido {
   border: none;
-  border-radius: 11px;
-  padding: 0.7rem 0.9rem;
+  border-radius: 8px;
+  padding: 0.65rem 0.95rem;
   font-weight: 600;
   font: inherit;
   cursor: pointer;
-  color: #fff;
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #f8fafc;
+  background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset;
 }
 
 .bouton-principal-kido:disabled {
@@ -155,40 +160,14 @@
   padding-left: 1.1rem;
 }
 
-.barre-app-kido {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.85rem clamp(1rem, 3vw, 1.5rem);
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(8px);
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-
-.barre-app-kido__marque {
-  font-weight: 600;
-  color: var(--text-h);
-}
-
-.barre-app-kido__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-  justify-content: flex-end;
-}
-
 .bouton-secondaire-kido {
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border);
-  padding: 0.45rem 0.75rem;
-  background: transparent;
+  padding: 0.5rem 0.8rem;
+  background: var(--workspace-surface);
   color: var(--text-h);
   font: inherit;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -197,12 +176,6 @@
 .onglets-auth button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-.zone-principale-app {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: clamp(1rem, 3vw, 2rem);
 }
 
 .carte-tableau-bord {
@@ -216,62 +189,15 @@
   margin-top: 0;
 }
 
-.barre-app-kido__marque-lien {
-  text-decoration: none;
-  color: inherit;
-}
-
-.barre-app-kido__marque-lien:hover {
-  color: var(--accent);
-}
-
-.barre-app-kido__email {
-  font-size: 0.88rem;
-  color: var(--text);
-  margin-right: 0.25rem;
-}
-
-.barre-app-kido__lien {
-  text-decoration: none;
-  font-size: 0.88rem;
-  color: var(--text);
-  padding: 0.35rem 0.55rem;
-  border-radius: 8px;
-}
-
-.barre-app-kido__lien:hover {
-  background: var(--accent-bg);
-  color: var(--text-h);
-}
-
-.barre-app-kido__lien--actif {
-  background: var(--accent-bg);
-  color: var(--text-h);
-  border: 1px solid var(--accent-border);
-}
-
-.kidopanel-shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100svh;
-}
-
-.kidopanel-zone-principale {
-  flex: 1;
-  width: 100%;
-  max-width: min(1200px, 100%);
-  margin: 0 auto;
-}
-
 .kidopanel-page-centree {
-  max-width: min(1120px, 100%);
-  margin: 0 auto;
-  padding-bottom: 2rem;
+  max-width: 100%;
+  margin: 0;
+  padding-bottom: 1.5rem;
 }
 
 .kidopanel-hero-tableau {
-  text-align: center;
-  padding: clamp(1.5rem, 5vw, 3rem) 0 clamp(1.25rem, 4vw, 2rem);
+  text-align: left;
+  padding: clamp(0.5rem, 2vw, 1rem) 0 clamp(1rem, 3vw, 1.75rem);
 }
 
 .kidopanel-hero-compact {
@@ -296,19 +222,19 @@
 }
 
 .kidopanel-sous-titre-page {
-  margin: 0 auto;
-  max-width: 42rem;
+  margin: 0;
+  max-width: 40rem;
   color: var(--text);
   line-height: 1.55;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .kidopanel-hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
-  justify-content: center;
-  margin-top: 1.35rem;
+  justify-content: flex-start;
+  margin-top: 1.15rem;
 }
 
 .kidopanel-lien-bouton {
@@ -334,10 +260,10 @@
 
 .kidopanel-tuile-metrique {
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.1rem 1.2rem;
-  background: color-mix(in srgb, var(--bg) 94%, transparent);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--border) 50%, transparent);
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+  background: var(--workspace-surface);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
 }
 
 .kidopanel-tuile-metrique--large {
@@ -348,233 +274,5 @@
   margin: 0 0 0.65rem;
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text-h);
-}
-
-.kidopanel-chiffre-metrique {
-  margin: 0;
-  font-size: 2.25rem;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  color: var(--text-h);
-}
-
-.kidopanel-detail-metrique {
-  margin: 0.35rem 0 0;
-  font-size: 0.9rem;
-  color: var(--text);
-}
-
-.kidopanel-etat-ok {
-  margin: 0;
-  font-weight: 600;
-  color: #16a34a;
-}
-
-.kidopanel-etat-ko {
-  margin: 0;
-  font-weight: 600;
-  color: #dc2626;
-}
-
-.kidopanel-texte-muted {
-  margin: 0.35rem 0 0;
-  font-size: 0.88rem;
-  color: var(--text);
-  line-height: 1.45;
-}
-
-.kidopanel-url-passe {
-  word-break: break-all;
-  font-size: 0.82rem;
-}
-
-.kidopanel-carte-principale {
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.25rem 1.35rem;
-  margin-bottom: 1.25rem;
-  background: color-mix(in srgb, var(--bg) 96%, transparent);
-}
-
-.kidopanel-carte-muted {
-  opacity: 0.92;
-}
-
-.kidopanel-entete-section {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.kidopanel-titre-section {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-h);
-}
-
-.kidopanel-table-wrap {
-  overflow-x: auto;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
-
-.kidopanel-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.88rem;
-}
-
-.kidopanel-table th,
-.kidopanel-table td {
-  padding: 0.65rem 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-}
-
-.kidopanel-table th {
-  font-weight: 600;
-  color: var(--text-h);
-  background: color-mix(in srgb, var(--code-bg) 70%, transparent);
-}
-
-.kidopanel-table tbody tr:hover {
-  background: color-mix(in srgb, var(--accent-bg) 35%, transparent);
-}
-
-.kidopanel-ligne-selectionnee {
-  background: color-mix(in srgb, var(--accent-bg) 55%, transparent);
-}
-
-.kidopanel-nom-docker {
-  display: block;
-  font-weight: 600;
-  color: var(--text-h);
-}
-
-.kidopanel-id-court {
-  display: block;
-  font-size: 0.75rem;
-  opacity: 0.75;
-  font-family: var(--mono);
-}
-
-.kidopanel-pill-etat {
-  display: inline-block;
-  padding: 0.15rem 0.45rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.kidopanel-etat--running {
-  background: color-mix(in srgb, #16a34a 18%, transparent);
-  color: #166534;
-}
-
-.kidopanel-etat--exited,
-.kidopanel-etat--created {
-  background: color-mix(in srgb, #64748b 20%, transparent);
-  color: var(--text-h);
-}
-
-.kidopanel-etat--paused {
-  background: color-mix(in srgb, #eab308 22%, transparent);
-  color: #713f12;
-}
-
-.kidopanel-status-secondaire {
-  margin-top: 0.25rem;
-  font-size: 0.78rem;
-  color: var(--text);
-}
-
-.kidopanel-cellule-mono {
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  line-height: 1.4;
-}
-
-.kidopanel-actions-ligne {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.bouton-ghost-kido {
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--accent);
-  font: inherit;
-  font-size: 0.82rem;
-  cursor: pointer;
-  padding: 0.2rem 0.35rem;
-  border-radius: 6px;
-}
-
-.bouton-ghost-kido:hover {
-  background: var(--accent-bg);
-}
-
-.kidopanel-action-danger {
-  color: #dc2626;
-}
-
-.kidopanel-entete-page-inline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.kidopanel-fil-ariane {
-  font-size: 0.88rem;
-  color: var(--text);
-  margin-bottom: 0.75rem;
-}
-
-.kidopanel-fil-ariane a {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.kidopanel-fil-ariane a:hover {
-  text-decoration: underline;
-}
-
-.kidopanel-grille-creation {
-  display: grid;
-  gap: 1rem;
-}
-
-.section-creation-conteneur-panel {
-  border-radius: 16px !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: var(--shadow);
-}
-
-.kidopanel-liste-definitions {
-  margin: 0;
-  display: grid;
-  gap: 0.85rem;
-}
-
-.kidopanel-liste-definitions dt {
-  font-size: 0.8rem;
-  color: var(--text);
-}
-
-.kidopanel-liste-definitions dd {
-  margin: 0.2rem 0 0;
-  font-weight: 500;
   color: var(--text-h);
 }

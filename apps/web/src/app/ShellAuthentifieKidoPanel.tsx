@@ -1,5 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { BarreApplicationKidoPanel } from "../interface/BarreApplicationKidoPanel.js";
+import { EnteteSessionKidoPanel } from "../interface/EnteteSessionKidoPanel.js";
+import { RailNavigationKidoPanel } from "../interface/RailNavigationKidoPanel.js";
 import { effacerToutJetonPasserelle } from "../passerelle/jetonPasserelleStockage.js";
 import { extraireEmailDepuisJetonClient } from "../passerelle/lectureEmailJetonClient.js";
 import { lireJetonStockage } from "../lab/passerelleClient.js";
@@ -13,16 +14,20 @@ export function ShellAuthentifieKidoPanel() {
   const emailAffiche = extraireEmailDepuisJetonClient(jeton) ?? "Compte authentifié";
 
   return (
-    <div className="fond-app-kido kidopanel-shell">
-      <BarreApplicationKidoPanel
-        emailUtilisateur={emailAffiche}
+    <div className="fond-app-kido kidopanel-app-root">
+      <RailNavigationKidoPanel
         surDeconnexion={() => {
           effacerToutJetonPasserelle();
           void navigate("/connexion", { replace: true });
         }}
       />
-      <div className="zone-principale-app kidopanel-zone-principale">
-        <Outlet />
+      <div className="kidopanel-colonne-principale">
+        <EnteteSessionKidoPanel emailUtilisateur={emailAffiche} />
+        <main className="kidopanel-corps-application">
+          <div className="kidopanel-pave-contenu">
+            <Outlet />
+          </div>
+        </main>
       </div>
     </div>
   );
