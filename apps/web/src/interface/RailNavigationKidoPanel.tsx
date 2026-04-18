@@ -33,6 +33,9 @@ export function RailNavigationKidoPanel({
           <NavLink to="/coeur-docker" className={classeLienRail}>
             Cœur Docker
           </NavLink>
+          <NavLink to="/serveurs" className={classeLienRail}>
+            Serveurs
+          </NavLink>
           <NavLink to="/parametres" className={classeLienRail}>
             Paramètres
           </NavLink>

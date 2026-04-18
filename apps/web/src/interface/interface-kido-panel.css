@@ -97,7 +97,8 @@
 
 .champ-auth-kido input[type="email"],
 .champ-auth-kido input[type="password"],
-.champ-auth-kido input[type="text"] {
+.champ-auth-kido input[type="text"],
+.champ-auth-kido input[type="number"] {
   border-radius: 10px;
   border: 1px solid var(--border);
   padding: 0.6rem 0.75rem;
@@ -106,7 +107,28 @@
   background: var(--bg);
 }
 
+.champ-auth-kido select,
+.champ-auth-kido textarea {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: var(--text-h);
+  background: var(--bg);
+}
+
+.champ-auth-kido textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
 .champ-auth-kido input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.champ-auth-kido select:focus-visible,
+.champ-auth-kido textarea:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

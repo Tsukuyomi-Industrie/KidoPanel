@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { prisma } from "@kidopanel/database";
 import { monterRoutesCycleInstanceServeurJeux } from "../controllers/serverLifecycle.controller.js";
 import { DepotInstanceServeur } from "../repositories/depot-instance-serveur.repository.js";
+import { DepotProprieteConteneurInstance } from "../repositories/depot-propriete-conteneur-instance.repository.js";
 import { ClientMoteurConteneursHttp } from "../services/client-moteur-conteneurs-http.service.js";
 import { CycleVieInstanceServeur } from "../services/cycle-vie-instance-serveur.service.js";
 import { obtenirUrlBaseMoteurConteneurs } from "../config/environnement-serveur-instance.js";
@@ -20,10 +21,15 @@ export function creerApplicationServeurJeux(): Hono<{
   }
 
   const depot = new DepotInstanceServeur(prisma);
+  const depotPropriete = new DepotProprieteConteneurInstance(prisma);
   const clientMoteur = new ClientMoteurConteneursHttp(
     obtenirUrlBaseMoteurConteneurs(),
   );
-  const cycleVie = new CycleVieInstanceServeur(depot, clientMoteur);
+  const cycleVie = new CycleVieInstanceServeur(
+    depot,
+    depotPropriete,
+    clientMoteur,
+  );
 
   const app = new Hono<{ Variables: VariablesServeurJeux }>();
 
@@ -65,7 +71,7 @@ export function creerApplicationServeurJeux(): Hono<{
 
   app.route(
     "/instances",
-    monterRoutesCycleInstanceServeurJeux(cycleVie),
+    monterRoutesCycleInstanceServeurJeux(cycleVie, clientMoteur),
   );
 
   app.notFound((c) =>

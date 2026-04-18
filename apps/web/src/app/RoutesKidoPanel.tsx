@@ -14,6 +14,9 @@ import { RouteConnexionKidoPanel } from "./RouteConnexionKidoPanel.js";
 import { ShellAuthentifieKidoPanel } from "./ShellAuthentifieKidoPanel.js";
 import { extraireEmailDepuisJetonClient } from "../passerelle/lectureEmailJetonClient.js";
 import { lireJetonStockage } from "../lab/passerelleClient.js";
+import { PageCreationServeur } from "../serveurs/PageCreationServeur.js";
+import { PageDetailServeur } from "../serveurs/PageDetailServeur.js";
+import { PageListeServeurs } from "../serveurs/PageListeServeurs.js";
 
 function PageAccueilAvecEmail() {
   const jeton = lireJetonStockage();
@@ -31,6 +34,9 @@ export function RoutesKidoPanel() {
       <Route element={<GardeAuthentificationKidoPanel />}>
         <Route element={<ShellAuthentifieKidoPanel />}>
           <Route index element={<PageAccueilAvecEmail />} />
+          <Route path="serveurs" element={<PageListeServeurs />} />
+          <Route path="serveurs/nouveau" element={<PageCreationServeur />} />
+          <Route path="serveurs/:idInstance" element={<PageDetailServeur />} />
           <Route path="parametres" element={<PageParametresCompteKidoPanel />} />
           <Route element={<LayoutConteneursDocker />}>
             <Route path="coeur-docker" element={<PageCoeurDockerKidoPanel />} />

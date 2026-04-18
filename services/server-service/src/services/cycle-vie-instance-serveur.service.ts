@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { GameType } from "@kidopanel/database";
 import { Prisma } from "@kidopanel/database";
 import type { DepotInstanceServeur } from "../repositories/depot-instance-serveur.repository.js";
+import type { DepotProprieteConteneurInstance } from "../repositories/depot-propriete-conteneur-instance.repository.js";
 import type { ClientMoteurConteneursHttp } from "./client-moteur-conteneurs-http.service.js";
 import { resoudreGabaritJeuPourType } from "./mappage-gabarit-type-jeu.service.js";
 import { validerEtFusionnerVariablesEnvJeux } from "./installateur-variables-env-jeu.service.js";
@@ -27,6 +28,7 @@ function peutGererInstance(
 export class CycleVieInstanceServeur {
   constructor(
     private readonly depot: DepotInstanceServeur,
+    private readonly depotPropriete: DepotProprieteConteneurInstance,
     private readonly clientMoteur: ClientMoteurConteneursHttp,
   ) {}
 
@@ -105,6 +107,7 @@ export class CycleVieInstanceServeur {
 
     return finaliserInstallationConteneurDockerInstanceJeux({
       depot: this.depot,
+      depotPropriete: this.depotPropriete,
       clientMoteur: this.clientMoteur,
       ligne,
       gabarit,
@@ -286,6 +289,10 @@ export class CycleVieInstanceServeur {
       await this.clientMoteur.supprimerConteneur(
         idDocker,
         params.identifiantRequeteHttp,
+      );
+      await this.depotPropriete.retirerProprieteUtilisateurPourConteneur(
+        ligne.userId,
+        idDocker,
       );
     }
     await this.depot.supprimer(ligne.id);

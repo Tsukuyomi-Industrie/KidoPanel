@@ -101,4 +101,31 @@ export class ClientMoteurConteneursHttp {
       },
     });
   }
+
+  /**
+   * Relaie le flux SSE Docker `logs/stream` sans consommer le corps : la réponse est renvoyée au client HTTP.
+   */
+  async relayerFluxJournauxConteneurVersMoteur(params: {
+    idConteneurDocker: string;
+    parametresRequete: URLSearchParams;
+    identifiantRequete: string;
+    signalAnnulation: AbortSignal;
+  }): Promise<Response> {
+    const url = new URL(
+      this.construireUrl(
+        `/containers/${encodeURIComponent(params.idConteneurDocker)}/logs/stream`,
+      ),
+    );
+    params.parametresRequete.forEach((valeur, cle) => {
+      url.searchParams.set(cle, valeur);
+    });
+    return fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        [EN_TETE_CORRELATION]: params.identifiantRequete,
+        Accept: "text/event-stream",
+      },
+      signal: params.signalAnnulation,
+    });
+  }
 }

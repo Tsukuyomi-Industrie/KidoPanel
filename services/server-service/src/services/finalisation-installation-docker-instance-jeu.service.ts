@@ -1,6 +1,7 @@
 import type { GameServerInstance } from "@kidopanel/database";
 import type { GabaritJeuCatalogueInstance } from "@kidopanel/container-catalog";
 import type { DepotInstanceServeur } from "../repositories/depot-instance-serveur.repository.js";
+import type { DepotProprieteConteneurInstance } from "../repositories/depot-propriete-conteneur-instance.repository.js";
 import type { ClientMoteurConteneursHttp } from "./client-moteur-conteneurs-http.service.js";
 import { ErreurMetierInstanceJeux } from "../erreurs/erreurs-metier-instance-jeu.js";
 
@@ -9,13 +10,15 @@ import { ErreurMetierInstanceJeux } from "../erreurs/erreurs-metier-instance-jeu
  */
 export async function finaliserInstallationConteneurDockerInstanceJeux(params: {
   depot: DepotInstanceServeur;
+  depotPropriete: DepotProprieteConteneurInstance;
   clientMoteur: ClientMoteurConteneursHttp;
   ligne: GameServerInstance;
   gabarit: GabaritJeuCatalogueInstance;
   fusionEnv: Record<string, string>;
   identifiantRequeteHttp: string;
 }): Promise<GameServerInstance> {
-  const { depot, clientMoteur, ligne, gabarit, fusionEnv } = params;
+  const { depot, depotPropriete, clientMoteur, ligne, gabarit, fusionEnv } =
+    params;
   const nomDocker = `kpjeu-${ligne.id.replace(/-/g, "").slice(0, 22)}`;
   const corpsDocker = clientMoteur.construireCorpsCreationDocker({
     nomConteneur: nomDocker,
@@ -89,6 +92,8 @@ export async function finaliserInstallationConteneurDockerInstanceJeux(params: {
     containerId: idDocker,
     status: "STOPPED",
   });
+
+  await depotPropriete.enregistrerProprietePourConteneur(ligne.userId, idDocker);
 
   const reponseDemarrage = await clientMoteur.posterDemarrage(
     idDocker,

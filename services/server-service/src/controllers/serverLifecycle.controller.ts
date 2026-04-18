@@ -2,6 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import type { Context } from "hono";
 import type { CycleVieInstanceServeur } from "../services/cycle-vie-instance-serveur.service.js";
+import type { ClientMoteurConteneursHttp } from "../services/client-moteur-conteneurs-http.service.js";
 import type { VariablesServeurJeux } from "../http/types/variables-http-serveur-jeux.js";
 import {
   corpsCreationInstanceServeurJeuxSchema,
@@ -14,10 +15,49 @@ import { ErreurMetierInstanceJeux } from "../erreurs/erreurs-metier-instance-jeu
 /** Routes HTTP cycle de vie : liste, création et pilotage des instances jeu. */
 export function monterRoutesCycleInstanceServeurJeux(
   cycleVie: CycleVieInstanceServeur,
+  clientMoteur: ClientMoteurConteneursHttp,
 ): Hono<{ Variables: VariablesServeurJeux }> {
   const routes = new Hono<{ Variables: VariablesServeurJeux }>();
 
   routes.use("*", creerMiddlewareIdentiteInterneObligatoire());
+
+  routes.get("/:idInstance/logs/stream", async (c) => {
+    try {
+      const ligne = await cycleVie.obtenirDetailPourIdentiteInterne({
+        utilisateurId: c.get("utilisateurIdInterne")!,
+        role: c.get("roleUtilisateurInterne")!,
+        instanceId: c.req.param("idInstance"),
+      });
+      const idDocker = ligne.containerId?.trim();
+      if (!idDocker) {
+        return c.json(
+          {
+            error: {
+              code: "CONTENEUR_INSTANCE_ABSENT",
+              message:
+                "Aucun conteneur Docker associé : flux journaux indisponible.",
+            },
+          },
+          404,
+        );
+      }
+      const urlEntrant = new URL(c.req.url, "http://127.0.0.1");
+      const amont =
+        await clientMoteur.relayerFluxJournauxConteneurVersMoteur({
+          idConteneurDocker: idDocker,
+          parametresRequete: urlEntrant.searchParams,
+          identifiantRequete: c.get("requestId"),
+          signalAnnulation: c.req.raw.signal,
+        });
+      const entetes = new Headers(amont.headers);
+      return new Response(amont.body, {
+        status: amont.status,
+        headers: entetes,
+      });
+    } catch (erreur) {
+      return repondreErreurMetierInstanceJeux(c, erreur);
+    }
+  });
 
   routes.get("/", async (c) => {
     try {

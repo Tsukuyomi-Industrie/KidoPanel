@@ -4,9 +4,14 @@ import { formaterErreurPourAffichagePanel } from "../lab/passerelleErreursAffich
 
 export type OptionsFluxJournauxConteneur = {
   urlBasePasserelle: string;
+  /** Identifiant dans l’URL du flux : id Docker (`coeurDocker`) ou id instance jeu (`instanceServeurJeu`). */
   idConteneur: string;
   jetonBearer: string;
   actif: boolean;
+  /**
+   * `instanceServeurJeu` : flux `GET /serveurs-jeux/instances/:id/logs/stream` ; sinon flux conteneur Docker classique.
+   */
+  varianteFlux?: "coeurDocker" | "instanceServeurJeu";
   tailEntrees?: number;
   horodatageDocker?: boolean;
   lignesMaxAffichage?: number;
@@ -42,6 +47,7 @@ export function useFluxJournauxConteneur(
     idConteneur,
     jetonBearer,
     actif,
+    varianteFlux = "coeurDocker",
     tailEntrees,
     horodatageDocker,
     lignesMaxAffichage = 5000,
@@ -107,9 +113,11 @@ export function useFluxJournauxConteneur(
 
       const base = urlBasePasserelle.replace(/\/$/, "");
 
-      const url = new URL(
-        `${base}/containers/${encodeURIComponent(idConteneur)}/logs/stream`,
-      );
+      const cheminFlux =
+        varianteFlux === "instanceServeurJeu"
+          ? `${base}/serveurs-jeux/instances/${encodeURIComponent(idConteneur)}/logs/stream`
+          : `${base}/containers/${encodeURIComponent(idConteneur)}/logs/stream`;
+      const url = new URL(cheminFlux);
       if (tailEntrees !== undefined) {
         url.searchParams.set("tail", String(tailEntrees));
       }
@@ -272,6 +280,7 @@ export function useFluxJournauxConteneur(
     jetonBearer,
     idConteneur,
     urlBasePasserelle,
+    varianteFlux,
     tailEntrees,
     horodatageDocker,
     lignesMaxAffichage,
