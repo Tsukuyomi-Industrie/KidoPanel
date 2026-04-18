@@ -3,6 +3,10 @@ import {
   IDENTIFIANTS_IMAGES_CATALOGUE,
 } from "@kidopanel/container-catalog";
 import { z } from "zod";
+import {
+  normaliserExposedPortsPourValidationZod,
+  normaliserLogConfigHostPourValidationZod,
+} from "./normalisation-corps-api-docker-zod.js";
 
 /** Schéma d’une liaison hôte pour un port conteneur (ex. `80/tcp`). */
 const liaisonPortConteneurSchema = z.object({
@@ -109,7 +113,10 @@ const hostConfigCorpsSchema = z
     pidsLimit: z.number().int().positive().optional(),
     storageOpt: z.record(z.string(), z.string()).optional(),
     devices: z.array(peripheriqueSchema).max(64).optional(),
-    logConfig: configurationJournauxSchema.optional(),
+    logConfig: z.preprocess(
+      normaliserLogConfigHostPourValidationZod,
+      configurationJournauxSchema.optional(),
+    ),
     ipcMode: z.string().min(1).max(256).optional(),
     pidMode: z.string().min(1).max(256).optional(),
     utsMode: z.string().min(1).max(256).optional(),
@@ -148,7 +155,10 @@ export const createContainerJsonSchema = z
   stopSignal: z.string().max(32).optional(),
   env: z.record(z.string().max(1024), z.string().max(65536)).optional(),
   labels: z.record(z.string().max(256), z.string().max(65536)).optional(),
-  exposedPorts: z.array(z.string().min(1).max(64)).max(128).optional(),
+  exposedPorts: z.preprocess(
+    normaliserExposedPortsPourValidationZod,
+    z.array(z.string().min(1).max(64)).max(128).optional(),
+  ),
   hostConfig: hostConfigCorpsSchema.optional(),
   networkingConfig: configurationReseauCreationSchema.optional(),
   healthcheck: healthcheckSchema.optional(),
