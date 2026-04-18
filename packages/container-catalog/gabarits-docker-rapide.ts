@@ -61,7 +61,7 @@ export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
     description: "Serveur HTTP léger pour sites statiques ou reverse proxy.",
     imageCatalogId: "nginx",
     categorie: "web",
-    mappingPortsDefaut: [{ conteneur: 80, hoteDefaut: 8080, protocole: "tcp" }],
+    mappingPortsDefaut: [{ conteneur: 80, hoteDefaut: 0, protocole: "tcp" }],
     memoireRecommandeMb: 256,
     champsFormulaire: [
       {
@@ -75,10 +75,11 @@ export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
       {
         cle: "PORT_HOTE",
         label: "Port d'accès externe",
-        aide: "Port sur votre machine pour accéder au site (ex. 8080).",
+        aide:
+          "0 = attribution automatique d’un port libre sur l’hôte (évite les conflits). Sinon indiquez un port fixe entre 1 et 65535.",
         type: "number",
-        defaut: "8080",
-        min: 1024,
+        defaut: "0",
+        min: 0,
         max: 65535,
         requis: true,
       },
@@ -91,7 +92,7 @@ export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
       "Runtime Node.js pour applications JavaScript et API REST. Sans application montée, le conteneur reste actif avec une commande neutre (« sleep infinity ») : remplacez-la par votre script (ex. npm start) dans le formulaire expert ou les options avancées.",
     imageCatalogId: "node",
     categorie: "runtime",
-    mappingPortsDefaut: [{ conteneur: 3000, hoteDefaut: 3000, protocole: "tcp" }],
+    mappingPortsDefaut: [{ conteneur: 3000, hoteDefaut: 0, protocole: "tcp" }],
     memoireRecommandeMb: 512,
     cmdDockerParDefaut: ["sleep", "infinity"],
     champsFormulaire: [
@@ -105,9 +106,11 @@ export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
       {
         cle: "PORT_HOTE",
         label: "Port d'accès externe",
+        aide:
+          "0 = attribution automatique d’un port libre sur l’hôte (évite les conflits). Sinon indiquez un port fixe entre 1 et 65535.",
         type: "number",
-        defaut: "3000",
-        min: 1024,
+        defaut: "0",
+        min: 0,
         max: 65535,
         requis: true,
       },
@@ -131,7 +134,7 @@ export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
     description: "Base relationnelle PostgreSQL pour vos applications.",
     imageCatalogId: "postgres",
     categorie: "base-de-donnees",
-    mappingPortsDefaut: [{ conteneur: 5432, hoteDefaut: 5432, protocole: "tcp" }],
+    mappingPortsDefaut: [{ conteneur: 5432, hoteDefaut: 0, protocole: "tcp" }],
     memoireRecommandeMb: 512,
     champsFormulaire: [
       {
@@ -165,9 +168,11 @@ export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
       {
         cle: "PORT_HOTE",
         label: "Port d'accès externe",
+        aide:
+          "0 = attribution automatique d’un port libre sur l’hôte (évite le conflit avec un PostgreSQL déjà installé). Sinon indiquez un port fixe entre 1 et 65535.",
         type: "number",
-        defaut: "5432",
-        min: 1024,
+        defaut: "0",
+        min: 0,
         max: 65535,
         requis: true,
       },
@@ -179,7 +184,7 @@ export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
     description: "Stockage clé-valeur en mémoire pour cache et sessions.",
     imageCatalogId: "redis",
     categorie: "cache",
-    mappingPortsDefaut: [{ conteneur: 6379, hoteDefaut: 6379, protocole: "tcp" }],
+    mappingPortsDefaut: [{ conteneur: 6379, hoteDefaut: 0, protocole: "tcp" }],
     memoireRecommandeMb: 256,
     champsFormulaire: [
       {
@@ -192,9 +197,11 @@ export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
       {
         cle: "PORT_HOTE",
         label: "Port d'accès externe",
+        aide:
+          "0 = attribution automatique d’un port libre sur l’hôte (évite les conflits). Sinon indiquez un port fixe entre 1 et 65535.",
         type: "number",
-        defaut: "6379",
-        min: 1024,
+        defaut: "0",
+        min: 0,
         max: 65535,
         requis: true,
       },
@@ -206,7 +213,7 @@ export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
     description: "Base relationnelle MySQL compatible avec la plupart des CMS.",
     imageCatalogId: "mysql",
     categorie: "base-de-donnees",
-    mappingPortsDefaut: [{ conteneur: 3306, hoteDefaut: 3306, protocole: "tcp" }],
+    mappingPortsDefaut: [{ conteneur: 3306, hoteDefaut: 0, protocole: "tcp" }],
     memoireRecommandeMb: 512,
     champsFormulaire: [
       {
@@ -246,9 +253,11 @@ export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
       {
         cle: "PORT_HOTE",
         label: "Port d'accès externe",
+        aide:
+          "0 = attribution automatique d’un port libre sur l’hôte (évite les conflits). Sinon indiquez un port fixe entre 1 et 65535.",
         type: "number",
-        defaut: "3306",
-        min: 1024,
+        defaut: "0",
+        min: 0,
         max: 65535,
         requis: true,
       },

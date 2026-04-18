@@ -243,6 +243,8 @@ export interface ContainerSummary {
     type: string;
     ip?: string;
   }>;
+  /** IPv4 sur le réseau bridge `kidopanel-network` (pas l’IP d’écoute des publications hôte). */
+  ipv4ReseauKidopanel?: string;
 }
 
 export interface CreateContainerResult {

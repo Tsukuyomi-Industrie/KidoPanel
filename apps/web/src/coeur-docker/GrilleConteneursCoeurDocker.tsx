@@ -25,13 +25,12 @@ function formaterPorts(conteneur: ResumeConteneurLab): string {
     .join(" · ");
 }
 
-function ipInternePrincipale(conteneur: ResumeConteneurLab): string {
-  const ports = conteneur.ports;
-  if (!Array.isArray(ports)) {
-    return "—";
+function ipv4AfficheeTableau(conteneur: ResumeConteneurLab): string {
+  const bridge = conteneur.ipv4ReseauKidopanel?.trim();
+  if (bridge !== undefined && bridge.length > 0) {
+    return bridge;
   }
-  const avecIp = ports.find((p) => typeof p.ip === "string" && p.ip !== "" && p.ip !== "0.0.0.0");
-  return avecIp?.ip ?? "—";
+  return "—";
 }
 
 type Props = {
@@ -79,7 +78,7 @@ export function GrilleConteneursCoeurDocker({
               <th>Image</th>
               <th>État</th>
               <th>Ports</th>
-              <th>IP liée aux ports</th>
+              <th>IPv4 réseau interne</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -104,7 +103,7 @@ export function GrilleConteneursCoeurDocker({
                     <div className="kidopanel-status-secondaire">{c.status}</div>
                   </td>
                   <td className="kidopanel-cellule-mono">{formaterPorts(c)}</td>
-                  <td className="kidopanel-cellule-mono">{ipInternePrincipale(c)}</td>
+                  <td className="kidopanel-cellule-mono">{ipv4AfficheeTableau(c)}</td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <div className="kidopanel-actions-ligne">
                       <button

@@ -15,9 +15,7 @@ export function construireCorpsCreationDefautDepuisGabaritDockerRapide(
   for (const ligne of gabarit.mappingPortsDefaut) {
     const clePort = `${String(ligne.conteneur)}/${ligne.protocole}`;
     exposedPorts.push(clePort);
-    portBindings[clePort] = [
-      { hostIp: "", hostPort: String(ligne.hoteDefaut) },
-    ];
+    portBindings[clePort] = [{ hostIp: "", hostPort: "0" }];
   }
   const env: Record<string, string> = {};
   for (const champ of gabarit.champsFormulaire) {

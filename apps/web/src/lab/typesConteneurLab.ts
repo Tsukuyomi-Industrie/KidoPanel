@@ -15,4 +15,6 @@ export type ResumeConteneurLab = {
   image: string;
   /** Présent lorsque le moteur expose les liaisons de ports Docker. */
   ports?: PortResumeConteneurLab[];
+  /** IPv4 sur le réseau interne KidoPanel (`kidopanel-network`), distincte des IP hôte des publications. */
+  ipv4ReseauKidopanel?: string;
 };

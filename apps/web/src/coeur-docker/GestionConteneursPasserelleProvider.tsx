@@ -258,6 +258,12 @@ export function GestionConteneursPasserelleProvider({
         if (!(await afficherErreurSiBesoin(reponse))) {
           return;
         }
+        /* Relecture HTTP trop rapide après démarrage ou arrêt : le démon peut encore renvoyer l’ancien état ; courte attente avant GET /containers. */
+        if (methode === "POST") {
+          await new Promise<void>((resolve) => {
+            window.setTimeout(resolve, 280);
+          });
+        }
         await rafraichirListe();
       } catch (e) {
         setMessageErreur(

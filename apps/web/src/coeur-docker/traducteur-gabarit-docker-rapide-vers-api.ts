@@ -13,21 +13,22 @@ export function traduireGabaritDockerRapideVersCorpsApi(params: {
   const nomBrut = params.valeursChamps.NOM_CONTAINER?.trim();
   const nom = nomBrut !== undefined && nomBrut.length > 0 ? nomBrut : "instance-kidopanel";
   const portHoteBrut = params.valeursChamps.PORT_HOTE?.trim();
-  const portPremierMapping = params.gabarit.mappingPortsDefaut[0]?.hoteDefaut ?? 8080;
+  const portPremierMapping = params.gabarit.mappingPortsDefaut[0]?.hoteDefaut ?? 0;
   const portHoteCalcule =
     portHoteBrut !== undefined && portHoteBrut.length > 0
       ? Number(portHoteBrut)
       : portPremierMapping;
   if (
     !Number.isFinite(portHoteCalcule) ||
-    portHoteCalcule < 1 ||
+    portHoteCalcule < 0 ||
     portHoteCalcule > 65535
   ) {
     throw new Error(
-      "Le port hôte doit être un nombre entre 1 et 65535 (vérifiez le champ « port d’accès »).",
+      "Le port hôte doit être 0 (attribution automatique) ou un nombre entre 1 et 65535.",
     );
   }
-  const portHote = Math.trunc(portHoteCalcule);
+  const publicationHoteDocker =
+    portHoteCalcule === 0 ? "0" : String(Math.trunc(portHoteCalcule));
 
   const env: Record<string, string> = {};
   for (const [cle, valeur] of Object.entries(params.valeursChamps)) {
@@ -45,7 +46,7 @@ export function traduireGabaritDockerRapideVersCorpsApi(params: {
   for (const ligne of params.gabarit.mappingPortsDefaut) {
     const clePort = `${String(ligne.conteneur)}/${ligne.protocole}`;
     exposedPorts.push(clePort);
-    portBindings[clePort] = [{ hostIp: "", hostPort: String(portHote) }];
+    portBindings[clePort] = [{ hostIp: "", hostPort: publicationHoteDocker }];
   }
 
   const corps: Record<string, unknown> = {

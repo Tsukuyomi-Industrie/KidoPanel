@@ -1,4 +1,5 @@
 import type { ContainerInfo } from "dockerode";
+import { extraireIpv4KidopanelDepuisEntreeListeDocker } from "./docker/extraire-ipv4-kidopanel-depuis-liste-docker.js";
 import type { ContainerStatus, ContainerSummary } from "./types.js";
 
 /** Normalise l’état brut Docker vers le type `ContainerStatus` du domaine. */
@@ -29,6 +30,8 @@ export function mapEntreeListeDockerVersResume(c: ContainerInfo): ContainerSumma
       ip: p.IP,
     })) ?? [];
 
+  const ipv4ReseauKidopanel = extraireIpv4KidopanelDepuisEntreeListeDocker(c);
+
   return {
     id: c.Id,
     names: c.Names ?? [],
@@ -40,5 +43,8 @@ export function mapEntreeListeDockerVersResume(c: ContainerInfo): ContainerSumma
     state: mapDockerStateVersStatut(c.State),
     labels: c.Labels ?? {},
     ports,
+    ...(ipv4ReseauKidopanel !== undefined
+      ? { ipv4ReseauKidopanel }
+      : {}),
   };
 }
