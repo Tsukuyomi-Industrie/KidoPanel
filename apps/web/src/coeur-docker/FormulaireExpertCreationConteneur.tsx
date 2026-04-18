@@ -64,6 +64,23 @@ export function FormulaireExpertCreationConteneur({
           <p className="kp-champ__aide">Référence complète telle que le démon Docker la tire.</p>
         </div>
         <div className="kp-champ">
+          <label className="kp-champ__label" htmlFor="kp-exp-entrypoint">
+            Entrypoint Docker (optionnel)
+          </label>
+          <input
+            id="kp-exp-entrypoint"
+            type="text"
+            placeholder="Laisser vide pour conserver l’entrée définie dans l’image"
+            value={etat.entrypointDocker}
+            onChange={(e) =>
+              surChangement({ ...etat, entrypointDocker: e.target.value })
+            }
+          />
+          <p className="kp-champ__aide">
+            Si vous le renseignez, il remplace l’entrypoint du Dockerfile ; sinon seule la commande ci-dessous surcharge les arguments par défaut.
+          </p>
+        </div>
+        <div className="kp-champ">
           <label className="kp-champ__label" htmlFor="kp-exp-cmd">
             Commande de démarrage
           </label>

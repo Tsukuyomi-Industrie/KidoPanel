@@ -14,10 +14,20 @@ export function traduireGabaritDockerRapideVersCorpsApi(params: {
   const nom = nomBrut !== undefined && nomBrut.length > 0 ? nomBrut : "instance-kidopanel";
   const portHoteBrut = params.valeursChamps.PORT_HOTE?.trim();
   const portPremierMapping = params.gabarit.mappingPortsDefaut[0]?.hoteDefaut ?? 8080;
-  const portHote =
+  const portHoteCalcule =
     portHoteBrut !== undefined && portHoteBrut.length > 0
       ? Number(portHoteBrut)
       : portPremierMapping;
+  if (
+    !Number.isFinite(portHoteCalcule) ||
+    portHoteCalcule < 1 ||
+    portHoteCalcule > 65535
+  ) {
+    throw new Error(
+      "Le port hôte doit être un nombre entre 1 et 65535 (vérifiez le champ « port d’accès »).",
+    );
+  }
+  const portHote = Math.trunc(portHoteCalcule);
 
   const env: Record<string, string> = {};
   for (const [cle, valeur] of Object.entries(params.valeursChamps)) {
@@ -48,6 +58,12 @@ export function traduireGabaritDockerRapideVersCorpsApi(params: {
       restartPolicy: { name: "unless-stopped" },
     },
   };
+  if (
+    params.gabarit.cmdDockerParDefaut !== undefined &&
+    params.gabarit.cmdDockerParDefaut.length > 0
+  ) {
+    corps.cmd = [...params.gabarit.cmdDockerParDefaut];
+  }
   if (Object.keys(env).length > 0) {
     corps.env = env;
   }

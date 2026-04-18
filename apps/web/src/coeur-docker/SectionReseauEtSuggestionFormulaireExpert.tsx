@@ -23,6 +23,13 @@ function parserClePortExposee(cle: string): {
   return { portConteneur: port, protocole: proto };
 }
 
+function cleDedupPortConteneur(l: {
+  portConteneur: string;
+  protocole: "tcp" | "udp";
+}): string {
+  return `${l.portConteneur.trim()}/${l.protocole}`;
+}
+
 /**
  * Préremplissage depuis l’inspection Docker et choix des ponts KidoPanel (mode bridge).
  */
@@ -69,11 +76,21 @@ export function SectionReseauEtSuggestionFormulaireExpert({
         imageReference: ref,
       });
       const nvPorts = [...etat.lignesPorts];
+      const portsDeja = new Set(
+        nvPorts
+          .filter((l) => l.portConteneur.trim().length > 0)
+          .map((l) => cleDedupPortConteneur(l)),
+      );
       for (const cle of suggestion.exposedPorts ?? []) {
         const { portConteneur, protocole } = parserClePortExposee(cle);
         if (portConteneur.length === 0) {
           continue;
         }
+        const idDedup = cleDedupPortConteneur({ portConteneur, protocole });
+        if (portsDeja.has(idDedup)) {
+          continue;
+        }
+        portsDeja.add(idDedup);
         nvPorts.push({
           id: crypto.randomUUID(),
           portConteneur,
@@ -96,8 +113,13 @@ export function SectionReseauEtSuggestionFormulaireExpert({
         suggestion.cmd !== undefined && suggestion.cmd.length > 0
           ? suggestion.cmd.join(" ")
           : etat.commandeDemarrage;
+      const epTxt =
+        suggestion.entrypoint !== undefined && suggestion.entrypoint.length > 0
+          ? suggestion.entrypoint.join(" ")
+          : etat.entrypointDocker;
       surChangement({
         ...etat,
+        entrypointDocker: epTxt,
         commandeDemarrage: cmdTxt,
         repertoireTravailDocker:
           suggestion.workingDir?.trim() ?? etat.repertoireTravailDocker,
@@ -139,7 +161,7 @@ export function SectionReseauEtSuggestionFormulaireExpert({
           {chargementSuggestion ? "Analyse de l’image…" : "Préremplir depuis l’image"}
         </button>
         <p className="kp-champ__aide">
-          Interroge le moteur après tirage éventuel de l’image : commande, ports déclarés et variables issus du Dockerfile (heuristique pour rester actif si l’image n’a pas de processus long).
+          Interroge le moteur après tirage éventuel de l’image : entrypoint, commande, répertoire de travail, ports déclarés et variables du manifeste (aucune garantie pour les images complexes : vérifiez les champs après application).
         </p>
         {messageSuggestion !== null ? (
           <p className="kidopanel-texte-muted" style={{ marginTop: "0.35rem" }}>

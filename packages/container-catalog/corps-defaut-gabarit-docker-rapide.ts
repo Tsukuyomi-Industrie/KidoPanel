@@ -39,6 +39,9 @@ export function construireCorpsCreationDefautDepuisGabaritDockerRapide(
       restartPolicy: { name: "unless-stopped" },
     },
   };
+  if (gabarit.cmdDockerParDefaut !== undefined && gabarit.cmdDockerParDefaut.length > 0) {
+    corps.cmd = [...gabarit.cmdDockerParDefaut];
+  }
   if (Object.keys(env).length > 0) {
     corps.env = env;
   }

@@ -47,6 +47,11 @@ export type GabaritDockerRapide = {
   champsFormulaire: readonly ChampGabaritDockerRapide[];
   /** Mémoire recommandée en Mo. */
   memoireRecommandeMb: number;
+  /**
+   * Commande par défaut lorsque l’image seule ne garantit pas un processus stable en arrière-plan
+   * (ex. shell interactif sans script). Absent pour nginx, bases de données, etc.
+   */
+  cmdDockerParDefaut?: readonly string[];
 };
 
 export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
@@ -82,11 +87,13 @@ export const LISTE_GABARITS_DOCKER_RAPIDE: readonly GabaritDockerRapide[] = [
   {
     id: "rapide-node",
     nom: "Application — Node.js",
-    description: "Runtime Node.js pour applications JavaScript et API REST.",
+    description:
+      "Runtime Node.js pour applications JavaScript et API REST. Sans application montée, le conteneur reste actif avec une commande neutre (« sleep infinity ») : remplacez-la par votre script (ex. npm start) dans le formulaire expert ou les options avancées.",
     imageCatalogId: "node",
     categorie: "runtime",
     mappingPortsDefaut: [{ conteneur: 3000, hoteDefaut: 3000, protocole: "tcp" }],
     memoireRecommandeMb: 512,
+    cmdDockerParDefaut: ["sleep", "infinity"],
     champsFormulaire: [
       {
         cle: "NOM_CONTAINER",

@@ -2,6 +2,31 @@ import { formaterErreurReseauFetch } from "../lab/passerelleErreursAffichageLab.
 import { lireJetonPasserelle } from "./jetonPasserelleStockage.js";
 import { urlBasePasserelle } from "./url-base-passerelle.js";
 
+/** Extrait un message lisible depuis une erreur JSON API (moteur, validation Zod, etc.). */
+function extraireMessageErreurCorpsHttp(corps: unknown, statutHttp: number): string {
+  if (typeof corps === "object" && corps !== null) {
+    const o = corps as Record<string, unknown>;
+    const erreur = o.error;
+    if (typeof erreur === "object" && erreur !== null) {
+      const msg = (erreur as { message?: unknown }).message;
+      if (typeof msg === "string" && msg.trim().length > 0) {
+        return msg.trim();
+      }
+    }
+    if (typeof o.message === "string" && o.message.trim().length > 0) {
+      return o.message.trim();
+    }
+    const issues = o.issues;
+    if (Array.isArray(issues) && issues.length > 0) {
+      const premier = issues[0] as { message?: unknown };
+      if (typeof premier.message === "string" && premier.message.length > 0) {
+        return premier.message;
+      }
+    }
+  }
+  return `Erreur HTTP ${String(statutHttp)}`;
+}
+
 /** Proposition renvoyée par le moteur après inspection d’image Docker. */
 export type SuggestionImageDockerPasserelle = {
   referenceDocker: string;
@@ -42,16 +67,14 @@ export async function chargerSuggestionConfigurationImageDocker(
         Authorization: `Bearer ${jeton}`,
       },
     });
-    const json = (await reponse.json()) as unknown;
+    let json: unknown;
+    try {
+      json = (await reponse.json()) as unknown;
+    } catch {
+      throw new Error(`Erreur HTTP ${String(reponse.status)} (réponse non JSON).`);
+    }
     if (!reponse.ok) {
-      throw new Error(
-        typeof json === "object" &&
-          json !== null &&
-          "error" in json &&
-          typeof (json as { error?: { message?: unknown } }).error?.message === "string"
-          ? (json as { error: { message: string } }).error.message
-          : `Erreur HTTP ${String(reponse.status)}`,
-      );
+      throw new Error(extraireMessageErreurCorpsHttp(json, reponse.status));
     }
     return json as SuggestionImageDockerPasserelle;
   } catch (erreur) {

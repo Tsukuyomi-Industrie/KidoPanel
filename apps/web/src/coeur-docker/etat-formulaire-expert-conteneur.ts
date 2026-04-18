@@ -34,6 +34,8 @@ export type StrategieReseauPanelKido = "kidopanel_seul" | "pont_utilisateur_seul
 export type EtatFormulaireExpertConteneur = {
   nomContainer: string;
   imageDocker: string;
+  /** Entrée Docker facultative ; laisser vide pour conserver celui défini dans l’image. */
+  entrypointDocker: string;
   commandeDemarrage: string;
   repertoireTravailDocker: string;
   lignesPorts: LignePortExpertConteneur[];
@@ -61,6 +63,7 @@ export function etatInitialFormulaireExpertConteneur(): EtatFormulaireExpertCont
   return {
     nomContainer: "",
     imageDocker: "",
+    entrypointDocker: "",
     commandeDemarrage: "",
     repertoireTravailDocker: "",
     lignesPorts: [],

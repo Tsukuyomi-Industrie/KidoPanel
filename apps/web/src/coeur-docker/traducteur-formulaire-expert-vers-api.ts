@@ -102,6 +102,11 @@ export function traduireFormulaireExpertVersCorpsApi(
     corps.env = env;
   }
 
+  const epBrut = etat.entrypointDocker.trim();
+  if (epBrut.length > 0) {
+    corps.entrypoint = epBrut.split(/\s+/).filter((t) => t.length > 0);
+  }
+
   const cmdBrut = etat.commandeDemarrage.trim();
   if (cmdBrut.length > 0) {
     corps.cmd = cmdBrut.split(/\s+/).filter((t) => t.length > 0);
