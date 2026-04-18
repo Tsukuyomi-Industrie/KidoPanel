@@ -19,8 +19,8 @@ function doitPreserverModeReseauUtilisateur(networkMode: string | undefined): bo
 }
 
 /**
- * Force l’attachement au réseau interne `kidopanel-network` lorsque la spécification ne désactive pas la pile réseau
- * et ne réserve pas un mode réseau Docker non compatible avec un bridge nommé.
+ * Force l’attachement au réseau interne `kidopanel-network`, à un pont utilisateur, ou au primaire en mode double pont,
+ * lorsque la spécification ne désactive pas la pile réseau et ne réserve pas un mode Docker incompatible avec un bridge nommé.
  */
 export function appliquerAttachementReseauInterneKidopanelSurSpec(
   spec: ContainerCreateSpec,
@@ -32,7 +32,27 @@ export function appliquerAttachementReseauInterneKidopanelSurSpec(
   if (doitPreserverModeReseauUtilisateur(modeActuel)) {
     return spec;
   }
+  const dual = spec.reseauDualAvecKidopanel === true;
   const pontPersonnalise = spec.reseauBridgeNom?.trim();
+  const primaireKido = spec.reseauPrimaireKidopanel !== false;
+
+  if (
+    dual &&
+    pontPersonnalise !== undefined &&
+    pontPersonnalise.length > 0
+  ) {
+    const modePontPrimaire = primaireKido
+      ? NOM_RESEAU_BRIDGE_INTERNE_KIDOPANEL
+      : pontPersonnalise;
+    return {
+      ...spec,
+      hostConfig: {
+        ...(spec.hostConfig ?? {}),
+        networkMode: modePontPrimaire,
+      },
+    };
+  }
+
   const modePont =
     pontPersonnalise !== undefined && pontPersonnalise.length > 0
       ? pontPersonnalise

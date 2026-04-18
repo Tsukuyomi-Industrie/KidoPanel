@@ -7,9 +7,32 @@ import { EtapeConfigurationCreationServeur, construireValeursInitialesDepuisCham
 import { EtapeConfirmationCreationServeur } from "./EtapeConfirmationCreationServeur.js";
 import { EtapeListeJeuxCreationServeur } from "./EtapeListeJeuxCreationServeur.js";
 import {
+  type OptionsReseauCreationInstanceJeux,
   traduireServeurPersonnaliseVersCorpsApi,
   traduireValeursFormulaireVersCorpsApi,
+  type StrategieReseauCreationInstanceJeux,
 } from "./traducteur-formulaire-vers-api.js";
+
+function construireOptsReseauPourCreationInstanceJeux(params: {
+  strategieReseau: StrategieReseauCreationInstanceJeux;
+  idReseauInterneSelectionne: string;
+  primaireKidopanel: boolean;
+}): OptionsReseauCreationInstanceJeux | undefined {
+  if (params.strategieReseau === "kidopanel_seul") {
+    return undefined;
+  }
+  const base: OptionsReseauCreationInstanceJeux = {
+    strategie: params.strategieReseau,
+    idReseauInterneUtilisateurSelectionne: params.idReseauInterneSelectionne.trim(),
+  };
+  if (
+    params.strategieReseau === "kidopanel_et_pont_utilisateur" &&
+    params.primaireKidopanel === false
+  ) {
+    return { ...base, primaireKidopanel: false };
+  }
+  return base;
+}
 
 /**
  * Assistant en trois étapes : choix du jeu, paramètres métiers et confirmation sans JSON ni variables Docker brutes.
@@ -29,6 +52,11 @@ export function PageCreationServeur() {
   const [valeursFormulaireMétier, setValeursFormulaireMétier] = useState<
     Record<string, string>
   >({});
+
+  const [strategieReseau, setStrategieReseau] =
+    useState<StrategieReseauCreationInstanceJeux>("kidopanel_seul");
+  const [idReseauInterneSelectionne, setIdReseauInterneSelectionne] = useState("");
+  const [primaireKidopanel, setPrimaireKidopanel] = useState(true);
 
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
@@ -68,6 +96,9 @@ export function PageCreationServeur() {
     setMemoireMb(g.defaultMemoryMb);
     setCpuCores(g.defaultCpuCores);
     setDiskGb(g.disqueParDefautGb);
+    setStrategieReseau("kidopanel_seul");
+    setIdReseauInterneSelectionne("");
+    setPrimaireKidopanel(true);
     setEtape(2);
     setErreur(null);
   }, []);
@@ -79,6 +110,9 @@ export function PageCreationServeur() {
     setMemoireMb(2048);
     setCpuCores(1);
     setDiskGb(10);
+    setStrategieReseau("kidopanel_seul");
+    setIdReseauInterneSelectionne("");
+    setPrimaireKidopanel(true);
     setEtape(2);
     setErreur(null);
   }, []);
@@ -99,15 +133,38 @@ export function PageCreationServeur() {
       setErreur("Indiquez un nom de serveur.");
       return;
     }
+    if (
+      strategieReseau !== "kidopanel_seul" &&
+      idReseauInterneSelectionne.trim().length === 0
+    ) {
+      setErreur(
+        "Choisissez un pont créé dans le panel ou repassez sur « Réseau KidoPanel uniquement ».",
+      );
+      return;
+    }
     setEtape(3);
-  }, [nomAffiche]);
+  }, [idReseauInterneSelectionne, nomAffiche, strategieReseau]);
 
   const allerConfirmationDepuisFormulaire = useCallback(
     (vals: Record<string, string>) => {
       setValeursFormulaireMétier(vals);
-      allerConfirmation();
+      setErreur(null);
+      if (nomAffiche.trim().length === 0) {
+        setErreur("Indiquez un nom de serveur.");
+        return;
+      }
+      if (
+        strategieReseau !== "kidopanel_seul" &&
+        idReseauInterneSelectionne.trim().length === 0
+      ) {
+        setErreur(
+          "Choisissez un pont créé dans le panel ou repassez sur « Réseau KidoPanel uniquement ».",
+        );
+        return;
+      }
+      setEtape(3);
     },
-    [allerConfirmation],
+    [idReseauInterneSelectionne, nomAffiche, strategieReseau],
   );
 
   const lancerInstallation = useCallback(() => {
@@ -118,12 +175,20 @@ export function PageCreationServeur() {
         setEnCours(true);
         setErreur(null);
         try {
-          const corps = traduireServeurPersonnaliseVersCorpsApi({
-            nomServeur: nomAffiche,
-            memoryMb: memoireMb,
-            cpuCores,
-            diskGb,
+          const optsReseau = construireOptsReseauPourCreationInstanceJeux({
+            strategieReseau,
+            idReseauInterneSelectionne,
+            primaireKidopanel,
           });
+          const corps = traduireServeurPersonnaliseVersCorpsApi(
+            {
+              nomServeur: nomAffiche,
+              memoryMb: memoireMb,
+              cpuCores,
+              diskGb,
+            },
+            optsReseau,
+          );
           const cree = await creerInstanceServeurJeuxPasserelle(corps);
           void navigate(`/serveurs/${encodeURIComponent(cree.id)}`, { replace: true });
         } catch (e) {
@@ -144,14 +209,22 @@ export function PageCreationServeur() {
       setEnCours(true);
       setErreur(null);
       try {
-        const corps = traduireValeursFormulaireVersCorpsApi({
-          gabarit: gabaritChoisi,
-          nomServeur: nomAffiche,
-          memoryMb: memoireMb,
-          cpuCores,
-          diskGb,
-          valeursChamps: valeursFormulaireMétier,
+        const optsReseau = construireOptsReseauPourCreationInstanceJeux({
+          strategieReseau,
+          idReseauInterneSelectionne,
+          primaireKidopanel,
         });
+        const corps = traduireValeursFormulaireVersCorpsApi(
+          {
+            gabarit: gabaritChoisi,
+            nomServeur: nomAffiche,
+            memoryMb: memoireMb,
+            cpuCores,
+            diskGb,
+            valeursChamps: valeursFormulaireMétier,
+          },
+          optsReseau,
+        );
         const cree = await creerInstanceServeurJeuxPasserelle(corps);
         void navigate(`/serveurs/${encodeURIComponent(cree.id)}`, { replace: true });
       } catch (e) {
@@ -165,10 +238,13 @@ export function PageCreationServeur() {
     cpuCores,
     diskGb,
     gabaritChoisi,
+    idReseauInterneSelectionne,
     memoireMb,
     modePersonnalise,
     navigate,
     nomAffiche,
+    primaireKidopanel,
+    strategieReseau,
     valeursFormulaireMétier,
   ]);
 
@@ -208,6 +284,12 @@ export function PageCreationServeur() {
             valeursInitialesFormulaire={valeursInitialesFormulaire}
             surContinuerAvecFormulaire={allerConfirmationDepuisFormulaire}
             surContinuerPersonnalise={allerConfirmation}
+            strategieReseau={strategieReseau}
+            surStrategieReseau={setStrategieReseau}
+            idReseauInterneSelectionne={idReseauInterneSelectionne}
+            surIdReseauInterneSelectionne={setIdReseauInterneSelectionne}
+            primaireReseauKidopanel={primaireKidopanel}
+            surPrimaireReseauKidopanel={setPrimaireKidopanel}
           />
         </>
       ) : null}

@@ -72,6 +72,8 @@ model GameServerInstance {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   reseauInterneUtilisateurId String? @db.Uuid
+  /** Si vrai avec un pont utilisateur : le conteneur est aussi sur `kidopanel-network` (double attachement). */
+  attacherReseauKidopanelComplement Boolean @default(false)
   user                     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   reseauInterneUtilisateur UserInternalNetwork?  @relation(fields: [reseauInterneUtilisateurId], references: [id], onDelete: SetNull)
   backups                  InstanceBackup[]

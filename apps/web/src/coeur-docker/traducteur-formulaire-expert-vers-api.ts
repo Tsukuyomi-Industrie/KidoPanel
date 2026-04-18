@@ -112,5 +112,34 @@ export function traduireFormulaireExpertVersCorpsApi(
     corps.hostname = hostnameBrut;
   }
 
+  const wd = etat.repertoireTravailDocker.trim();
+  if (wd.length > 0) {
+    corps.workingDir = wd;
+  }
+
+  if (etat.modeReseau === "bridge") {
+    if (etat.strategieReseauKidoPanel === "pont_utilisateur_seul") {
+      const nd = etat.nomDockerPontUtilisateur.trim();
+      if (nd.length === 0) {
+        throw new Error(
+          "Choisissez un pont dans la liste ou la stratégie « Réseau KidoPanel uniquement ».",
+        );
+      }
+      corps.reseauBridgeNom = nd;
+    } else if (etat.strategieReseauKidoPanel === "kidopanel_et_pont") {
+      const nd = etat.nomDockerPontUtilisateur.trim();
+      if (nd.length === 0) {
+        throw new Error(
+          "Pour le double réseau, sélectionnez un pont utilisateur créé depuis le panel.",
+        );
+      }
+      corps.reseauBridgeNom = nd;
+      corps.reseauDualAvecKidopanel = true;
+      if (!etat.primaireReseauKidopanelEnDouble) {
+        corps.reseauPrimaireKidopanel = false;
+      }
+    }
+  }
+
   return corps;
 }

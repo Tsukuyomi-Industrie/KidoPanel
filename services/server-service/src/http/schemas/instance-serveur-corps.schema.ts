@@ -22,4 +22,21 @@ export const corpsCreationInstanceServeurJeuxSchema = z.object({
   env: z.record(z.string(), z.string()).optional(),
   /** Identifiant d’un pont créé via la passerelle (`GET /reseaux-internes`) pour isoler le conteneur sur ce réseau. */
   reseauInterneUtilisateurId: z.string().uuid().optional(),
-});
+  /** Avec `reseauInterneUtilisateurId` : aussi rattacher le conteneur au réseau partagé `kidopanel-network`. */
+  attacherReseauKidopanelComplement: z.boolean().optional(),
+  /** Si le double réseau est actif : le réseau principal à la création est `kidopanel-network` (défaut `true`). */
+  reseauPrimaireKidopanel: z.boolean().optional(),
+})
+  .superRefine((donnees, ctx) => {
+    if (donnees.attacherReseauKidopanelComplement === true) {
+      const id = donnees.reseauInterneUtilisateurId?.trim();
+      if (id === undefined || id.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "Le double réseau impose « reseauInterneUtilisateurId » (pont créé depuis le panel).",
+          path: ["reseauInterneUtilisateurId"],
+        });
+      }
+    }
+  });

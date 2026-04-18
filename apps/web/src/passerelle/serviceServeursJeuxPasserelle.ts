@@ -105,6 +105,9 @@ export type CorpsCreationInstanceServeurJeux = {
   cpuCores: number;
   diskGb: number;
   env?: Record<string, string>;
+  reseauInterneUtilisateurId?: string;
+  attacherReseauKidopanelComplement?: boolean;
+  reseauPrimaireKidopanel?: boolean;
 };
 
 /** Demande la création d’une instance via le service jeu (variables d’environnement métier incluses). */

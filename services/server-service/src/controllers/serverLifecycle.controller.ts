@@ -88,6 +88,8 @@ export function monterRoutesCycleInstanceServeurJeux(
           variablesEnvBrutes: corps.env ?? {},
           identifiantRequeteHttp: c.get("requestId"),
           reseauInterneUtilisateurId: corps.reseauInterneUtilisateurId,
+          attacherReseauKidopanelComplement: corps.attacherReseauKidopanelComplement,
+          reseauPrimaireKidopanel: corps.reseauPrimaireKidopanel,
         });
         return c.json(cree, 201);
       } catch (erreur) {

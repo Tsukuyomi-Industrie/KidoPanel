@@ -50,7 +50,7 @@ export function createEngineHttpApp(engine: ContainerEngine): Hono<{
   app.get("/metrics", routeMetriquesMoteur);
 
   mountContainerRoutes(app, engine);
-  mountImagesRoutes(app);
+  mountImagesRoutes(app, engine);
   mountReseauxInternesRoutes(app, engine);
 
   app.notFound((c) =>

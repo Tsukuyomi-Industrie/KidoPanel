@@ -34,6 +34,10 @@ import {
   type ServiceJournauxFichierConteneur,
 } from "./journaux-fichier-conteneur/journaux-fichier-conteneur.service.js";
 import { mapEntreeListeDockerVersResume } from "./conteneur-liste-docker.mapper.js";
+import {
+  construireSuggestionConfigurationDepuisInspectionImage,
+  type SuggestionConfigurationImageDocker,
+} from "./docker/suggestion-config-depuis-image.service.js";
 
 /** Options du constructeur : client injecté ou paramètres de connexion explicites. */
 export interface ContainerEngineOptions {
@@ -115,6 +119,38 @@ export class ContainerEngine {
       spec,
       options,
     );
+  }
+
+  /**
+   * Propose cmd, entrypoint, ports et variables à partir du manifeste d’image après tirage local.
+   */
+  async obtenirSuggestionConfigurationPourImageDocker(
+    params: Pick<ContainerCreateSpec, "imageCatalogId" | "imageReference">,
+    options?: { requestId?: string },
+  ): Promise<SuggestionConfigurationImageDocker> {
+    const specPartiel = params as ContainerCreateSpec;
+    const resolu = resoudreImagePourCreation(specPartiel, options?.requestId);
+    const metaTirage =
+      resolu.mode === "catalogue"
+        ? {
+            mode: "catalogue" as const,
+            idCatalogue: resolu.idCatalogue,
+            referenceDocker: resolu.referenceDocker,
+          }
+        : { mode: "libre" as const, referenceDocker: resolu.referenceDocker };
+    await this.serviceTirageImage.garantirPresenceImagePourCreation(
+      metaTirage,
+      options?.requestId,
+    );
+    try {
+      const inspection = await this.docker.getImage(resolu.referenceDocker).inspect();
+      return construireSuggestionConfigurationDepuisInspectionImage(
+        resolu.referenceDocker,
+        inspection,
+      );
+    } catch (e) {
+      wrapDockerError(e);
+    }
   }
 
   /**

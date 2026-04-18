@@ -181,6 +181,8 @@ export const createContainerJsonSchema = z
     .max(128)
     .regex(MOTIF_NOM_RESEAU_BRIDGE_UTILISATEUR_KIDOPANEL)
     .optional(),
+  reseauDualAvecKidopanel: z.boolean().optional(),
+  reseauPrimaireKidopanel: z.boolean().optional(),
   })
   .superRefine((donnees, ctx) => {
     const analyseReference =
@@ -212,6 +214,33 @@ export const createContainerJsonSchema = z
         message:
           "Indiquez « imageReference » pour une image Docker Hub ou registre accessible au démon, ou « imageCatalogId » pour le catalogue KidoPanel.",
         path: ["imageReference"],
+      });
+    }
+  })
+  .superRefine((donnees, ctx) => {
+    if (donnees.reseauDualAvecKidopanel === true) {
+      const pont = donnees.reseauBridgeNom?.trim();
+      if (pont === undefined || pont.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "Le mode double réseau impose « reseauBridgeNom » (pont créé depuis le panel).",
+          path: ["reseauBridgeNom"],
+        });
+      }
+    }
+    const modeReseau = donnees.hostConfig?.networkMode;
+    const modeNormalise =
+      typeof modeReseau === "string" ? modeReseau.trim().toLowerCase() : "";
+    if (
+      donnees.reseauDualAvecKidopanel === true &&
+      (modeNormalise === "host" || modeNormalise === "none")
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Le double attachement réseau est incompatible avec les modes « host » et « none ».",
+        path: ["hostConfig", "networkMode"],
       });
     }
   });

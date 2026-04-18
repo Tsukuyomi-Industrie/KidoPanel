@@ -80,6 +80,8 @@ export class CycleVieInstanceServeur {
     variablesEnvBrutes: Record<string, string>;
     identifiantRequeteHttp: string;
     reseauInterneUtilisateurId?: string;
+    attacherReseauKidopanelComplement?: boolean;
+    reseauPrimaireKidopanel?: boolean;
   }) {
     if (params.role === "VIEWER") {
       throw new ErreurMetierInstanceJeux(
@@ -110,6 +112,10 @@ export class CycleVieInstanceServeur {
       }
       nomPontDocker = enregistrementReseau.nomDocker;
     }
+    const dualKidopanelEtPont =
+      idReseauBrut !== undefined &&
+      idReseauBrut.length > 0 &&
+      params.attacherReseauKidopanelComplement === true;
     const idInstance = randomUUID();
     const ligne = await this.depot.creer({
       id: idInstance,
@@ -123,7 +129,10 @@ export class CycleVieInstanceServeur {
       status: "INSTALLING",
       installLogs: null,
       ...(idReseauBrut !== undefined && idReseauBrut.length > 0
-        ? { reseauInterneUtilisateurId: idReseauBrut }
+        ? {
+            reseauInterneUtilisateurId: idReseauBrut,
+            attacherReseauKidopanelComplement: dualKidopanelEtPont,
+          }
         : {}),
     });
 
@@ -136,6 +145,10 @@ export class CycleVieInstanceServeur {
       fusionEnv,
       identifiantRequeteHttp: params.identifiantRequeteHttp,
       ...(nomPontDocker !== undefined ? { reseauBridgeNom: nomPontDocker } : {}),
+      ...(dualKidopanelEtPont ? { reseauDualAvecKidopanel: true } : {}),
+      ...(dualKidopanelEtPont && params.reseauPrimaireKidopanel === false
+        ? { reseauPrimaireKidopanel: false }
+        : {}),
     });
   }
 

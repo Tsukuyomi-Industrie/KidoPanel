@@ -27,11 +27,15 @@ export type LigneSysctlExpertConteneur = {
   valeur: string;
 };
 
+/** Stratégie d’attachement aux ponts gérés par KidoPanel (mode `bridge` uniquement). */
+export type StrategieReseauPanelKido = "kidopanel_seul" | "pont_utilisateur_seul" | "kidopanel_et_pont";
+
 /** État initial du formulaire expert : sections repliables sans saisie JSON brute. */
 export type EtatFormulaireExpertConteneur = {
   nomContainer: string;
   imageDocker: string;
   commandeDemarrage: string;
+  repertoireTravailDocker: string;
   lignesPorts: LignePortExpertConteneur[];
   lignesEnv: LigneEnvExpertConteneur[];
   lignesVolumes: LigneVolumeExpertConteneur[];
@@ -40,6 +44,9 @@ export type EtatFormulaireExpertConteneur = {
   politiqueRedemarrage: "no" | "always" | "on-failure" | "unless-stopped";
   modeReseau: "bridge" | "host" | "none";
   nomHoteReseau: string;
+  strategieReseauKidoPanel: StrategieReseauPanelKido;
+  nomDockerPontUtilisateur: string;
+  primaireReseauKidopanelEnDouble: boolean;
   modePrivilegie: boolean;
   limitePid: string;
   lignesSysctl: LigneSysctlExpertConteneur[];
@@ -55,6 +62,7 @@ export function etatInitialFormulaireExpertConteneur(): EtatFormulaireExpertCont
     nomContainer: "",
     imageDocker: "",
     commandeDemarrage: "",
+    repertoireTravailDocker: "",
     lignesPorts: [],
     lignesEnv: [],
     lignesVolumes: [],
@@ -63,6 +71,9 @@ export function etatInitialFormulaireExpertConteneur(): EtatFormulaireExpertCont
     politiqueRedemarrage: "unless-stopped",
     modeReseau: "bridge",
     nomHoteReseau: "",
+    strategieReseauKidoPanel: "kidopanel_seul",
+    nomDockerPontUtilisateur: "",
+    primaireReseauKidopanelEnDouble: true,
     modePrivilegie: false,
     limitePid: "",
     lignesSysctl: [],

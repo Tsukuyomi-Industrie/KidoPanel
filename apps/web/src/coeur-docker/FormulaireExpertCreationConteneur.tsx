@@ -1,5 +1,6 @@
 import type { EtatFormulaireExpertConteneur } from "./etat-formulaire-expert-conteneur.js";
 import { FormulaireExpertSectionsDynamiquesConteneur } from "./FormulaireExpertSectionsDynamiquesConteneur.js";
+import { SectionReseauEtSuggestionFormulaireExpert } from "./SectionReseauEtSuggestionFormulaireExpert.js";
 
 type PropsFormulaireExpertCreationConteneur = {
   etat: EtatFormulaireExpertConteneur;
@@ -78,6 +79,8 @@ export function FormulaireExpertCreationConteneur({
         </div>
       </fieldset>
 
+      <SectionReseauEtSuggestionFormulaireExpert etat={etat} surChangement={surChangement} />
+
       <FormulaireExpertSectionsDynamiquesConteneur
         etat={etat}
         surChangement={surChangement}
@@ -142,44 +145,6 @@ export function FormulaireExpertCreationConteneur({
               <option value="on-failure">Si erreur</option>
               <option value="unless-stopped">Sauf si arrêté manuellement</option>
             </select>
-          </div>
-        </div>
-      </details>
-
-      <details className="kp-details-section">
-        <summary>Réseau</summary>
-        <div className="kp-details-section__corps">
-          <div className="kp-champ">
-            <label className="kp-champ__label" htmlFor="kp-exp-net">
-              Mode réseau
-            </label>
-            <select
-              id="kp-exp-net"
-              value={etat.modeReseau}
-              onChange={(e) =>
-                surChangement({
-                  ...etat,
-                  modeReseau: e.target.value as EtatFormulaireExpertConteneur["modeReseau"],
-                })
-              }
-            >
-              <option value="bridge">bridge</option>
-              <option value="host">host</option>
-              <option value="none">none</option>
-            </select>
-          </div>
-          <div className="kp-champ">
-            <label className="kp-champ__label" htmlFor="kp-exp-hostname">
-              Nom d'hôte (optionnel)
-            </label>
-            <input
-              id="kp-exp-hostname"
-              type="text"
-              value={etat.nomHoteReseau}
-              onChange={(e) =>
-                surChangement({ ...etat, nomHoteReseau: e.target.value })
-              }
-            />
           </div>
         </div>
       </details>

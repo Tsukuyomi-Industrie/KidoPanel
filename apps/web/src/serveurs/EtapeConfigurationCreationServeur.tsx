@@ -1,6 +1,8 @@
 import type { ChampGabaritDockerRapide } from "@kidopanel/container-catalog";
 import type { GabaritJeuCatalogueInstance } from "@kidopanel/container-catalog";
 import { FormulaireGabarit } from "../interface/FormulaireGabarit.js";
+import { BlocChoixReseauCreationServeur } from "./BlocChoixReseauCreationServeur.js";
+import type { StrategieReseauCreationInstanceJeux } from "./traducteur-formulaire-vers-api.js";
 
 function memoireVersGo(mb: number): string {
   if (mb >= 1024) {
@@ -46,6 +48,12 @@ type PropsEtapeConfiguration = {
   valeursInitialesFormulaire: Record<string, string>;
   surContinuerAvecFormulaire: (valeurs: Record<string, string>) => void;
   surContinuerPersonnalise: () => void;
+  strategieReseau: StrategieReseauCreationInstanceJeux;
+  surStrategieReseau: (v: StrategieReseauCreationInstanceJeux) => void;
+  idReseauInterneSelectionne: string;
+  surIdReseauInterneSelectionne: (id: string) => void;
+  primaireReseauKidopanel: boolean;
+  surPrimaireReseauKidopanel: (v: boolean) => void;
 };
 
 /**
@@ -66,6 +74,12 @@ export function EtapeConfigurationCreationServeur({
   valeursInitialesFormulaire,
   surContinuerAvecFormulaire,
   surContinuerPersonnalise,
+  strategieReseau,
+  surStrategieReseau,
+  idReseauInterneSelectionne,
+  surIdReseauInterneSelectionne,
+  primaireReseauKidopanel,
+  surPrimaireReseauKidopanel,
 }: PropsEtapeConfiguration) {
   return (
     <section className="kidopanel-carte-principale" style={{ marginTop: "1rem" }}>
@@ -167,6 +181,15 @@ export function EtapeConfigurationCreationServeur({
           onChange={(e) => surDiskGb(Number(e.target.value))}
         />
       </div>
+
+      <BlocChoixReseauCreationServeur
+        strategie={strategieReseau}
+        surStrategie={surStrategieReseau}
+        idReseauSelectionne={idReseauInterneSelectionne}
+        surIdReseauSelectionne={surIdReseauInterneSelectionne}
+        primaireKidopanel={primaireReseauKidopanel}
+        surPrimaireKidopanel={surPrimaireReseauKidopanel}
+      />
 
       {gabaritChoisi !== null && !modePersonnalise ? (
         <FormulaireGabarit

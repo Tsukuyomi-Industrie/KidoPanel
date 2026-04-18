@@ -25,6 +25,8 @@ export class ClientMoteurConteneursHttp {
     variablesEnv: Record<string, string>;
     /** Nom Docker du pont utilisateur (`kidopanel-unet-…`) lorsque l’instance n’utilise pas uniquement `kidopanel-network`. */
     reseauBridgeNom?: string;
+    reseauDualAvecKidopanel?: boolean;
+    reseauPrimaireKidopanel?: boolean;
   }): CorpsCreationConteneurMoteur {
     const liaisonsPorts: Record<string, Array<{ hostIp: string; hostPort: string }>> =
       {};
@@ -49,6 +51,12 @@ export class ClientMoteurConteneursHttp {
     const pont = params.reseauBridgeNom?.trim();
     if (pont !== undefined && pont.length > 0) {
       corps.reseauBridgeNom = pont;
+    }
+    if (params.reseauDualAvecKidopanel === true) {
+      corps.reseauDualAvecKidopanel = true;
+    }
+    if (params.reseauPrimaireKidopanel === false) {
+      corps.reseauPrimaireKidopanel = false;
     }
     return corps;
   }

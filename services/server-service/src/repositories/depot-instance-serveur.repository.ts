@@ -13,6 +13,7 @@ type DonneesNouvelleInstance = {
   status: InstanceStatus;
   installLogs: string | null;
   reseauInterneUtilisateurId?: string | null;
+  attacherReseauKidopanelComplement?: boolean;
 };
 
 /**

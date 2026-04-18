@@ -201,6 +201,14 @@ export interface ContainerCreateSpec {
    * le réseau partagé `kidopanel-network` est appliqué hors modes réseau spéciaux.
    */
   reseauBridgeNom?: string;
+  /**
+   * Si vrai avec `reseauBridgeNom`, le conteneur est rattaché à `kidopanel-network` et au pont utilisateur (connexion secondaire après création).
+   */
+  reseauDualAvecKidopanel?: boolean;
+  /**
+   * Lorsque le mode double réseau est actif : si vrai (défaut), création sur `kidopanel-network` puis connexion au pont utilisateur ; si faux, l’inverse.
+   */
+  reseauPrimaireKidopanel?: boolean;
   /** Points de montage déclaratifs hérités (`Volumes` dans la config de création). */
   volumes?: Record<string, object>;
   /** Instructions `ONBUILD` pour une image en construction (`OnBuild`). */
@@ -240,6 +248,8 @@ export interface ContainerSummary {
 export interface CreateContainerResult {
   id: string;
   warnings: string[];
-  /** Adresse IPv4 du conteneur sur le réseau interne `kidopanel-network`, si connue après inspection. */
+  /** Adresse IPv4 sur le réseau principal utilisé à la création (`networkMode`). */
   ipReseauInterne?: string;
+  /** En mode double pont : IPv4 sur le second réseau après `docker network connect`. */
+  ipReseauAdjoint?: string;
 }

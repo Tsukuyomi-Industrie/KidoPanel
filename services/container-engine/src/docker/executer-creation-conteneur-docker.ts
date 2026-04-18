@@ -4,10 +4,12 @@ import type { ServiceTirageImageMoteur } from "../image-puller.service.js";
 import type { ServiceJournauxFichierConteneur } from "../journaux-fichier-conteneur/journaux-fichier-conteneur.service.js";
 import { journaliserMoteur } from "../observabilite/journal-json.js";
 import { resoudreImagePourCreation } from "../image-validator.service.js";
+import { ContainerEngineError } from "../errors.js";
 import { wrapDockerError } from "./wrap-docker-operation.js";
 import { traduireOptionsCreationConteneur } from "./traduction-options-creation-conteneur.js";
 import { garantirReseauKidopanelNetworkParDefaut } from "./network.service.js";
 import { verifierPontReseauNomExisteSurHote } from "./reseau-utilisateur-docker.service.js";
+import { connecterConteneurIdentifiantAuReseauParNomDocker } from "./connexion-reseau-adjoint-post-creation.js";
 import { appliquerAttachementReseauInterneKidopanelSurSpec } from "./appliquer-spec-reseau-interne.js";
 import { extraireIpv4ConteneurSurReseauNomme } from "./extraction-ip-reseau-inspection.js";
 import { NOM_RESEAU_BRIDGE_INTERNE_KIDOPANEL } from "./reseau-interne-kidopanel.constantes.js";
@@ -59,26 +61,67 @@ export async function executerCreationConteneurDocker(
     metaTirage,
     requestId,
   );
-  const pontOptionnel = spec.reseauBridgeNom?.trim();
-  if (pontOptionnel !== undefined && pontOptionnel.length > 0) {
-    await verifierPontReseauNomExisteSurHote(deps.docker, pontOptionnel);
-  } else {
-    await garantirReseauKidopanelNetworkParDefaut(deps.docker, { requestId });
+
+  const pontPerso = spec.reseauBridgeNom?.trim();
+  const dual = spec.reseauDualAvecKidopanel === true;
+  const primaireKido = spec.reseauPrimaireKidopanel !== false;
+
+  if (dual && (pontPerso === undefined || pontPerso.length === 0)) {
+    throw new ContainerEngineError(
+      "INVALID_SPEC",
+      "Le mode double réseau exige « reseauBridgeNom » vers un pont utilisateur existant.",
+    );
   }
+
+  const uniquementKidopanel =
+    (pontPerso === undefined || pontPerso.length === 0) && !dual;
+  const uniquementPontPerso =
+    pontPerso !== undefined && pontPerso.length > 0 && !dual;
+  const modeDoublePont =
+    pontPerso !== undefined && pontPerso.length > 0 && dual;
+
+  if (uniquementKidopanel) {
+    await garantirReseauKidopanelNetworkParDefaut(deps.docker, { requestId });
+  } else if (uniquementPontPerso) {
+    await verifierPontReseauNomExisteSurHote(deps.docker, pontPerso);
+  } else if (modeDoublePont) {
+    await garantirReseauKidopanelNetworkParDefaut(deps.docker, { requestId });
+    await verifierPontReseauNomExisteSurHote(deps.docker, pontPerso);
+  }
+
   const specAvecReseau = appliquerAttachementReseauInterneKidopanelSurSpec(spec);
   const opts = traduireOptionsCreationConteneur(specAvecReseau, resolu.referenceDocker);
   try {
     const container = await deps.docker.createContainer(opts);
+
+    let nomReseauAdjointPourIp: string | undefined;
+    if (modeDoublePont && pontPerso !== undefined) {
+      const nomAdjoint = primaireKido ? pontPerso : NOM_RESEAU_BRIDGE_INTERNE_KIDOPANEL;
+      await connecterConteneurIdentifiantAuReseauParNomDocker(
+        deps.docker,
+        container.id,
+        nomAdjoint,
+      );
+      nomReseauAdjointPourIp = nomAdjoint;
+    }
+
     let ipReseauInterne: string | undefined;
+    let ipReseauAdjoint: string | undefined;
     try {
       const inspection = await container.inspect();
-      const nomReseauPourIp =
+      const nomReseauPourIpPrimaire =
         specAvecReseau.hostConfig?.networkMode?.trim() ??
         NOM_RESEAU_BRIDGE_INTERNE_KIDOPANEL;
       ipReseauInterne = extraireIpv4ConteneurSurReseauNomme(
         inspection,
-        nomReseauPourIp,
+        nomReseauPourIpPrimaire,
       );
+      if (nomReseauAdjointPourIp !== undefined) {
+        ipReseauAdjoint = extraireIpv4ConteneurSurReseauNomme(
+          inspection,
+          nomReseauAdjointPourIp,
+        );
+      }
       if (ipReseauInterne !== undefined) {
         journaliserMoteur({
           niveau: "info",
@@ -86,8 +129,9 @@ export async function executerCreationConteneurDocker(
           requestId,
           metadata: {
             idConteneur: container.id,
-            nomReseau: nomReseauPourIp,
+            nomReseau: nomReseauPourIpPrimaire,
             ipReseauInterne,
+            ipReseauAdjoint,
           },
         });
       }
@@ -117,6 +161,7 @@ export async function executerCreationConteneurDocker(
       id: container.id,
       warnings: [],
       ...(ipReseauInterne !== undefined ? { ipReseauInterne } : {}),
+      ...(ipReseauAdjoint !== undefined ? { ipReseauAdjoint } : {}),
     };
     void deps.journauxFichierConteneur
       ?.notifierCreation(resultat.id, {
