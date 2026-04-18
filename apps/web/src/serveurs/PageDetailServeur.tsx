@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { BadgeStatut } from "../interface/BadgeStatut.js";
+import { statutBadgeDepuisChaineApi } from "../interface/statutBadgeInstanceJeux.js";
 import { ConsoleServeur } from "./composants/ConsoleServeur.js";
 import {
   obtenirInstanceServeurJeuxPasserelle,
@@ -16,9 +18,10 @@ export function PageDetailServeur() {
   );
   const [erreur, setErreur] = useState<string | null>(null);
 
+  const identifiantManquant = !idInstance?.trim();
+
   useEffect(() => {
-    if (!idInstance?.trim()) {
-      setErreur("Identifiant d’instance manquant dans l’URL.");
+    if (identifiantManquant || !idInstance) {
       return;
     }
     let annule = false;
@@ -38,31 +41,41 @@ export function PageDetailServeur() {
     return () => {
       annule = true;
     };
-  }, [idInstance]);
+  }, [idInstance, identifiantManquant]);
+
+  if (identifiantManquant) {
+    return (
+      <pre className="kp-cellule-mono" role="alert">
+        Identifiant d’instance manquant dans l’URL.
+      </pre>
+    );
+  }
 
   return (
-    <div className="kidopanel-page-centree">
-      <p className="kidopanel-texte-muted">
-        <Link to="/serveurs" className="kidopanel-lien-bouton-secondaire">
+    <>
+      <p className="kp-texte-muted">
+        <Link to="/serveurs" className="kp-lien-inline">
           Retour à la liste
         </Link>
       </p>
-      <h1 className="kidopanel-titre-page">
-        {instance?.name ?? "Instance jeu"}
-      </h1>
+      <div className="kp-page-entete">
+        <h1 className="kp-page-titre">{instance?.name ?? "Instance jeu"}</h1>
+      </div>
       {erreur !== null ? (
-        <pre className="kidopanel-cellule-mono" role="alert">
+        <pre className="kp-cellule-mono" role="alert">
           {erreur}
         </pre>
       ) : null}
       {instance !== null ? (
         <>
-          <section className="kidopanel-carte-principale" style={{ marginTop: "1rem" }}>
-            <h2 className="kidopanel-titre-section">Résumé</h2>
+          <section className="kp-panel-corps">
+            <h2 className="kp-section-label">Résumé</h2>
             <dl className="kidopanel-liste-definitions">
               <div>
                 <dt>Statut</dt>
-                <dd>{instance.status}</dd>
+                <dd>
+                  <BadgeStatut statut={statutBadgeDepuisChaineApi(instance.status)} />
+                </dd>
               </div>
               <div>
                 <dt>Jeu</dt>
@@ -70,9 +83,7 @@ export function PageDetailServeur() {
               </div>
               <div>
                 <dt>Conteneur Docker</dt>
-                <dd className="kidopanel-cellule-mono">
-                  {instance.containerId ?? "—"}
-                </dd>
+                <dd className="kp-cellule-mono">{instance.containerId ?? "—"}</dd>
               </div>
               <div>
                 <dt>Ressources</dt>
@@ -82,11 +93,9 @@ export function PageDetailServeur() {
               </div>
             </dl>
           </section>
-          <div style={{ marginTop: "1rem" }}>
-            <ConsoleServeur idInstanceJeux={instance.id} actif={Boolean(instance.containerId)} />
-          </div>
+          <ConsoleServeur idInstanceJeux={instance.id} actif={Boolean(instance.containerId)} />
         </>
       ) : null}
-    </div>
+    </>
   );
 }

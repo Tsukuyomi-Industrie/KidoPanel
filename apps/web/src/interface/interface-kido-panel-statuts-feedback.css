@@ -1,0 +1,238 @@
+@keyframes kp-pulse-green {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes kp-pulse-cyan {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes kp-pulse-amber {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes kp-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes kp-toast-entree {
+  from {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.kp-statut {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.kp-statut__point {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.kp-statut--running {
+  color: var(--kp-green);
+  background: var(--kp-green-dim);
+  border-color: var(--kp-green-border);
+}
+
+.kp-statut--running .kp-statut__point {
+  background: var(--kp-green);
+  animation: kp-pulse-green 1.5s ease infinite;
+}
+
+.kp-statut--stopped {
+  color: var(--kp-text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--kp-border-base);
+}
+
+.kp-statut--stopped .kp-statut__point {
+  background: var(--kp-text-muted);
+}
+
+.kp-statut--starting,
+.kp-statut--installing {
+  color: var(--kp-cyan);
+  background: var(--kp-cyan-dim);
+  border-color: var(--kp-cyan-border);
+}
+
+.kp-statut--starting .kp-statut__point,
+.kp-statut--installing .kp-statut__point {
+  background: var(--kp-cyan);
+  animation: kp-pulse-cyan 1s ease infinite;
+}
+
+.kp-statut--stopping {
+  color: var(--kp-amber);
+  background: var(--kp-amber-dim);
+  border-color: var(--kp-amber-border);
+}
+
+.kp-statut--stopping .kp-statut__point {
+  background: var(--kp-amber);
+  animation: kp-pulse-amber 1.2s ease infinite;
+}
+
+.kp-statut--crashed,
+.kp-statut--error {
+  color: var(--kp-red);
+  background: var(--kp-red-dim);
+  border-color: var(--kp-red-border);
+}
+
+.kp-statut--crashed .kp-statut__point,
+.kp-statut--error .kp-statut__point {
+  background: var(--kp-red);
+}
+
+.kp-etat-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.kp-etat-vide__ico {
+  width: 48px;
+  height: 48px;
+  color: var(--kp-text-muted);
+  opacity: 0.5;
+}
+
+.kp-etat-vide__titre {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--kp-text-secondary);
+  margin: 0;
+}
+
+.kp-etat-vide__detail {
+  font-size: 0.825rem;
+  color: var(--kp-text-muted);
+  max-width: 28rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.kp-squelette {
+  background: linear-gradient(
+    90deg,
+    var(--kp-bg-elevated) 25%,
+    var(--kp-bg-overlay) 50%,
+    var(--kp-bg-elevated) 75%
+  );
+  background-size: 200% 100%;
+  animation: kp-shimmer 1.5s infinite;
+  border-radius: var(--kp-radius-sm);
+}
+
+.kp-toast {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  background: var(--kp-bg-elevated);
+  border: 1px solid var(--kp-border-base);
+  border-radius: var(--kp-radius-md);
+  box-shadow: var(--kp-shadow-lg);
+  font-size: 0.875rem;
+  color: var(--kp-text-primary);
+  animation: kp-toast-entree 0.28s ease;
+  max-width: 380px;
+}
+
+.kp-toast--succes {
+  border-left: 3px solid var(--kp-green);
+}
+
+.kp-toast--erreur {
+  border-left: 3px solid var(--kp-red);
+}
+
+.kp-toast--info {
+  border-left: 3px solid var(--kp-cyan);
+}
+
+.kp-texte-muted,
+.kidopanel-texte-muted {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--kp-text-secondary);
+  line-height: 1.45;
+}
+
+.kp-cellule-mono,
+.kidopanel-cellule-mono {
+  font-family: var(--kp-font-mono);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--kp-text-primary);
+}
+
+.kp-marges-haut-sm {
+  margin-top: 0.75rem;
+}
+
+.kp-toast-racine {
+  position: fixed;
+  inset: auto 0 0 auto;
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.kp-toast-racine .kp-toast {
+  pointer-events: auto;
+}

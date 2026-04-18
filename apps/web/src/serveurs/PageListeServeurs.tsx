@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CarteServeur } from "./composants/CarteServeur.js";
 import {
@@ -15,62 +15,57 @@ export function PageListeServeurs() {
   );
   const [erreur, setErreur] = useState<string | null>(null);
 
-  useEffect(() => {
-    let annule = false;
-    void (async () => {
-      try {
-        const liste = await listerInstancesServeursJeuxPasserelle();
-        if (!annule) {
-          setInstances(liste);
-          setErreur(null);
-        }
-      } catch (e) {
-        if (!annule) {
-          setErreur(e instanceof Error ? e.message : "Chargement impossible.");
-          setInstances([]);
-        }
-      }
-    })();
-    return () => {
-      annule = true;
-    };
+  const charger = useCallback(async () => {
+    try {
+      const liste = await listerInstancesServeursJeuxPasserelle();
+      setInstances(liste);
+      setErreur(null);
+    } catch (e) {
+      setErreur(e instanceof Error ? e.message : "Chargement impossible.");
+      setInstances([]);
+    }
   }, []);
 
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      void charger();
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [charger]);
+
   return (
-    <div className="kidopanel-page-centree">
-      <h1 className="kidopanel-titre-page">Serveurs de jeu</h1>
-      <p className="kidopanel-sous-titre-page">
-        Instances orchestrées par le service métier (Docker via le moteur, jamais depuis le navigateur).
-      </p>
-      <p className="kidopanel-texte-muted">
-        Prérequis : variable <code className="kidopanel-cellule-mono">SERVER_SERVICE_BASE_URL</code> sur la
-        passerelle pointant vers le service instances jeu.
-      </p>
-      <div style={{ marginTop: "1rem" }}>
-        <Link to="/serveurs/nouveau" className="bouton-principal-kido kidopanel-lien-bouton">
+    <>
+      <div className="kp-page-entete">
+        <div>
+          <h1 className="kp-page-titre">Serveurs de jeu</h1>
+          <p className="kp-page-sous-titre">
+            Instances orchestrées par le service métier (Docker via le moteur, jamais depuis le navigateur).
+          </p>
+        </div>
+        <Link to="/serveurs/nouveau" className="kp-btn kp-btn--primaire">
           Créer un serveur
         </Link>
       </div>
+      <p className="kp-texte-muted">
+        Prérequis : variable <code className="kp-cellule-mono">SERVER_SERVICE_BASE_URL</code> sur la passerelle
+        pointant vers le service instances jeu.
+      </p>
       {erreur !== null ? (
-        <pre className="kidopanel-cellule-mono" style={{ marginTop: "1rem" }} role="alert">
+        <pre className="kp-cellule-mono kp-marges-haut-sm" role="alert">
           {erreur}
         </pre>
       ) : null}
       {instances === null ? (
-        <p className="kidopanel-texte-muted" style={{ marginTop: "1rem" }}>
-          Chargement…
-        </p>
+        <p className="kp-texte-muted kp-marges-haut-sm">Chargement…</p>
       ) : instances.length === 0 ? (
-        <p className="kidopanel-texte-muted" style={{ marginTop: "1rem" }}>
-          Aucune instance pour l’instant.
-        </p>
+        <p className="kp-texte-muted kp-marges-haut-sm">Aucune instance pour l’instant.</p>
       ) : (
-        <div className="kp-dash-bento" style={{ marginTop: "1rem" }}>
+        <div className="kp-grille-cartes-serveurs kp-marges-haut-sm">
           {instances.map((inst) => (
-            <CarteServeur key={inst.id} instance={inst} />
+            <CarteServeur key={inst.id} instance={inst} surMiseAJourListe={charger} />
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

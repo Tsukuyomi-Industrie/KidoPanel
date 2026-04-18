@@ -108,6 +108,50 @@ export type CorpsCreationInstanceServeurJeux = {
 };
 
 /** Demande la création d’une instance via le service jeu (variables d’environnement métier incluses). */
+/** Demande le démarrage du conteneur associé à une instance jeu. */
+export async function demarrerInstanceServeurJeuxPasserelle(
+  idInstance: string,
+): Promise<InstanceServeurJeuxPasserelle> {
+  const reponse = await appelerJsonAuthentifie(
+    `/serveurs-jeux/instances/${encodeURIComponent(idInstance)}/start`,
+    { method: "POST" },
+  );
+  const json = (await reponse.json()) as unknown;
+  if (!reponse.ok) {
+    const msg =
+      typeof json === "object" &&
+      json !== null &&
+      "error" in json &&
+      typeof (json as { error?: { message?: unknown } }).error?.message === "string"
+        ? (json as { error: { message: string } }).error.message
+        : `Erreur HTTP ${String(reponse.status)}`;
+    throw new Error(msg);
+  }
+  return json as InstanceServeurJeuxPasserelle;
+}
+
+/** Demande l’arrêt du conteneur associé à une instance jeu. */
+export async function arreterInstanceServeurJeuxPasserelle(
+  idInstance: string,
+): Promise<InstanceServeurJeuxPasserelle> {
+  const reponse = await appelerJsonAuthentifie(
+    `/serveurs-jeux/instances/${encodeURIComponent(idInstance)}/stop`,
+    { method: "POST" },
+  );
+  const json = (await reponse.json()) as unknown;
+  if (!reponse.ok) {
+    const msg =
+      typeof json === "object" &&
+      json !== null &&
+      "error" in json &&
+      typeof (json as { error?: { message?: unknown } }).error?.message === "string"
+        ? (json as { error: { message: string } }).error.message
+        : `Erreur HTTP ${String(reponse.status)}`;
+    throw new Error(msg);
+  }
+  return json as InstanceServeurJeuxPasserelle;
+}
+
 export async function creerInstanceServeurJeuxPasserelle(
   corps: CorpsCreationInstanceServeurJeux,
 ): Promise<InstanceServeurJeuxPasserelle> {

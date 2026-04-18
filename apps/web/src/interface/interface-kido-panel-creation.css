@@ -85,6 +85,7 @@
   justify-content: flex-end;
 }
 
+.kp-creation-actions .kp-btn.kp-btn--primaire,
 .kp-creation-actions .bouton-principal-kido {
   min-width: 12rem;
 }

@@ -1,0 +1,311 @@
+.kp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--kp-radius-sm);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--kp-transition);
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.kp-btn:focus-visible {
+  outline: 2px solid var(--kp-cyan);
+  outline-offset: 2px;
+}
+
+.kp-btn--primaire {
+  background: var(--kp-cyan);
+  color: var(--kp-bg-base);
+  border-color: var(--kp-cyan);
+  font-weight: 600;
+}
+
+.kp-btn--primaire:hover:not(:disabled) {
+  background: #00bfe6;
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.35);
+}
+
+.kp-btn--secondaire {
+  background: var(--kp-bg-elevated);
+  color: var(--kp-text-secondary);
+  border-color: var(--kp-border-strong);
+}
+
+.kp-btn--secondaire:hover:not(:disabled) {
+  background: var(--kp-bg-overlay);
+  color: var(--kp-text-primary);
+}
+
+.kp-btn--danger {
+  background: var(--kp-red-dim);
+  color: var(--kp-red);
+  border-color: var(--kp-red-border);
+}
+
+.kp-btn--danger:hover:not(:disabled) {
+  background: rgba(255, 82, 82, 0.18);
+  box-shadow: 0 4px 16px rgba(255, 82, 82, 0.25);
+}
+
+.kp-btn--ghost {
+  background: transparent;
+  color: var(--kp-text-muted);
+  border-color: transparent;
+}
+
+.kp-btn--ghost:hover:not(:disabled) {
+  background: var(--kp-bg-overlay);
+  color: var(--kp-text-secondary);
+}
+
+.kp-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.kp-btn--sm {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.kp-btn--lg {
+  padding: 0.7rem 1.35rem;
+  font-size: 0.95rem;
+}
+
+.kp-btn-ico {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--kp-radius-sm);
+  border: 1px solid var(--kp-border-base);
+  background: var(--kp-bg-elevated);
+  color: var(--kp-text-muted);
+  cursor: pointer;
+  transition: all var(--kp-transition);
+}
+
+.kp-btn-ico:hover:not(:disabled) {
+  border-color: var(--kp-border-strong);
+  color: var(--kp-text-primary);
+  background: var(--kp-bg-overlay);
+}
+
+.kp-champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+.kp-champ__label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--kp-text-secondary);
+}
+
+.kp-champ__label--requis::after {
+  content: " *";
+  color: var(--kp-red);
+}
+
+.kp-champ__aide {
+  font-size: 0.75rem;
+  color: var(--kp-text-muted);
+  margin-top: 0.2rem;
+  line-height: 1.4;
+}
+
+.kp-input,
+.kp-select,
+.kp-textarea {
+  width: 100%;
+  padding: 0.55rem 0.8rem;
+  background: var(--kp-bg-input);
+  border: 1px solid var(--kp-border-base);
+  border-radius: var(--kp-radius-sm);
+  color: var(--kp-text-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  transition:
+    border-color var(--kp-transition),
+    box-shadow var(--kp-transition);
+  box-sizing: border-box;
+  outline: none;
+  appearance: none;
+}
+
+.kp-input::placeholder,
+.kp-textarea::placeholder {
+  color: var(--kp-text-muted);
+}
+
+.kp-input:focus,
+.kp-select:focus,
+.kp-textarea:focus {
+  border-color: var(--kp-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.12);
+}
+
+.kp-input--erreur {
+  border-color: var(--kp-red);
+}
+
+.kp-input--erreur:focus {
+  box-shadow: 0 0 0 3px rgba(255, 82, 82, 0.12);
+}
+
+.kp-champ__erreur {
+  font-size: 0.75rem;
+  color: var(--kp-red);
+  margin-top: 0.15rem;
+}
+
+.kp-toggle {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.kp-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.kp-toggle__piste {
+  position: absolute;
+  inset: 0;
+  background: var(--kp-bg-overlay);
+  border: 1px solid var(--kp-border-base);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--kp-transition);
+}
+
+.kp-toggle__piste::before {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  left: 2px;
+  top: 2px;
+  background: var(--kp-text-muted);
+  border-radius: 50%;
+  transition: all var(--kp-transition);
+}
+
+.kp-toggle input:checked + .kp-toggle__piste {
+  background: var(--kp-cyan-dim);
+  border-color: var(--kp-cyan-border);
+}
+
+.kp-toggle input:checked + .kp-toggle__piste::before {
+  transform: translateX(16px);
+  background: var(--kp-cyan);
+}
+
+.bouton-principal-kido {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--kp-radius-sm);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--kp-cyan);
+  background: var(--kp-cyan);
+  color: var(--kp-bg-base);
+  transition: all var(--kp-transition);
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.bouton-principal-kido:hover:not(:disabled) {
+  background: #00bfe6;
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.35);
+}
+
+.bouton-principal-kido:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.bouton-principal-kido:focus-visible {
+  outline: 2px solid var(--kp-cyan);
+  outline-offset: 2px;
+}
+
+.bouton-secondaire-kido {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--kp-radius-sm);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--kp-border-strong);
+  background: var(--kp-bg-elevated);
+  color: var(--kp-text-secondary);
+  transition: all var(--kp-transition);
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.bouton-secondaire-kido:hover:not(:disabled) {
+  background: var(--kp-bg-overlay);
+  color: var(--kp-text-primary);
+}
+
+.bouton-secondaire-kido:focus-visible {
+  outline: 2px solid var(--kp-cyan);
+  outline-offset: 2px;
+}
+
+.bouton-ghost-kido {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--kp-radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--kp-cyan);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all var(--kp-transition);
+}
+
+.bouton-ghost-kido:hover:not(:disabled) {
+  background: var(--kp-cyan-dim);
+}
+
+.bouton-ghost-kido:focus-visible {
+  outline: 2px solid var(--kp-cyan);
+  outline-offset: 2px;
+}
+
+.kidopanel-lien-bouton,
+.kidopanel-lien-bouton-secondaire {
+  text-decoration: none;
+}

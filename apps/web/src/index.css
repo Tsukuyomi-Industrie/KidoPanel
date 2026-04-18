@@ -1,119 +1,151 @@
 :root {
-  --text: #64748b;
-  --text-h: #0f172a;
-  --bg: #ffffff;
-  --border: #e2e8f0;
-  --code-bg: #f1f5f9;
-  --accent: #0284c7;
-  --accent-bg: rgba(14, 165, 233, 0.1);
-  --accent-border: rgba(14, 165, 233, 0.45);
-  --social-bg: rgba(241, 245, 249, 0.9);
-  --workspace-bg: #f1f5f9;
-  --workspace-surface: #ffffff;
-  --workspace-border: #e2e8f0;
-  --shadow:
-    rgba(15, 23, 42, 0.06) 0 1px 2px,
-    rgba(15, 23, 42, 0.06) 0 10px 24px -8px;
+  --kp-bg-base: #080c14;
+  --kp-bg-surface: #0d1117;
+  --kp-bg-elevated: #161b27;
+  --kp-bg-overlay: #1e2535;
+  --kp-bg-input: #111827;
 
-  --sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
-  --heading: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
-  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  --kp-border-subtle: rgba(255, 255, 255, 0.05);
+  --kp-border-base: rgba(255, 255, 255, 0.09);
+  --kp-border-strong: rgba(255, 255, 255, 0.16);
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  --kp-text-primary: #f0f4f8;
+  --kp-text-secondary: #8b9ab4;
+  --kp-text-muted: #4a5568;
+  --kp-text-inverse: #080c14;
+
+  --kp-cyan: #00d4ff;
+  --kp-cyan-dim: rgba(0, 212, 255, 0.12);
+  --kp-cyan-border: rgba(0, 212, 255, 0.28);
+  --kp-cyan-glow: rgba(0, 212, 255, 0.45);
+
+  --kp-green: #00e676;
+  --kp-green-dim: rgba(0, 230, 118, 0.1);
+  --kp-green-border: rgba(0, 230, 118, 0.28);
+
+  --kp-red: #ff5252;
+  --kp-red-dim: rgba(255, 82, 82, 0.1);
+  --kp-red-border: rgba(255, 82, 82, 0.28);
+
+  --kp-amber: #ffb300;
+  --kp-amber-dim: rgba(255, 179, 0, 0.1);
+  --kp-amber-border: rgba(255, 179, 0, 0.28);
+
+  --kp-purple: #a855f7;
+  --kp-purple-dim: rgba(168, 85, 247, 0.1);
+
+  --kp-glow-cyan: 0 0 32px -8px rgba(0, 212, 255, 0.55);
+  --kp-glow-green: 0 0 32px -8px rgba(0, 230, 118, 0.45);
+  --kp-glow-red: 0 0 32px -8px rgba(255, 82, 82, 0.45);
+
+  --kp-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --kp-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --kp-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.55);
+
+  --kp-font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --kp-font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --kp-radius-sm: 6px;
+  --kp-radius-md: 10px;
+  --kp-radius-lg: 14px;
+  --kp-radius-xl: 20px;
+
+  --kp-transition: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --text: var(--kp-text-secondary);
+  --text-h: var(--kp-text-primary);
+  --bg: var(--kp-bg-input);
+  --border: var(--kp-border-base);
+  --code-bg: var(--kp-bg-overlay);
+  --accent: var(--kp-cyan);
+  --accent-bg: var(--kp-cyan-dim);
+  --accent-border: var(--kp-cyan-border);
+  --social-bg: var(--kp-bg-elevated);
+  --workspace-bg: var(--kp-bg-base);
+  --workspace-surface: var(--kp-bg-surface);
+  --workspace-border: var(--kp-border-base);
+  --shadow: var(--kp-shadow-md);
+  --sans: var(--kp-font-sans);
+  --heading: var(--kp-font-sans);
+  --mono: var(--kp-font-mono);
+
+  font-family: var(--kp-font-sans);
+  font-size: 16px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--kp-text-secondary);
+  background-color: var(--kp-bg-base);
+  color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
+@media (max-width: 1024px) {
+  :root {
+    font-size: 15px;
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #94a3b8;
-    --text-h: #f8fafc;
-    --bg: #111827;
-    --border: #1f2937;
-    --code-bg: #1e293b;
-    --accent: #38bdf8;
-    --accent-bg: rgba(56, 189, 248, 0.12);
-    --accent-border: rgba(56, 189, 248, 0.45);
-    --social-bg: rgba(30, 41, 59, 0.65);
-    --workspace-bg: #0b1120;
-    --workspace-surface: #111827;
-    --workspace-border: #1e293b;
-    --shadow:
-      rgba(0, 0, 0, 0.35) 0 8px 28px -6px,
-      rgba(0, 0, 0, 0.2) 0 2px 8px;
-  }
+html {
+  font-family: var(--kp-font-sans);
+}
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+body {
+  background-color: var(--kp-bg-base);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 212, 255, 0.06) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.018'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  min-height: 100svh;
+  margin: 0;
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: none;
+  text-align: left;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-}
-
 h1,
 h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+  font-family: var(--kp-font-sans);
+  font-weight: 600;
+  color: var(--kp-text-primary);
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.75rem;
 }
+
 h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+  font-size: 1.15rem;
+  margin: 0 0 0.5rem;
 }
+
 p {
   margin: 0;
 }
 
 code,
 .counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+  font-family: var(--kp-font-mono);
 }
 
 code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  padding: 0.15rem 0.35rem;
+  border-radius: var(--kp-radius-sm);
+  background: var(--kp-bg-overlay);
+  color: var(--kp-text-primary);
 }

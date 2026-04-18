@@ -1,17 +1,23 @@
 import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { RoutesKidoPanel } from "./app/RoutesKidoPanel.js";
+import { FournisseurToastKidoPanel } from "./interface/FournisseurToastKidoPanel.js";
 import "./App.css";
+import "./interface/interface-kido-panel-primitives.css";
+import "./interface/interface-kido-panel-statuts-feedback.css";
+import "./interface/interface-kido-panel-mise-en-page.css";
+import "./interface/interface-kido-panel-serveurs-console.css";
 import "./interface/interface-kido-panel.css";
 import "./interface/interface-kido-panel-composants.css";
 import "./interface/interface-kido-panel-coque.css";
+import "./interface/interface-kido-panel-coque-responsive.css";
 import "./interface/interface-kido-panel-tableau.css";
 import "./interface/interface-kido-panel-journaux.css";
 import "./interface/interface-kido-panel-creation.css";
 import "./interface/interface-kido-panel-assistant-instance.css";
 
 /**
- * Racine React : routage navigateur et feuille de style du panel authentifié.
+ * Racine React : routing navigateur, file de toasts et feuilles de style du panel authentifié.
  */
 export default function App() {
   useEffect(() => {
@@ -23,8 +29,10 @@ export default function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <RoutesKidoPanel />
-    </BrowserRouter>
+    <FournisseurToastKidoPanel>
+      <BrowserRouter>
+        <RoutesKidoPanel />
+      </BrowserRouter>
+    </FournisseurToastKidoPanel>
   );
 }

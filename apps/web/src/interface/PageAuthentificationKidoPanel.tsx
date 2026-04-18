@@ -63,17 +63,18 @@ export function PageAuthentificationKidoPanel() {
   };
 
   return (
-    <div className="grille-centre-auth fond-app-kido">
-      <div className="carte-auth-kido">
-        <header className="marque-kido">
-          <h1 className="marque-kido__titre">KidoPanel</h1>
-          <p className="marque-kido__sous">
-            Accédez à votre espace sécurisé : la passerelle valide les identifiants, applique un coût bcrypt
-            côté serveur et émet un jeton signé pour vos requêtes suivantes.
+    <div className="kp-login-page">
+      <div className="kp-login-carte">
+        <header className="kp-login-logo">
+          <span className="kp-login-logo__sigle">K</span>
+          <span className="kp-login-logo__nom">KidoPanel</span>
+          <p className="kp-login-logo__sous">
+            La passerelle valide les identifiants, applique bcrypt côté serveur et émet un jeton signé pour vos
+            requêtes suivantes.
           </p>
         </header>
 
-        <div className="onglets-auth" role="tablist" aria-label="Mode d’authentification">
+        <div className="kp-onglets-auth" role="tablist" aria-label="Mode d’authentification">
           <button
             type="button"
             role="tab"
@@ -102,17 +103,19 @@ export function PageAuthentificationKidoPanel() {
 
         {onglet === "connexion" ? (
           <form
-            className="form-auth-kido"
             onSubmit={(e) => {
               e.preventDefault();
               void soumettreConnexion();
             }}
           >
-            <div className="champ-auth-kido">
-              <label htmlFor="kp-email-connexion">Adresse e-mail</label>
+            <div className="kp-champ">
+              <label className="kp-champ__label" htmlFor="kp-email-connexion">
+                Adresse e-mail
+              </label>
               <input
                 id="kp-email-connexion"
                 name="email"
+                className="kp-input"
                 type="email"
                 autoComplete="email"
                 required
@@ -120,11 +123,14 @@ export function PageAuthentificationKidoPanel() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div className="champ-auth-kido">
-              <label htmlFor="kp-mdp-connexion">Mot de passe</label>
+            <div className="kp-champ">
+              <label className="kp-champ__label" htmlFor="kp-mdp-connexion">
+                Mot de passe
+              </label>
               <input
                 id="kp-mdp-connexion"
                 name="password"
+                className="kp-input"
                 type="password"
                 autoComplete="current-password"
                 required
@@ -132,31 +138,33 @@ export function PageAuthentificationKidoPanel() {
                 onChange={(e) => setMotDePasse(e.target.value)}
               />
             </div>
-            <label className="ligne-souvenir">
+            <label className="kp-ligne-souvenir">
               <input
                 type="checkbox"
                 checked={seSouvenir}
                 onChange={(e) => setSeSouvenir(e.target.checked)}
               />
-              Se souvenir de cet appareil (jeton conservé en local sur ce navigateur ; à désactiver sur un poste partagé)
+              Se souvenir de cet appareil (jeton conservé en local ; à désactiver sur un poste partagé)
             </label>
-            <button className="bouton-principal-kido" type="submit" disabled={chargement}>
+            <button className="kp-btn kp-btn--primaire" style={{ width: "100%", marginTop: "0.5rem" }} type="submit" disabled={chargement}>
               {chargement ? "Connexion en cours…" : "Se connecter"}
             </button>
           </form>
         ) : (
           <form
-            className="form-auth-kido"
             onSubmit={(e) => {
               e.preventDefault();
               void soumettreInscription();
             }}
           >
-            <div className="champ-auth-kido">
-              <label htmlFor="kp-email-inscription">Adresse e-mail</label>
+            <div className="kp-champ">
+              <label className="kp-champ__label" htmlFor="kp-email-inscription">
+                Adresse e-mail
+              </label>
               <input
                 id="kp-email-inscription"
                 name="email"
+                className="kp-input"
                 type="email"
                 autoComplete="email"
                 required
@@ -164,11 +172,14 @@ export function PageAuthentificationKidoPanel() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div className="champ-auth-kido">
-              <label htmlFor="kp-mdp-inscription">Mot de passe</label>
+            <div className="kp-champ">
+              <label className="kp-champ__label" htmlFor="kp-mdp-inscription">
+                Mot de passe
+              </label>
               <input
                 id="kp-mdp-inscription"
                 name="password"
+                className="kp-input"
                 type="password"
                 autoComplete="new-password"
                 required
@@ -176,11 +187,14 @@ export function PageAuthentificationKidoPanel() {
                 onChange={(e) => setMotDePasse(e.target.value)}
               />
             </div>
-            <div className="champ-auth-kido">
-              <label htmlFor="kp-mdp-confirmation">Confirmation du mot de passe</label>
+            <div className="kp-champ">
+              <label className="kp-champ__label" htmlFor="kp-mdp-confirmation">
+                Confirmation du mot de passe
+              </label>
               <input
                 id="kp-mdp-confirmation"
                 name="password-confirm"
+                className="kp-input"
                 type="password"
                 autoComplete="new-password"
                 required
@@ -188,7 +202,7 @@ export function PageAuthentificationKidoPanel() {
                 onChange={(e) => setConfirmation(e.target.value)}
               />
             </div>
-            <label className="ligne-souvenir">
+            <label className="kp-ligne-souvenir">
               <input
                 type="checkbox"
                 checked={seSouvenir}
@@ -196,13 +210,13 @@ export function PageAuthentificationKidoPanel() {
               />
               Conserver la session sur cet appareil après fermeture du navigateur
             </label>
-            <button className="bouton-principal-kido" type="submit" disabled={chargement}>
+            <button className="kp-btn kp-btn--primaire" style={{ width: "100%", marginTop: "0.5rem" }} type="submit" disabled={chargement}>
               {chargement ? "Création du compte…" : "Créer le compte"}
             </button>
           </form>
         )}
 
-        <section className="encadre-securite" aria-label="Rappels de sécurité">
+        <section className="kp-encadre-securite" aria-label="Rappels de sécurité">
           <strong>Rappels utiles</strong>
           <ul>
             <li>Utilisez HTTPS en production pour protéger le transit du mot de passe et du jeton.</li>
@@ -211,8 +225,8 @@ export function PageAuthentificationKidoPanel() {
           </ul>
         </section>
 
-        <p style={{ margin: "0.85rem 0 0", fontSize: "0.8rem", color: "var(--text)" }}>
-          Passerelle cible : <code>{basePasserelle}</code>
+        <p className="kp-lien-passerelle">
+          Passerelle cible : <code className="kp-cellule-mono">{basePasserelle}</code>
         </p>
       </div>
     </div>

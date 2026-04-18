@@ -1,0 +1,33 @@
+@media (max-width: 900px) {
+  .kp-sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    flex-direction: column;
+    max-height: none;
+  }
+  .kp-sidebar__liste {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  .kp-sidebar__section {
+    width: 100%;
+  }
+  .kp-sidebar__lien {
+    flex: 0 1 auto;
+    white-space: nowrap;
+  }
+  .kp-sidebar__compte {
+    margin-top: 0;
+  }
+  .kp-coque {
+    flex-direction: column;
+  }
+  .kp-topbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 0.65rem 1rem;
+  }
+}

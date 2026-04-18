@@ -2,299 +2,138 @@
   width: 100%;
   max-width: none;
   margin: 0;
-  border-inline: none;
-  text-align: initial;
+  border: none;
+  text-align: left;
   box-sizing: border-box;
 }
 
-.fond-app-kido:not(.kidopanel-app-root) {
+.kp-login-page {
   min-height: 100svh;
-  background:
-    radial-gradient(1100px 520px at 12% -8%, rgba(14, 165, 233, 0.1), transparent 52%),
-    radial-gradient(800px 420px at 96% 4%, rgba(2, 132, 199, 0.08), transparent 48%),
-    var(--bg);
-}
-
-.fond-app-kido.kidopanel-app-root {
-  min-height: 100svh;
-  background: var(--workspace-bg);
-}
-
-.grille-centre-auth {
   display: grid;
-  min-height: 100svh;
   place-items: center;
-  padding: clamp(1rem, 4vw, 2.5rem);
+  background: var(--kp-bg-base);
+  background-image:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0, 212, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 55%);
+  padding: 1.5rem;
 }
 
-.carte-auth-kido {
-  width: min(420px, 100%);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: clamp(1.25rem, 3vw, 2rem);
-  background: var(--workspace-surface);
-  box-shadow: var(--shadow);
+.kp-login-carte {
+  width: 100%;
+  max-width: 400px;
+  background: var(--kp-bg-surface);
+  border: 1px solid var(--kp-border-base);
+  border-radius: var(--kp-radius-xl);
+  padding: 2.5rem 2rem;
+  box-shadow: var(--kp-shadow-lg);
 }
 
-.marque-kido {
+.kp-login-logo {
   display: flex;
+  align-items: center;
+  justify-content: center;
   flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 1.25rem;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
 }
 
-.marque-kido__titre {
+.kp-login-logo__sigle {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--kp-radius-md);
+  background: linear-gradient(135deg, var(--kp-cyan) 0%, #0099cc 100%);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--kp-bg-base);
+  box-shadow: var(--kp-glow-cyan);
+}
+
+.kp-login-logo__nom {
   font-size: 1.35rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--text-h);
-  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--kp-text-primary);
 }
 
-.marque-kido__sous {
+.kp-login-logo__sous {
+  font-size: 0.8rem;
+  color: var(--kp-text-muted);
+  text-align: center;
   margin: 0;
-  font-size: 0.95rem;
-  color: var(--text);
-  line-height: 1.35;
+  line-height: 1.45;
 }
 
-.onglets-auth {
+.kp-onglets-auth {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.35rem;
   margin-bottom: 1rem;
 }
 
-.onglets-auth button {
-  border-radius: 10px;
-  border: 1px solid var(--border);
+.kp-onglets-auth button {
+  border-radius: var(--kp-radius-sm);
+  border: 1px solid var(--kp-border-base);
   padding: 0.55rem 0.65rem;
   background: transparent;
-  color: var(--text);
+  color: var(--kp-text-secondary);
   font: inherit;
   cursor: pointer;
+  transition: all var(--kp-transition);
 }
 
-.onglets-auth button[aria-selected="true"] {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-  color: var(--text-h);
-}
-
-.form-auth-kido {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.champ-auth-kido label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.9rem;
-  color: var(--text-h);
-}
-
-.champ-auth-kido input[type="email"],
-.champ-auth-kido input[type="password"],
-.champ-auth-kido input[type="text"],
-.champ-auth-kido input[type="number"] {
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  padding: 0.6rem 0.75rem;
-  font: inherit;
-  color: var(--text-h);
-  background: var(--bg);
-}
-
-.champ-auth-kido select,
-.champ-auth-kido textarea {
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  padding: 0.6rem 0.75rem;
-  font: inherit;
-  color: var(--text-h);
-  background: var(--bg);
-}
-
-.champ-auth-kido textarea {
-  min-height: 6rem;
-  resize: vertical;
-}
-
-.champ-auth-kido input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.champ-auth-kido select:focus-visible,
-.champ-auth-kido textarea:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.ligne-souvenir {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--text);
-}
-
-.bouton-principal-kido {
-  border: none;
-  border-radius: 8px;
-  padding: 0.65rem 0.95rem;
-  font-weight: 600;
-  font: inherit;
-  cursor: pointer;
-  color: #f8fafc;
-  background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset;
-}
-
-.bouton-principal-kido:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.kp-onglets-auth button[aria-selected="true"] {
+  border-color: var(--kp-cyan-border);
+  background: var(--kp-cyan-dim);
+  color: var(--kp-text-primary);
 }
 
 .bandeau-erreur-auth {
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, #ef4444 45%, var(--border));
-  background: color-mix(in srgb, #ef4444 12%, transparent);
-  color: var(--text-h);
+  border-radius: var(--kp-radius-md);
+  border: 1px solid var(--kp-red-border);
+  background: var(--kp-red-dim);
+  color: var(--kp-text-primary);
   padding: 0.65rem 0.75rem;
   font-size: 0.9rem;
   line-height: 1.35;
+  margin-bottom: 1rem;
 }
 
-.encadre-securite {
+.kp-encadre-securite {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--kp-border-base);
   font-size: 0.85rem;
-  color: var(--text);
+  color: var(--kp-text-secondary);
   line-height: 1.45;
 }
 
-.encadre-securite ul {
+.kp-encadre-securite ul {
   margin: 0.4rem 0 0;
   padding-left: 1.1rem;
 }
 
-.bouton-secondaire-kido {
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  padding: 0.5rem 0.8rem;
-  background: var(--workspace-surface);
-  color: var(--text-h);
-  font: inherit;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.bouton-secondaire-kido:focus-visible,
-.bouton-principal-kido:focus-visible,
-.onglets-auth button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.carte-tableau-bord {
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.25rem;
-  background: color-mix(in srgb, var(--bg) 94%, transparent);
-}
-
-.carte-tableau-bord h2 {
-  margin-top: 0;
-}
-
-.kidopanel-page-centree {
-  max-width: 100%;
-  margin: 0;
-  padding-bottom: 1.5rem;
-}
-
-.kidopanel-hero-tableau {
-  text-align: left;
-  padding: clamp(0.5rem, 2vw, 1rem) 0 clamp(1rem, 3vw, 1.75rem);
-}
-
-.kidopanel-hero-compact {
-  text-align: left;
-  padding: 1rem 0 1.25rem;
-}
-
-.kidopanel-sur-titre {
-  margin: 0 0 0.35rem;
+.kp-lien-passerelle {
+  margin: 0.85rem 0 0;
   font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text);
+  color: var(--kp-text-muted);
 }
 
-.kidopanel-titre-page {
-  margin: 0 0 0.5rem;
-  font-size: clamp(1.65rem, 4vw, 2.25rem);
-  font-weight: 650;
-  letter-spacing: -0.03em;
-  color: var(--text-h);
+.kp-lien-passerelle code {
+  font-size: 0.78rem;
 }
 
-.kidopanel-sous-titre-page {
-  margin: 0;
-  max-width: 40rem;
-  color: var(--text);
-  line-height: 1.55;
-  font-size: 0.95rem;
-}
-
-.kidopanel-hero-actions {
+.kp-ligne-souvenir {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  justify-content: flex-start;
-  margin-top: 1.15rem;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--kp-text-secondary);
+  margin-bottom: 0.75rem;
 }
 
-.kidopanel-lien-bouton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-}
-
-.kidopanel-lien-bouton-secondaire {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  width: fit-content;
-}
-
-.kidopanel-grille-metriques {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
-}
-
-.kidopanel-tuile-metrique {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem 1.15rem;
-  background: var(--workspace-surface);
-  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
-}
-
-.kidopanel-tuile-metrique--large {
-  grid-column: 1 / -1;
-}
-
-.kidopanel-tuile-metrique h3 {
-  margin: 0 0 0.65rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-h);
+.kp-onglets-auth button:focus-visible {
+  outline: 2px solid var(--kp-cyan);
+  outline-offset: 2px;
 }

@@ -3,17 +3,18 @@ import {
   chargerIndicateursTableauPasserelle,
   type IndicateursTableauPasserelle,
 } from "../passerelle/serviceIndicateursPasserelle.js";
+import {
+  listerInstancesServeursJeuxPasserelle,
+  type InstanceServeurJeuxPasserelle,
+} from "../passerelle/serviceServeursJeuxPasserelle.js";
 import { TableauBordPresentationKidoPanel } from "./TableauBordPresentationKidoPanel.js";
 
-type PropsPageTableauBordKidoPanel = {
-  emailUtilisateur: string;
-};
-
 /**
- * Tableau de bord : charge les indicateurs passerelle et délègue l’affichage à la présentation dédiée.
+ * Tableau de bord : agrège indicateurs passerelle et instances jeu pour la présentation métrique.
  */
-export function PageTableauBordKidoPanel({ emailUtilisateur }: PropsPageTableauBordKidoPanel) {
+export function PageTableauBordKidoPanel() {
   const [donnees, setDonnees] = useState<IndicateursTableauPasserelle | null>(null);
+  const [instancesJeux, setInstancesJeux] = useState<InstanceServeurJeuxPasserelle[]>([]);
   const [erreur, setErreur] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
 
@@ -21,7 +22,12 @@ export function PageTableauBordKidoPanel({ emailUtilisateur }: PropsPageTableauB
     setChargement(true);
     setErreur(null);
     try {
-      setDonnees(await chargerIndicateursTableauPasserelle());
+      const [indicateurs, listeJeux] = await Promise.all([
+        chargerIndicateursTableauPasserelle(),
+        listerInstancesServeursJeuxPasserelle().catch(() => [] as InstanceServeurJeuxPasserelle[]),
+      ]);
+      setDonnees(indicateurs);
+      setInstancesJeux(listeJeux);
     } catch (e) {
       setDonnees(null);
       setErreur(e instanceof Error ? e.message : "Chargement des indicateurs impossible.");
@@ -35,14 +41,12 @@ export function PageTableauBordKidoPanel({ emailUtilisateur }: PropsPageTableauB
   }, [charger]);
 
   return (
-    <div className="kidopanel-page-centree">
-      <TableauBordPresentationKidoPanel
-        emailUtilisateur={emailUtilisateur}
-        donnees={donnees}
-        chargement={chargement}
-        erreur={erreur}
-        surRecharger={charger}
-      />
-    </div>
+    <TableauBordPresentationKidoPanel
+      donnees={donnees}
+      instancesJeux={instancesJeux}
+      chargement={chargement}
+      erreur={erreur}
+      surRecharger={charger}
+    />
   );
 }

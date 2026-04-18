@@ -16,18 +16,19 @@ export function ShellAuthentifieKidoPanel() {
   const roleSession = extraireRoleDepuisJetonClient(jeton);
 
   return (
-    <div className="fond-app-kido kidopanel-app-root">
+    <div className="kp-coque">
       <RailNavigationKidoPanel
+        emailAffiche={emailAffiche}
         roleSession={roleSession}
         surDeconnexion={() => {
           effacerToutJetonPasserelle();
           void navigate("/connexion", { replace: true });
         }}
       />
-      <div className="kidopanel-colonne-principale">
-        <EnteteSessionKidoPanel emailUtilisateur={emailAffiche} />
-        <main className="kidopanel-corps-application">
-          <div className="kidopanel-pave-contenu">
+      <div className="kp-colonne-travail">
+        <EnteteSessionKidoPanel roleSession={roleSession} />
+        <main className="kp-corps">
+          <div className="kp-contenu">
             <Outlet />
           </div>
         </main>
