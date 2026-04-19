@@ -101,7 +101,15 @@ export async function creerReseauInternePasserelle(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(corps),
   });
-  const json = (await reponse.json()) as unknown;
+  const texteBrut = await reponse.text();
+  let json: unknown;
+  try {
+    json = texteBrut.length === 0 ? null : JSON.parse(texteBrut);
+  } catch {
+    throw new Error(
+      `Réponse passerelle illisible (HTTP ${String(reponse.status)}) : ${texteBrut.slice(0, 480)}`,
+    );
+  }
   if (!reponse.ok) {
     const msg =
       typeof json === "object" &&
@@ -117,7 +125,9 @@ export async function creerReseauInternePasserelle(
     json === null ||
     !("reseauInterne" in json)
   ) {
-    throw new Error("Réponse création réseau illisible.");
+    throw new Error(
+      `Réponse création réseau inattendue : ${texteBrut.slice(0, 480)}`,
+    );
   }
   return (json as { reseauInterne: EnregistrementReseauInternePasserelle }).reseauInterne;
 }

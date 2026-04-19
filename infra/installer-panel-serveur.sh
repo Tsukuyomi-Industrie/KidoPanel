@@ -582,6 +582,23 @@ assurer_database_url_si_postgres_docker() {
   echo "DATABASE_URL défini pour le conteneur PostgreSQL du compose (kydopanel@127.0.0.1:5432)."
 }
 
+# Retourne 0 si l’IPv4 doit être traitée comme joignable depuis Internet (exclut RFC1918, lien local, CGNAT 100.64/10, boucle).
+ipv4_est_candidate_hote_public_gateway() {
+  local ip="$1"
+  [[ "$ip" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]] || return 1
+  local a b c d
+  IFS=. read -r a b c d <<<"$ip"
+  [[ "$a" =~ ^[0-9]+$ ]] && [[ "$b" =~ ^[0-9]+$ ]] && [[ "$c" =~ ^[0-9]+$ ]] && [[ "$d" =~ ^[0-9]+$ ]] || return 1
+  ((a > 255 || b > 255 || c > 255 || d > 255)) && return 1
+  ((a == 127)) && return 1
+  ((a == 10)) && return 1
+  ((a == 172 && b >= 16 && b <= 31)) && return 1
+  ((a == 192 && b == 168)) && return 1
+  ((a == 169 && b == 254)) && return 1
+  ((a == 100 && b >= 64 && b <= 127)) && return 1
+  return 0
+}
+
 # Détecte l’IPv4 publique de l’hôte et l’écrit dans .env si GATEWAY_PUBLIC_HOST_FOR_CLIENTS est absent ou vide.
 detecter_et_ecrire_ip_publique_gateway() {
   [[ -f "$RACINE_DEPOT/.env" ]] || return 0
@@ -592,18 +609,19 @@ detecter_et_ecrire_ip_publique_gateway() {
     return 0
   fi
   local ip_publique=""
-  ip_publique="$(curl -sf --connect-timeout 4 https://api.ipify.org 2>/dev/null || true)"
-  if [[ -z "${ip_publique// /}" ]]; then
+  ip_publique="$(curl -sf --connect-timeout 4 https://api.ipify.org 2>/dev/null | tr -d '[:space:]' || true)"
+  if [[ -z "${ip_publique// /}" ]] || ! ipv4_est_candidate_hote_public_gateway "$ip_publique"; then
     ip_publique="$(curl -sf --connect-timeout 4 https://checkip.amazonaws.com 2>/dev/null | tr -d '[:space:]' || true)"
   fi
-  if [[ -z "${ip_publique// /}" ]]; then
-    ip_publique="$(curl -sf --connect-timeout 4 https://ifconfig.me 2>/dev/null | tr -d '[:space:]' || true)"
+  if [[ -z "${ip_publique// /}" ]] || ! ipv4_est_candidate_hote_public_gateway "$ip_publique"; then
+    ip_publique="$(curl -sf --connect-timeout 4 https://ifconfig.me/ip 2>/dev/null | tr -d '[:space:]' || true)"
   fi
-  if [[ "$ip_publique" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+  if [[ "$ip_publique" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] && ipv4_est_candidate_hote_public_gateway "$ip_publique"; then
     printf '\n%s\n' "GATEWAY_PUBLIC_HOST_FOR_CLIENTS=${ip_publique}" >>"$RACINE_DEPOT/.env"
     echo "IP publique détectée et écrite : GATEWAY_PUBLIC_HOST_FOR_CLIENTS=${ip_publique}"
   else
-    echo "Avertissement : IP publique non détectée automatiquement ; renseignez GATEWAY_PUBLIC_HOST_FOR_CLIENTS dans .env pour l’affichage « connexion jeu »."
+    echo "Avertissement : aucune IPv4 joignable depuis Internet détectée automatiquement (NAT, CGNAT ou réponse privée)."
+    echo "Renseignez GATEWAY_PUBLIC_HOST_FOR_CLIENTS dans .env avec l’IP ou le DNS vu depuis les joueurs."
   fi
 }
 
