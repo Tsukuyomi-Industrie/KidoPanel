@@ -26,6 +26,11 @@ function hotePageEstLoopback(): boolean {
   return h === "127.0.0.1" || h === "localhost" || h === "[::1]";
 }
 
+/** Indique que l’URL pointe vers le relais Vite (`vite.config.ts`) et non vers la passerelle en direct. */
+function urlUtiliseProxyPasserelleDev(urlComplete: string): boolean {
+  return urlComplete.includes("/__kidopanel_gateway");
+}
+
 /**
  * Explique une erreur « Failed to fetch » : le navigateur n’a pas obtenu de réponse HTTP exploitable
  * (réseau, URL, pare-feu, contenu mixte, CORS bloqué avant réponse, etc.).
@@ -37,13 +42,17 @@ export function formaterErreurReseauFetch(
   const msg = erreur instanceof Error ? erreur.message : String(erreur);
   const verifs: string[] = [];
 
-  if (hoteUrlEstLoopback(urlComplete) && !hotePageEstLoopback()) {
+  if (urlUtiliseProxyPasserelleDev(urlComplete)) {
+    verifs.push(
+      "• Proxy Vite (`/__kidopanel_gateway`) : le navigateur parle au port du front (ex. 5173) ; c’est le processus Node de Vite qui doit joindre la passerelle HTTP (variable `VITE_GATEWAY_PROXY_TARGET` dans `apps/web/.env`, défaut `http://127.0.0.1:3000`). Sur la machine où tourne `pnpm --filter web dev`, exécutez : `curl -sSf http://127.0.0.1:3000/health`. Si échec : démarrer la passerelle (`pnpm --filter gateway dev` ou `pnpm --filter gateway start` après build ; ou script `infra/installer-panel-serveur.sh`). Le pare-feu WAN sur le port 3000 est inutile pour ce mode : tout est local à l’hôte.",
+    );
+  } else if (hoteUrlEstLoopback(urlComplete) && !hotePageEstLoopback()) {
     verifs.push(
       "• L’URL utilise 127.0.0.1 ou localhost : le navigateur contacte votre PC, pas le serveur. Ouvrez le panel avec l’IP ou le domaine du VPS (ex. http://IP:5173) : l’API suivra automatiquement http://IP:3000.",
     );
   } else if (hoteUrlEgaleHotePage(urlComplete)) {
     verifs.push(
-      "• L’URL utilise le même hôte que la page (port 3000). Si l’erreur continue : ouvrir le port 3000 (ufw, firewalld, pare-feu du fournisseur), vérifier que la passerelle tourne et écoute sur 0.0.0.0 (journal infra/logs/passerelle.log).",
+      "• L’URL utilise le même hôte que la page : vérifier que la passerelle écoute sur le port attendu (3000 par défaut), ouvrir ce port si vous appelez l’API sans proxy, consulter `infra/logs/passerelle.log`.",
     );
   } else {
     verifs.push(

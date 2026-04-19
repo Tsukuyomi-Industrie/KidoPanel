@@ -69,7 +69,7 @@ export function PageListeReseaux() {
       echecJeu && echecWeb
         ? "Les listes d’instances jeu et web sont momentanément indisponibles : le comptage par pont peut être incomplet ; la liste des ponts ci-dessous reste exacte."
         : echecWeb
-          ? "La liste des instances web est indisponible (service web métier ou relais passerelle). Le comptage par pont peut être incomplet si vous attachez des sites à ces réseaux."
+          ? "Instances web non chargées (service métier sur le port 8791 absent ou injoignable). Le comptage « sites par pont » reste vide ; la liste des ponts ci-dessous est inchangée. Démarrez `web-service` si vous utilisez l’hébergement web ; sinon vous pouvez ignorer cet avertissement."
           : echecJeu
             ? "La liste des instances jeu est indisponible : le comptage par pont peut être incomplet."
             : null,
