@@ -63,17 +63,16 @@ export function PageListeReseaux() {
     setErreur(null);
     setJeu(resJeu.status === "fulfilled" ? resJeu.value : []);
     setWeb(resWeb.status === "fulfilled" ? resWeb.value : []);
-    const echecsComptage: string[] = [];
-    if (resJeu.status === "rejected") {
-      echecsComptage.push("instances jeu");
-    }
-    if (resWeb.status === "rejected") {
-      echecsComptage.push("instances web");
-    }
+    const echecJeu = resJeu.status === "rejected";
+    const echecWeb = resWeb.status === "rejected";
     setAvertissementComptage(
-      echecsComptage.length > 0
-        ? `Comptage des instances par réseau incomplet : le chargement des ${echecsComptage.join(" et ")} a échoué ; vérifiez que les services métier sont démarrés et joignables par la passerelle. La liste des ponts ci-dessous reste la source de vérité.`
-        : null,
+      echecJeu && echecWeb
+        ? "Les listes d’instances jeu et web sont momentanément indisponibles : le comptage par pont peut être incomplet ; la liste des ponts ci-dessous reste exacte."
+        : echecWeb
+          ? "La liste des instances web est indisponible (service web métier ou relais passerelle). Le comptage par pont peut être incomplet si vous attachez des sites à ces réseaux."
+          : echecJeu
+            ? "La liste des instances jeu est indisponible : le comptage par pont peut être incomplet."
+            : null,
     );
   }, []);
 
@@ -121,9 +120,9 @@ export function PageListeReseaux() {
         </pre>
       ) : null}
       {avertissementComptage !== null ? (
-        <pre className="kp-cellule-mono" role="status" style={{ opacity: 0.9 }}>
+        <p className="kp-texte-muted kp-marges-haut-sm" role="status">
           {avertissementComptage}
-        </pre>
+        </p>
       ) : null}
       {reseaux === null ? (
         <p className="kp-texte-muted">Chargement…</p>

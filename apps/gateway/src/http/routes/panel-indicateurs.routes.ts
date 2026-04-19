@@ -38,5 +38,28 @@ export function monterRoutesPanelIndicateurs(
     return c.json(donnees);
   });
 
+  /**
+   * IP ou nom d’hôte à afficher pour les chaînes « hôte : port » des serveurs jeu (prioritaire sur le hostname du navigateur).
+   * Défini côté serveur pour les accès au panel via localhost ou tunnel SSH alors que les joueurs joignent l’IP publique du VPS.
+   */
+  panel.get("/adresse-connexion-jeux", async (c) => {
+    const utilisateur = c.get("utilisateur");
+    if (utilisateur === undefined) {
+      return c.json(
+        {
+          error: {
+            code: "UNAUTHORIZED",
+            message: "Session requise pour l’adresse de connexion jeu.",
+          },
+        },
+        401,
+      );
+    }
+    const brut = process.env.GATEWAY_PUBLIC_HOST_FOR_CLIENTS?.trim();
+    const hotePublicPourJeux =
+      brut !== undefined && brut.length > 0 ? brut : null;
+    return c.json({ hotePublicPourJeux });
+  });
+
   app.route("/panel", panel);
 }

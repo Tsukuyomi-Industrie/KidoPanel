@@ -5,6 +5,7 @@ import { effacerToutJetonPasserelle } from "../passerelle/jetonPasserelleStockag
 import { extraireEmailDepuisJetonClient } from "../passerelle/lectureEmailJetonClient.js";
 import { extraireRoleDepuisJetonClient } from "../passerelle/lectureRoleJetonClient.js";
 import { lireJetonStockage } from "../lab/passerelleClient.js";
+import { FournisseurHotePublicConnexionJeux } from "../interface/FournisseurHotePublicConnexionJeux.js";
 
 /**
  * Coque authentifiée : barre fixe et zone de contenu pour les routes protégées.
@@ -16,23 +17,25 @@ export function ShellAuthentifieKidoPanel() {
   const roleSession = extraireRoleDepuisJetonClient(jeton);
 
   return (
-    <div className="kp-coque">
-      <RailNavigationKidoPanel
-        emailAffiche={emailAffiche}
-        roleSession={roleSession}
-        surDeconnexion={() => {
-          effacerToutJetonPasserelle();
-          void navigate("/connexion", { replace: true });
-        }}
-      />
-      <div className="kp-colonne-travail">
-        <EnteteSessionKidoPanel roleSession={roleSession} />
-        <main className="kp-corps">
-          <div className="kp-contenu">
-            <Outlet />
-          </div>
-        </main>
+    <FournisseurHotePublicConnexionJeux>
+      <div className="kp-coque">
+        <RailNavigationKidoPanel
+          emailAffiche={emailAffiche}
+          roleSession={roleSession}
+          surDeconnexion={() => {
+            effacerToutJetonPasserelle();
+            void navigate("/connexion", { replace: true });
+          }}
+        />
+        <div className="kp-colonne-travail">
+          <EnteteSessionKidoPanel roleSession={roleSession} />
+          <main className="kp-corps">
+            <div className="kp-contenu">
+              <Outlet />
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </FournisseurHotePublicConnexionJeux>
   );
 }

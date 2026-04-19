@@ -11,7 +11,8 @@ import {
 import { supprimerInstanceServeur } from "./passerelle/actionsInstanceServeurPasserelle.js";
 import { BarrePilotageDetailServeur } from "./composants/BarrePilotageDetailServeur.js";
 import { DialogueSuppressionInstanceServeur } from "./composants/DialogueSuppressionInstanceServeur.js";
-import { construireAdresseConnexionJeuxDepuisNavigateur } from "./construire-adresse-connexion-jeux-depuis-navigateur.js";
+import { construireAdresseConnexionJeux } from "./construire-adresse-connexion-jeux-depuis-navigateur.js";
+import { useHotePublicConnexionJeux } from "../interface/FournisseurHotePublicConnexionJeux.js";
 
 type OngletDetailServeur = "resume" | "console";
 
@@ -30,6 +31,7 @@ function libelleStatutPilotage(statut: string): string {
  * Détail instance jeu avec onglets Résumé / Console et actions pilotage (démarrage, arrêt, suppression).
  */
 export function PageDetailServeur() {
+  const { hotePublicPourJeux } = useHotePublicConnexionJeux();
   const { idInstance } = useParams<{ idInstance: string }>();
   const [instance, setInstance] = useState<InstanceServeurJeuxPasserelle | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -203,7 +205,10 @@ export function PageDetailServeur() {
                     <div>
                       <dt>Adresse pour les joueurs</dt>
                       <dd className="kp-cellule-mono">
-                        {construireAdresseConnexionJeuxDepuisNavigateur(instance.port)}
+                        {construireAdresseConnexionJeux({
+                          port: instance.port,
+                          hotePublicConfigurePasserelle: hotePublicPourJeux,
+                        })}
                       </dd>
                     </div>
                   ) : null}

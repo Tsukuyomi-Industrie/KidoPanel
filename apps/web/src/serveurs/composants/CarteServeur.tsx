@@ -15,7 +15,8 @@ import { IcoConsoleJeux } from "../../interface/icones/IcoConsoleJeux.js";
 import { IcoDemarrer } from "../../interface/icones/IcoDemarrer.js";
 import { IcoServeurs } from "../../interface/icones/IcoServeurs.js";
 import { statutBadgeDepuisChaineApi } from "../../interface/statutBadgeInstanceJeux.js";
-import { construireAdresseConnexionJeuxDepuisNavigateur } from "../construire-adresse-connexion-jeux-depuis-navigateur.js";
+import { construireAdresseConnexionJeux } from "../construire-adresse-connexion-jeux-depuis-navigateur.js";
+import { useHotePublicConnexionJeux } from "../../interface/FournisseurHotePublicConnexionJeux.js";
 
 type PropsCarteServeur = {
   instance: InstanceServeurJeuxPasserelle;
@@ -35,6 +36,7 @@ export function CarteServeur({
   surMiseAJourPartielle,
 }: PropsCarteServeur) {
   const { pousserToast } = useToastKidoPanel();
+  const { hotePublicPourJeux } = useHotePublicConnexionJeux();
   const statutBadge = statutBadgeDepuisChaineApi(instance.status);
   const [patient, setPatient] = useState(false);
   const refDialogSuppression = useRef<HTMLDialogElement>(null);
@@ -139,7 +141,10 @@ export function CarteServeur({
         <p className="kp-texte-muted" style={{ fontSize: "0.78rem", margin: 0 }}>
           Connexion :{" "}
           <span className="kp-cellule-mono">
-            {construireAdresseConnexionJeuxDepuisNavigateur(instance.port)}
+            {construireAdresseConnexionJeux({
+              port: instance.port,
+              hotePublicConfigurePasserelle: hotePublicPourJeux,
+            })}
           </span>
         </p>
       ) : null}
