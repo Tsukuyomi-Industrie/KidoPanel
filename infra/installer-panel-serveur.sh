@@ -522,28 +522,78 @@ activer_pnpm() {
   return 1
 }
 
-preparer_fichier_env_racine() {
-  if [[ -f "$RACINE_DEPOT/.env" ]]; then
-    echo "Fichier .env présent (non écrasé)."
-    return 0
+# Valeur factice du dépôt : doit être remplacée par un secret aléatoire pour que la passerelle démarre.
+PLACEHOLDER_GATEWAY_JWT_SECRET="remplacer-par-une-chaine-longue-et-aleatoire"
+# Aligné sur docker-compose.yml (service postgres).
+DATABASE_URL_POSTGRES_DOCKER_DEFAUT="postgresql://kydopanel:kydopanel@127.0.0.1:5432/kydopanel"
+
+generer_secret_jwt_hex() {
+  if command -v openssl >/dev/null 2>&1; then
+    openssl rand -base64 48 | tr -d '\n'
+  else
+    head -c 48 /dev/urandom | base64 | tr -d '\n'
   fi
+}
+
+# Réécrit GATEWAY_JWT_SECRET sans passer par sed (car base64 peut contenir des caractères réservés pour sed).
+ecrire_ligne_gateway_jwt_secret_env() {
+  local secret="$1"
+  local tmp
+  tmp="$(mktemp)"
+  grep -v '^GATEWAY_JWT_SECRET=' "$RACINE_DEPOT/.env" >"$tmp"
+  mv "$tmp" "$RACINE_DEPOT/.env"
+  printf '%s\n' "GATEWAY_JWT_SECRET=${secret}" >>"$RACINE_DEPOT/.env"
+}
+
+# Garantit un jeton JWT fort si la ligne est absente, vide ou encore au placeholder du dépôt.
+assurer_gateway_jwt_secret_env_racine() {
+  local secret actuel besoin
+  besoin=1
+  if grep -q '^GATEWAY_JWT_SECRET=' "$RACINE_DEPOT/.env"; then
+    actuel="$(grep '^GATEWAY_JWT_SECRET=' "$RACINE_DEPOT/.env" | head -n1 | cut -d= -f2- | tr -d '\r')"
+    if [[ -n "${actuel// /}" ]] && [[ "$actuel" != "$PLACEHOLDER_GATEWAY_JWT_SECRET" ]]; then
+      besoin=0
+    fi
+  fi
+  [[ "$besoin" -eq 1 ]] || return 0
+  secret="$(generer_secret_jwt_hex)"
+  ecrire_ligne_gateway_jwt_secret_env "$secret"
+  echo "GATEWAY_JWT_SECRET défini (secret aléatoire ou remplacement du placeholder)."
+}
+
+# En mode PostgreSQL via docker-compose : impose DATABASE_URL si absent ou vide (sinon migrations Prisma échouent).
+assurer_database_url_si_postgres_docker() {
+  local val
+  [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] || return 0
+  if grep -q '^DATABASE_URL=' "$RACINE_DEPOT/.env"; then
+    val="$(grep '^DATABASE_URL=' "$RACINE_DEPOT/.env" | head -n1 | cut -d= -f2- | tr -d '\r')"
+    if [[ -n "${val// /}" ]]; then
+      echo "DATABASE_URL déjà renseigné (non écrasé)."
+      return 0
+    fi
+    local tmp
+    tmp="$(mktemp)"
+    grep -v '^DATABASE_URL=' "$RACINE_DEPOT/.env" >"$tmp"
+    mv "$tmp" "$RACINE_DEPOT/.env"
+  fi
+  printf '%s\n' "DATABASE_URL=${DATABASE_URL_POSTGRES_DOCKER_DEFAUT}" >>"$RACINE_DEPOT/.env"
+  echo "DATABASE_URL défini pour le conteneur PostgreSQL du compose (kydopanel@127.0.0.1:5432)."
+}
+
+# Crée ou complète le .env racine : copie depuis .env.example si besoin, puis secrets et base de données par défaut.
+preparer_fichier_env_racine() {
   [[ -f "$RACINE_DEPOT/.env.example" ]] || {
     echo_err ".env.example introuvable."
     return 1
   }
-  cp "$RACINE_DEPOT/.env.example" "$RACINE_DEPOT/.env"
-  local secret
-  if command -v openssl >/dev/null 2>&1; then
-    secret="$(openssl rand -base64 48 | tr -d '\n')"
+  if [[ ! -f "$RACINE_DEPOT/.env" ]]; then
+    cp "$RACINE_DEPOT/.env.example" "$RACINE_DEPOT/.env"
+    echo "Fichier .env créé depuis .env.example."
   else
-    secret="$(head -c 48 /dev/urandom | base64 | tr -d '\n')"
+    echo "Fichier .env présent : vérification des variables obligatoires (sans écraser vos réglages métier)."
   fi
-  if grep -q '^GATEWAY_JWT_SECRET=' "$RACINE_DEPOT/.env"; then
-    sed -i "s|^GATEWAY_JWT_SECRET=.*|GATEWAY_JWT_SECRET=${secret}|" "$RACINE_DEPOT/.env"
-  else
-    echo "GATEWAY_JWT_SECRET=${secret}" >>"$RACINE_DEPOT/.env"
-  fi
-  echo "Fichier .env créé avec GATEWAY_JWT_SECRET généré."
+  assurer_gateway_jwt_secret_env_racine
+  assurer_database_url_si_postgres_docker
 }
 
 preparer_env_web() {
@@ -756,6 +806,7 @@ mettre_a_jour_et_redemarrer() {
   charger_chemin_node_si_present
   activer_pnpm
   [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] && demarrer_postgres_et_attendre || assurer_docker_moteur
+  preparer_fichier_env_racine || return 1
   [[ -f "$RACINE_DEPOT/.env" ]] || {
     echo_err ".env manquant."
     return 1
@@ -770,8 +821,9 @@ redemarrer_seulement() {
   assurer_nodejs
   charger_chemin_node_si_present
   activer_pnpm
+  preparer_fichier_env_racine || return 1
   [[ -f "$RACINE_DEPOT/.env" ]] || {
-    echo_err ".env manquant."
+    echo_err ".env manquant après préparation."
     return 1
   }
   [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] && demarrer_postgres_et_attendre || assurer_docker_moteur

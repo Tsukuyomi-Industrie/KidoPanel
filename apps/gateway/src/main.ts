@@ -1,3 +1,4 @@
+import "./charger-env-racine-monorepo.js";
 import { serve } from "@hono/node-server";
 import {
   journaliserErreurPasserelle,
