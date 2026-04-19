@@ -19,9 +19,9 @@ const Contexte = createContext<ContexteHotePublicConnexionJeux | null>(null);
  * Fournit l’hôte public optionnel renvoyé par la passerelle pour les libellés « connexion jeu » sans dépendre du hostname du navigateur.
  */
 export function FournisseurHotePublicConnexionJeux({
-  enfants,
+  children,
 }: {
-  enfants: ReactNode;
+  children: ReactNode;
 }) {
   const [hotePublicPourJeux, setHotePublicPourJeux] = useState<string | null>(
     null,
@@ -49,7 +49,7 @@ export function FournisseurHotePublicConnexionJeux({
   const valeur = useMemo(() => ({ hotePublicPourJeux }), [hotePublicPourJeux]);
 
   return (
-    <Contexte.Provider value={valeur}>{enfants}</Contexte.Provider>
+    <Contexte.Provider value={valeur}>{children}</Contexte.Provider>
   );
 }
 
