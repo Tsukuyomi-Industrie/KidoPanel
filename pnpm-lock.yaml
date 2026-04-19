@@ -223,6 +223,9 @@ importers:
       '@kidopanel/database':
         specifier: workspace:*
         version: link:../../packages/database
+      dotenv:
+        specifier: ^16.6.1
+        version: 16.6.1
       hono:
         specifier: ^4.12.12
         version: 4.12.12
