@@ -220,7 +220,7 @@ export class ContainerEngine {
     } catch (e) {
       wrapDockerError(e);
     }
-    void this.pareFeuHote?.apresDemarrageConteneur(id, this.docker);
+    await this.pareFeuHote?.apresDemarrageConteneur(id, this.docker);
     this.journauxFichierConteneur?.notifierDemarrageEtDemarrerSuiviSortie(
       id,
       depuisEpochSecondes,

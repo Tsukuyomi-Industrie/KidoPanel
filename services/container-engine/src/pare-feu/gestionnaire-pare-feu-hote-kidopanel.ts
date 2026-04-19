@@ -25,7 +25,8 @@ function pareFeuAutomatiqueActiveDepuisEnv(): boolean {
  * avec persistance pour la désinstallation globale du panel.
  */
 export class GestionnairePareFeuHoteKidopanel {
-  private pareFeuDetecte: boolean | undefined;
+  /** Évite de spammer les journaux si le test firewalld échoue au premier démarrage. */
+  private journalEtatPareFeuDejaEmis = false;
 
   constructor(private readonly depot: RepositoryEtatPareFeuHoteKidopanel) {}
 
@@ -36,23 +37,30 @@ export class GestionnairePareFeuHoteKidopanel {
     );
   }
 
-  private async assurerPareFeuDisponible(requestId?: string): Promise<boolean> {
-    if (this.pareFeuDetecte !== undefined) {
-      return this.pareFeuDetecte;
+  /**
+   * Journalise une fois si `firewall-cmd --state` échoue ; n’empêche pas les tentatives d’ouverture
+   * (le blocage « tout ou rien » avec sudo sans NOPASSWD était la cause principale des échecs silencieux).
+   */
+  private async journaliserEtatFirewalldSiBesoin(requestId?: string): Promise<void> {
+    if (this.journalEtatPareFeuDejaEmis) {
+      return;
     }
     const actif = await testerFirewalldActifSurHote();
-    this.pareFeuDetecte = actif;
-    if (!actif) {
-      journaliserMoteur({
-        niveau: "info",
-        message: "pare_feu_hote_firewalld_indisponible_ou_inactif",
-        requestId,
-        metadata: {
-          note: "Ports conteneur non ouverts automatiquement ; configurez firewalld ou sudo NOPASSWD.",
-        },
-      });
+    if (actif) {
+      return;
     }
-    return actif;
+    this.journalEtatPareFeuDejaEmis = true;
+    journaliserMoteur({
+      niveau: "warn",
+      message: "pare_feu_hote_test_etat_firewall_cmd_echoue",
+      requestId,
+      metadata: {
+        uidEffectif:
+          typeof process.geteuid === "function" ? process.geteuid() : undefined,
+        pareFeuSansSudo: process.env.CONTAINER_ENGINE_PAREFEU_SANS_SUDO,
+        note: "Les ouvertures seront tout de même tentées. Sans droits root et sans « sudo NOPASSWD » pour /usr/bin/firewall-cmd, utilisez une règle sudoers ou PAREFEU_SANS_SUDO=1 si le moteur tourne en root.",
+      },
+    });
   }
 
   /**
@@ -66,9 +74,7 @@ export class GestionnairePareFeuHoteKidopanel {
     if (!pareFeuAutomatiqueActiveDepuisEnv()) {
       return;
     }
-    if (!(await this.assurerPareFeuDisponible(options?.requestId))) {
-      return;
-    }
+    await this.journaliserEtatFirewalldSiBesoin(options?.requestId);
 
     let inspection;
     try {
@@ -79,6 +85,18 @@ export class GestionnairePareFeuHoteKidopanel {
 
     const publications = extrairePublicationsHoteNonLoopbackDepuisInspection(inspection);
     const idCanonique = inspection.Id;
+
+    if (publications.length > 0) {
+      journaliserMoteur({
+        niveau: "info",
+        message: "pare_feu_hote_publications_detectees",
+        requestId: options?.requestId,
+        metadata: {
+          idConteneurDocker: idCanonique,
+          ports: publications.map((p) => `${String(p.numero)}/${p.protocole}`),
+        },
+      });
+    }
 
     const existante = await this.depot.trouverEntreePourIdConteneur(idCanonique);
     const anciennesList = existante?.entree.ports ?? [];
@@ -148,10 +166,6 @@ export class GestionnairePareFeuHoteKidopanel {
     options?: { requestId?: string },
   ): Promise<void> {
     if (!pareFeuAutomatiqueActiveDepuisEnv()) {
-      return;
-    }
-    if (!(await this.assurerPareFeuDisponible(options?.requestId))) {
-      await this.depot.retirerEntreePourIdConteneur(idConteneur);
       return;
     }
 

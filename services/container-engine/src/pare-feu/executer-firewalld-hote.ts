@@ -4,6 +4,17 @@ import type { PublicationHotePareFeu } from "./types-publication-hote-pare-feu.j
 
 const executerFichier = promisify(execFile);
 
+/** Retourne le chemin du binaire firewalld (chemin absolu pour sudo). */
+export function obtenirCheminBinaireFirewallCmd(): string {
+  const brut = process.env.CONTAINER_ENGINE_PAREFEU_FIREWALL_CMD?.trim();
+  return brut !== undefined && brut.length > 0 ? brut : "/usr/bin/firewall-cmd";
+}
+
+/** Indique si le processus Node tourne avec les droits root (pas besoin de sudo). */
+export function processusEstPrivilegieRoot(): boolean {
+  return typeof process.geteuid === "function" && process.geteuid() === 0;
+}
+
 function argumentsZoneOptionnels(): string[] {
   const zone = process.env.CONTAINER_ENGINE_PAREFEU_ZONE?.trim();
   if (zone === undefined || zone.length === 0) {
@@ -12,25 +23,40 @@ function argumentsZoneOptionnels(): string[] {
   return [`--zone=${zone}`];
 }
 
-/** Construit la commande : soit `sudo -n firewall-cmd`, soit `firewall-cmd` seul si déjà root / sans sudo. */
-function resoudreInvocationFirewallCmd(): {
+/**
+ * Construit l’invocation : en root ou si PAREFEU_SANS_SUDO=1, appel direct du binaire ;
+ * sinon `sudo -n` (sans invite ; exige une règle sudoers NOPASSWD pour firewall-cmd).
+ */
+export function resoudreInvocationFirewallCmd(): {
   executable: string;
   argumentsVersFirewalld: string[];
 } {
-  const cheminBrut = process.env.CONTAINER_ENGINE_PAREFEU_FIREWALL_CMD?.trim();
-  const sansSudo = process.env.CONTAINER_ENGINE_PAREFEU_SANS_SUDO?.trim() === "1";
-  const binaire = cheminBrut !== undefined && cheminBrut.length > 0 ? cheminBrut : "firewall-cmd";
-  if (!sansSudo) {
-    return {
-      executable: "sudo",
-      argumentsVersFirewalld: ["-n", binaire],
-    };
+  const binaire = obtenirCheminBinaireFirewallCmd();
+  if (processusEstPrivilegieRoot()) {
+    return { executable: binaire, argumentsVersFirewalld: [] };
   }
-  return { executable: binaire, argumentsVersFirewalld: [] };
+  if (process.env.CONTAINER_ENGINE_PAREFEU_SANS_SUDO?.trim() === "1") {
+    return { executable: binaire, argumentsVersFirewalld: [] };
+  }
+  return {
+    executable: "sudo",
+    argumentsVersFirewalld: ["-n", binaire],
+  };
+}
+
+/** Détaille une erreur execFile (stderr Docker / firewalld souvent utile). */
+export function formaterErreurExecFirewalld(erreur: unknown): string {
+  if (!(erreur instanceof Error)) {
+    return String(erreur);
+  }
+  const avecStderr = erreur as Error & { stderr?: Buffer };
+  const errStd = avecStderr.stderr?.toString?.()?.trim();
+  const base = erreur.message;
+  return errStd !== undefined && errStd.length > 0 ? `${base} | ${errStd}` : base;
 }
 
 /**
- * Indique si firewalld répond comme actif sur l’hôte (best-effort, sans lever d’exception).
+ * Indique si firewalld répond (même logique que les commandes d’ouverture de port).
  */
 export async function testerFirewalldActifSurHote(): Promise<boolean> {
   const { executable, argumentsVersFirewalld } = resoudreInvocationFirewallCmd();
@@ -65,9 +91,10 @@ export async function ouvrirPortFirewalldHote(
     await executerFichier(executable, argsRuntime, { timeout: 60_000 });
     return { ok: true };
   } catch (erreur) {
-    const message =
-      erreur instanceof Error ? erreur.message : String(erreur);
-    return { ok: false, messageErreur: message };
+    return {
+      ok: false,
+      messageErreur: formaterErreurExecFirewalld(erreur),
+    };
   }
 }
 
@@ -92,8 +119,9 @@ export async function fermerPortFirewalldHote(
     await executerFichier(executable, argsRuntime, { timeout: 60_000 });
     return { ok: true };
   } catch (erreur) {
-    const message =
-      erreur instanceof Error ? erreur.message : String(erreur);
-    return { ok: false, messageErreur: message };
+    return {
+      ok: false,
+      messageErreur: formaterErreurExecFirewalld(erreur),
+    };
   }
 }
