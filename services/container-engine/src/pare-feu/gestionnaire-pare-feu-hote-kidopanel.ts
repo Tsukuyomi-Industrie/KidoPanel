@@ -2,14 +2,15 @@ import type { DockerClient } from "../docker-connection.js";
 import { journaliserMoteur } from "../observabilite/journal-json.js";
 import { collecterPublicationsHoteApresDemarrageDocker } from "./collecter-publications-hote-apres-demarrage-docker.js";
 import {
-  fermerPortFirewalldHote,
-  ouvrirPortFirewalldHote,
-  testerFirewalldActifSurHote,
-} from "./executer-firewalld-hote.js";
+  fermerPortPareFeuHoteUnifie,
+  ouvrirPortPareFeuHoteUnifie,
+  rechargerRuntimeFirewalldApresModifications,
+} from "./executer-pare-feu-unifie-hote.js";
 import {
   RepositoryEtatPareFeuHoteKidopanel,
   resoudreCheminFichierEtatPareFeuDepuisEnv,
 } from "./repository-etat-pare-feu-hote-kidopanel.js";
+import { obtenirBackendPareFeuHote } from "./selection-backend-pare-feu-hote.js";
 import type { PublicationHotePareFeu } from "./types-publication-hote-pare-feu.js";
 
 function clePublication(p: PublicationHotePareFeu): string {
@@ -21,12 +22,11 @@ function pareFeuAutomatiqueActiveDepuisEnv(): boolean {
 }
 
 /**
- * Orchestre l’ouverture et la fermeture des ports sur firewalld pour les publications Docker réelles,
+ * Orchestre l’ouverture et la fermeture des ports sur le pare-feu hôte (firewalld ou UFW selon détection),
  * avec persistance pour la désinstallation globale du panel.
  */
 export class GestionnairePareFeuHoteKidopanel {
-  /** Évite de spammer les journaux si le test firewalld échoue au premier démarrage. */
-  private journalEtatPareFeuDejaEmis = false;
+  private journalBackendPareFeuDejaEmis = false;
 
   constructor(private readonly depot: RepositoryEtatPareFeuHoteKidopanel) {}
 
@@ -37,28 +37,26 @@ export class GestionnairePareFeuHoteKidopanel {
     );
   }
 
-  /**
-   * Journalise une fois si `firewall-cmd --state` échoue ; n’empêche pas les tentatives d’ouverture
-   * (le blocage « tout ou rien » avec sudo sans NOPASSWD était la cause principale des échecs silencieux).
-   */
-  private async journaliserEtatFirewalldSiBesoin(requestId?: string): Promise<void> {
-    if (this.journalEtatPareFeuDejaEmis) {
+  /** Journalise une fois le backend choisi (auto, firewalld ou ufw). */
+  private async journaliserBackendPareFeuUneFois(requestId?: string): Promise<void> {
+    if (this.journalBackendPareFeuDejaEmis) {
       return;
     }
-    const actif = await testerFirewalldActifSurHote();
-    if (actif) {
-      return;
-    }
-    this.journalEtatPareFeuDejaEmis = true;
+    this.journalBackendPareFeuDejaEmis = true;
+    const backend = await obtenirBackendPareFeuHote();
     journaliserMoteur({
-      niveau: "warn",
-      message: "pare_feu_hote_test_etat_firewall_cmd_echoue",
+      niveau: backend === null ? "warn" : "info",
+      message:
+        backend === null
+          ? "pare_feu_hote_aucun_backend_firewalld_ni_ufw"
+          : "pare_feu_hote_backend_pare_feu_selectionne",
       requestId,
       metadata: {
+        backend: backend ?? "aucun",
+        conteneurEnginePareFeuBackend:
+          process.env.CONTAINER_ENGINE_PAREFEU_BACKEND ?? "(auto)",
         uidEffectif:
           typeof process.geteuid === "function" ? process.geteuid() : undefined,
-        pareFeuSansSudo: process.env.CONTAINER_ENGINE_PAREFEU_SANS_SUDO,
-        note: "Les ouvertures seront tout de même tentées. Sans droits root et sans « sudo NOPASSWD » pour /usr/bin/firewall-cmd, utilisez une règle sudoers ou PAREFEU_SANS_SUDO=1 si le moteur tourne en root.",
       },
     });
   }
@@ -74,7 +72,7 @@ export class GestionnairePareFeuHoteKidopanel {
     if (!pareFeuAutomatiqueActiveDepuisEnv()) {
       return;
     }
-    await this.journaliserEtatFirewalldSiBesoin(options?.requestId);
+    await this.journaliserBackendPareFeuUneFois(options?.requestId);
 
     let publications: PublicationHotePareFeu[];
     let idCanonique: string;
@@ -119,9 +117,14 @@ export class GestionnairePareFeuHoteKidopanel {
     const cleAnc = new Set(anciennesList.map(clePublication));
     const cleNouv = new Set(publications.map(clePublication));
 
+    let firewalldModifie = false;
+
     for (const ancienne of anciennesList) {
       if (!cleNouv.has(clePublication(ancienne))) {
-        const res = await fermerPortFirewalldHote(ancienne);
+        const res = await fermerPortPareFeuHoteUnifie(ancienne);
+        if (res.ok && res.backend === "firewalld") {
+          firewalldModifie = true;
+        }
         if (!res.ok) {
           journaliserMoteur({
             niveau: "warn",
@@ -131,6 +134,7 @@ export class GestionnairePareFeuHoteKidopanel {
               port: ancienne.numero,
               protocole: ancienne.protocole,
               erreur: res.messageErreur,
+              backend: res.backend,
             },
           });
         }
@@ -139,7 +143,10 @@ export class GestionnairePareFeuHoteKidopanel {
 
     for (const pub of publications) {
       if (!cleAnc.has(clePublication(pub))) {
-        const res = await ouvrirPortFirewalldHote(pub);
+        const res = await ouvrirPortPareFeuHoteUnifie(pub);
+        if (res.ok && res.backend === "firewalld") {
+          firewalldModifie = true;
+        }
         if (!res.ok) {
           journaliserMoteur({
             niveau: "warn",
@@ -149,6 +156,7 @@ export class GestionnairePareFeuHoteKidopanel {
               port: pub.numero,
               protocole: pub.protocole,
               erreur: res.messageErreur,
+              backend: res.backend,
             },
           });
         } else {
@@ -160,10 +168,15 @@ export class GestionnairePareFeuHoteKidopanel {
               idConteneurDocker: idCanonique,
               port: pub.numero,
               protocole: pub.protocole,
+              backend: res.backend,
             },
           });
         }
       }
+    }
+
+    if (firewalldModifie) {
+      await rechargerRuntimeFirewalldApresModifications();
     }
 
     if (publications.length > 0) {
@@ -184,9 +197,13 @@ export class GestionnairePareFeuHoteKidopanel {
       return;
     }
 
+    let firewalldModifie = false;
     const ports = await this.depot.retirerEntreePourIdConteneur(idConteneur);
     for (const pub of ports) {
-      const res = await fermerPortFirewalldHote(pub);
+      const res = await fermerPortPareFeuHoteUnifie(pub);
+      if (res.ok && res.backend === "firewalld") {
+        firewalldModifie = true;
+      }
       if (!res.ok) {
         journaliserMoteur({
           niveau: "warn",
@@ -196,9 +213,13 @@ export class GestionnairePareFeuHoteKidopanel {
             port: pub.numero,
             protocole: pub.protocole,
             erreur: res.messageErreur,
+            backend: res.backend,
           },
         });
       }
+    }
+    if (firewalldModifie) {
+      await rechargerRuntimeFirewalldApresModifications();
     }
   }
 }

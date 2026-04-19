@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { resoudreInvocationSudoPourBinaireSysteme } from "./invocation-sudo-binaire-hote.js";
 import type { PublicationHotePareFeu } from "./types-publication-hote-pare-feu.js";
 
 const executerFichier = promisify(execFile);
@@ -31,16 +32,13 @@ export function resoudreInvocationFirewallCmd(): {
   executable: string;
   argumentsVersFirewalld: string[];
 } {
-  const binaire = obtenirCheminBinaireFirewallCmd();
-  if (processusEstPrivilegieRoot()) {
-    return { executable: binaire, argumentsVersFirewalld: [] };
-  }
-  if (process.env.CONTAINER_ENGINE_PAREFEU_SANS_SUDO?.trim() === "1") {
-    return { executable: binaire, argumentsVersFirewalld: [] };
-  }
+  const r = resoudreInvocationSudoPourBinaireSysteme({
+    cheminDefautAbsolu: "/usr/bin/firewall-cmd",
+    cleEnvChemin: "CONTAINER_ENGINE_PAREFEU_FIREWALL_CMD",
+  });
   return {
-    executable: "sudo",
-    argumentsVersFirewalld: ["-n", binaire],
+    executable: r.executable,
+    argumentsVersFirewalld: r.prefixeArguments,
   };
 }
 

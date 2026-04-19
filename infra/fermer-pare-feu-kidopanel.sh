@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Retire du pare-feu firewalld les ports TCP/UDP enregistrés par le moteur de conteneurs KidoPanel,
-# puis supprime le fichier d’état JSON. À lancer avec les mêmes privilèges que firewall-cmd (sudo).
+# Retire les ports TCP/UDP enregistrés (firewalld et/ou UFW selon ce qui est disponible),
+# puis supprime le fichier d’état JSON.
 set -euo pipefail
 
 RACINE_DEPOT="${1:?Usage : $0 CHEMIN_RACINE_DEPOT_GIT [CHEMIN_JSON_OPTIONNEL]}"
@@ -21,15 +21,7 @@ executer_avec_privileges() {
   fi
 }
 
-fermer_firewalld_si_present() {
-  command -v firewall-cmd >/dev/null 2>&1 || {
-    echo "firewall-cmd absent : aucune fermeture automatique."
-    return 0
-  }
-  if ! executer_avec_privileges firewall-cmd --state >/dev/null 2>&1; then
-    echo "firewalld inactif ou inaccessible : fermeture des ports ignorée."
-    return 0
-  fi
+fermer_ports_enregistres() {
   local lignes
   if ! lignes="$(python3 -c "
 import json
@@ -62,10 +54,19 @@ for proto, num in sorted(vu):
     [[ -n "${proto:-}" ]] || continue
     [[ -n "${num:-}" ]] || continue
     echo "Retrait pare-feu : ${num}/${proto}"
-    executer_avec_privileges firewall-cmd --permanent "--remove-port=${num}/${proto}" >/dev/null 2>&1 || true
-    executer_avec_privileges firewall-cmd "--remove-port=${num}/${proto}" >/dev/null 2>&1 || true
+    if command -v firewall-cmd >/dev/null 2>&1; then
+      if executer_avec_privileges firewall-cmd --state >/dev/null 2>&1; then
+        executer_avec_privileges firewall-cmd --permanent "--remove-port=${num}/${proto}" >/dev/null 2>&1 || true
+        executer_avec_privileges firewall-cmd "--remove-port=${num}/${proto}" >/dev/null 2>&1 || true
+      fi
+    fi
+    if command -v ufw >/dev/null 2>&1; then
+      executer_avec_privileges ufw delete allow "${num}/${proto}" >/dev/null 2>&1 || true
+    fi
   done <<<"$lignes"
-  executer_avec_privileges firewall-cmd --reload >/dev/null 2>&1 || true
+  if command -v firewall-cmd >/dev/null 2>&1 && executer_avec_privileges firewall-cmd --state >/dev/null 2>&1; then
+    executer_avec_privileges firewall-cmd --reload >/dev/null 2>&1 || true
+  fi
   rm -f "$CHEMIN_JSON"
   echo "Fichier d’état pare-feu supprimé : ${CHEMIN_JSON}"
 }
@@ -75,4 +76,4 @@ if [[ ! -f "$CHEMIN_JSON" ]]; then
   exit 0
 fi
 
-fermer_firewalld_si_present
+fermer_ports_enregistres
