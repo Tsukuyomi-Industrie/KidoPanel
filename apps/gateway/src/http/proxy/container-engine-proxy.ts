@@ -31,6 +31,11 @@ export type OptionsRelaisVersContainerEngine = {
    * Si défini, le corps de la requête entrante n’est pas relu.
    */
   corpsRemplacement?: ArrayBuffer | Uint8Array;
+  /**
+   * Chemin absolu API moteur à utiliser à la place de `pathname` entrant (ex. `/reseaux-internes`).
+   * Nécessaire lorsque la route est montée sous la passerelle et que `pathname` vaut `/` au lieu du préfixe réel.
+   */
+  cheminRelaisForceSurMoteur?: string;
 };
 
 /**
@@ -49,7 +54,14 @@ export async function forwardRequestToContainerEngine(
       entrant.searchParams.set(cle, valeur);
     }
   }
-  const cible = new URL(entrant.pathname + entrant.search, `${base}/`);
+  const cheminForce = options?.cheminRelaisForceSurMoteur?.trim();
+  const pathnameRelais =
+    cheminForce !== undefined && cheminForce.length > 0
+      ? cheminForce.startsWith("/")
+        ? cheminForce
+        : `/${cheminForce}`
+      : entrant.pathname;
+  const cible = new URL(pathnameRelais + entrant.search, `${base}/`);
 
   const enTetes = new Headers();
   for (const [nom, valeur] of c.req.raw.headers) {

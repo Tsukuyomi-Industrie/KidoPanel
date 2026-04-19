@@ -74,6 +74,7 @@ export function monterRoutesReseauxInternesPasserelle(
       });
       const amont = await forwardRequestToContainerEngine(c, {
         corpsRemplacement: new TextEncoder().encode(corpsMoteur),
+        cheminRelaisForceSurMoteur: "/reseaux-internes",
       });
       if (!amont.ok) {
         return amont;

@@ -36,16 +36,26 @@ export function BarrePilotageDetailServeur({
         <span className="kp-texte-muted">{libelleStatutPilotage(statut)}</span>
       ) : null}
       {!transition && statut === "STOPPED" ? (
-        <button
-          type="button"
-          className="kp-btn kp-btn--primaire"
-          disabled={patient}
-          onClick={() =>
-            void executerAction("Démarrage demandé.", () => demarrerInstanceServeur(instance.id))
-          }
-        >
-          Démarrer
-        </button>
+        <>
+          <button
+            type="button"
+            className="kp-btn kp-btn--primaire"
+            disabled={patient}
+            onClick={() =>
+              void executerAction("Démarrage demandé.", () => demarrerInstanceServeur(instance.id))
+            }
+          >
+            Démarrer
+          </button>
+          <button
+            type="button"
+            className="kp-btn kp-btn--danger"
+            disabled={patient}
+            onClick={ouvrirSuppression}
+          >
+            Supprimer
+          </button>
+        </>
       ) : null}
       {!transition && statut === "RUNNING" ? (
         <>

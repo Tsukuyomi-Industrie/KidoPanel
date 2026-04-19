@@ -4,6 +4,7 @@ import type { DepotInstanceServeur } from "../repositories/depot-instance-serveu
 import type { DepotProprieteConteneurInstance } from "../repositories/depot-propriete-conteneur-instance.repository.js";
 import type { ClientMoteurConteneursHttp } from "./client-moteur-conteneurs-http.service.js";
 import { ErreurMetierInstanceJeux } from "../erreurs/erreurs-metier-instance-jeu.js";
+import { synchroniserPortInstanceApresDemarrageSurMoteur } from "./synchroniser-port-instance-apres-demarrage-moteur.service.js";
 
 /**
  * Crée le conteneur sur le moteur HTTP et démarre l’instance après persistance Prisma en statut INSTALLING.
@@ -127,9 +128,15 @@ export async function finaliserInstallationConteneurDockerInstanceJeux(params: {
     );
   }
 
-  return depot.mettreAJour(ligne.id, {
+  const ligneDemarree = await depot.mettreAJour(ligne.id, {
     status: "RUNNING",
     startedAt: new Date(),
     stoppedAt: null,
+  });
+  return synchroniserPortInstanceApresDemarrageSurMoteur({
+    depot,
+    clientMoteur,
+    ligne: ligneDemarree,
+    identifiantRequeteHttp: params.identifiantRequeteHttp,
   });
 }

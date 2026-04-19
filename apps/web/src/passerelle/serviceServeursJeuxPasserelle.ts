@@ -9,6 +9,8 @@ export type InstanceServeurJeuxPasserelle = {
   gameType: string;
   status: string;
   containerId: string | null;
+  /** Port TCP sur l’hôte mappé sur le port jeu du conteneur (attribution dynamique si 0 côté Docker). */
+  port: number | null;
   memoryMb: number;
   cpuCores: number;
   diskGb: number;

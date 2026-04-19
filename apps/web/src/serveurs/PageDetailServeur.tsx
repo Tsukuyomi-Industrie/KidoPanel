@@ -193,6 +193,12 @@ export function PageDetailServeur() {
                     <dd className="kp-cellule-mono">{instance.containerId ?? "—"}</dd>
                   </div>
                   <div>
+                    <dt>Port connexion (hôte)</dt>
+                    <dd className="kp-cellule-mono">
+                      {typeof instance.port === "number" ? String(instance.port) : "—"}
+                    </dd>
+                  </div>
+                  <div>
                     <dt>Ressources</dt>
                     <dd>
                       {instance.memoryMb} Mo RAM · {instance.cpuCores} CPU · {instance.diskGb}{" "}

@@ -75,6 +75,22 @@ export class ClientMoteurConteneursHttp {
     });
   }
 
+  /**
+   * Liste les conteneurs Docker via le moteur (`GET /containers`) pour diagnostic ou lecture des publications de ports.
+   */
+  async listerConteneursDiagnostic(params: {
+    inclureArretes: boolean;
+    identifiantRequete: string;
+  }): Promise<Response> {
+    const suffixe = params.inclureArretes ? "?all=true" : "";
+    return fetch(this.construireUrl(`/containers${suffixe}`), {
+      method: "GET",
+      headers: {
+        [EN_TETE_CORRELATION]: params.identifiantRequete,
+      },
+    });
+  }
+
   async posterDemarrage(
     idConteneurDocker: string,
     identifiantRequete: string,

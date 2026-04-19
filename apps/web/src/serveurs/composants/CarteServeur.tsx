@@ -1,10 +1,12 @@
-import { useState, type MouseEvent } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import {
   arreterInstanceServeurJeuxPasserelle,
   demarrerInstanceServeurJeuxPasserelle,
   type InstanceServeurJeuxPasserelle,
 } from "../../passerelle/serviceServeursJeuxPasserelle.js";
+import { supprimerInstanceServeur } from "../passerelle/actionsInstanceServeurPasserelle.js";
+import { DialogueSuppressionInstanceServeur } from "./DialogueSuppressionInstanceServeur.js";
 import { BadgeStatut } from "../../interface/BadgeStatut.js";
 import { useToastKidoPanel } from "../../interface/useToastKidoPanel.js";
 import { BarreRessource } from "../../interface/BarreRessource.js";
@@ -34,7 +36,13 @@ export function CarteServeur({
   const { pousserToast } = useToastKidoPanel();
   const statutBadge = statutBadgeDepuisChaineApi(instance.status);
   const [patient, setPatient] = useState(false);
+  const refDialogSuppression = useRef<HTMLDialogElement>(null);
   const cheminDetail = `/serveurs/${encodeURIComponent(instance.id)}`;
+  const peutAfficherSuppressionListe =
+    instance.status !== "INSTALLING" &&
+    instance.status !== "RUNNING" &&
+    instance.status !== "STARTING" &&
+    instance.status !== "STOPPING";
 
   const executerDemarrage = async (evt: MouseEvent<HTMLButtonElement>) => {
     evt.preventDefault();
@@ -50,6 +58,26 @@ export function CarteServeur({
       pousserToast("Ordre de démarrage envoyé.", "succes");
     } catch (e) {
       pousserToast(e instanceof Error ? e.message : "Démarrage impossible.", "erreur");
+    } finally {
+      setPatient(false);
+    }
+  };
+
+  const ouvrirSuppression = (evt: MouseEvent<HTMLButtonElement>) => {
+    evt.preventDefault();
+    evt.stopPropagation();
+    refDialogSuppression.current?.showModal();
+  };
+
+  const confirmerSuppression = async () => {
+    refDialogSuppression.current?.close();
+    setPatient(true);
+    try {
+      await supprimerInstanceServeur(instance.id);
+      pousserToast("Instance supprimée.", "succes");
+      surMiseAJourListe();
+    } catch (e) {
+      pousserToast(e instanceof Error ? e.message : "Suppression impossible.", "erreur");
     } finally {
       setPatient(false);
     }
@@ -101,7 +129,10 @@ export function CarteServeur({
       />
 
       <p className="kp-texte-muted" style={{ fontSize: "0.78rem", margin: 0 }}>
-        Port principal : <span className="kp-cellule-mono">—</span>
+        Port principal (hôte) :{" "}
+        <span className="kp-cellule-mono">
+          {typeof instance.port === "number" ? String(instance.port) : "—"}
+        </span>
       </p>
 
       <div className="kp-carte-serveur__actions">
@@ -140,6 +171,27 @@ export function CarteServeur({
           </Link>
         ) : null}
       </div>
+
+      {peutAfficherSuppressionListe ? (
+        <div style={{ marginTop: "0.45rem" }}>
+          <button
+            type="button"
+            className="kp-btn kp-btn--danger kp-btn--sm"
+            disabled={patient}
+            style={{ width: "100%" }}
+            onClick={ouvrirSuppression}
+          >
+            Supprimer l’instance
+          </button>
+        </div>
+      ) : null}
+
+      <DialogueSuppressionInstanceServeur
+        refDialogue={refDialogSuppression}
+        patient={patient}
+        surAnnuler={() => refDialogSuppression.current?.close()}
+        surConfirmer={confirmerSuppression}
+      />
     </article>
   );
 }

@@ -9,6 +9,7 @@ import { resoudreGabaritJeuPourType } from "./mappage-gabarit-type-jeu.service.j
 import { validerEtFusionnerVariablesEnvJeux } from "./installateur-variables-env-jeu.service.js";
 import { ErreurMetierInstanceJeux } from "../erreurs/erreurs-metier-instance-jeu.js";
 import { finaliserInstallationConteneurDockerInstanceJeux } from "./finalisation-installation-docker-instance-jeu.service.js";
+import { synchroniserPortInstanceApresDemarrageSurMoteur } from "./synchroniser-port-instance-apres-demarrage-moteur.service.js";
 
 type RoleInterne = "ADMIN" | "USER" | "VIEWER";
 
@@ -208,9 +209,15 @@ export class CycleVieInstanceServeur {
         dem.status,
       );
     }
-    return this.depot.mettreAJour(ligne.id, {
+    const ligneActive = await this.depot.mettreAJour(ligne.id, {
       status: "RUNNING",
       startedAt: new Date(),
+    });
+    return synchroniserPortInstanceApresDemarrageSurMoteur({
+      depot: this.depot,
+      clientMoteur: this.clientMoteur,
+      ligne: ligneActive,
+      identifiantRequeteHttp: params.identifiantRequeteHttp,
     });
   }
 
@@ -254,9 +261,15 @@ export class CycleVieInstanceServeur {
         dem.status,
       );
     }
-    return this.depot.mettreAJour(ligne.id, {
+    const ligneActive = await this.depot.mettreAJour(ligne.id, {
       status: "RUNNING",
       startedAt: new Date(),
+    });
+    return synchroniserPortInstanceApresDemarrageSurMoteur({
+      depot: this.depot,
+      clientMoteur: this.clientMoteur,
+      ligne: ligneActive,
+      identifiantRequeteHttp: params.identifiantRequeteHttp,
     });
   }
 
