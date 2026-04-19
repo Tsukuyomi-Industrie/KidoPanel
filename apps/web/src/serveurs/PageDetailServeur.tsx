@@ -11,6 +11,7 @@ import {
 import { supprimerInstanceServeur } from "./passerelle/actionsInstanceServeurPasserelle.js";
 import { BarrePilotageDetailServeur } from "./composants/BarrePilotageDetailServeur.js";
 import { DialogueSuppressionInstanceServeur } from "./composants/DialogueSuppressionInstanceServeur.js";
+import { construireAdresseConnexionJeuxDepuisNavigateur } from "./construire-adresse-connexion-jeux-depuis-navigateur.js";
 
 type OngletDetailServeur = "resume" | "console";
 
@@ -198,6 +199,14 @@ export function PageDetailServeur() {
                       {typeof instance.port === "number" ? String(instance.port) : "—"}
                     </dd>
                   </div>
+                  {instance.status === "RUNNING" && typeof instance.port === "number" ? (
+                    <div>
+                      <dt>Adresse pour les joueurs</dt>
+                      <dd className="kp-cellule-mono">
+                        {construireAdresseConnexionJeuxDepuisNavigateur(instance.port)}
+                      </dd>
+                    </div>
+                  ) : null}
                   <div>
                     <dt>Ressources</dt>
                     <dd>

@@ -15,6 +15,7 @@ import { IcoConsoleJeux } from "../../interface/icones/IcoConsoleJeux.js";
 import { IcoDemarrer } from "../../interface/icones/IcoDemarrer.js";
 import { IcoServeurs } from "../../interface/icones/IcoServeurs.js";
 import { statutBadgeDepuisChaineApi } from "../../interface/statutBadgeInstanceJeux.js";
+import { construireAdresseConnexionJeuxDepuisNavigateur } from "../construire-adresse-connexion-jeux-depuis-navigateur.js";
 
 type PropsCarteServeur = {
   instance: InstanceServeurJeuxPasserelle;
@@ -134,6 +135,14 @@ export function CarteServeur({
           {typeof instance.port === "number" ? String(instance.port) : "—"}
         </span>
       </p>
+      {instance.status === "RUNNING" && typeof instance.port === "number" ? (
+        <p className="kp-texte-muted" style={{ fontSize: "0.78rem", margin: 0 }}>
+          Connexion :{" "}
+          <span className="kp-cellule-mono">
+            {construireAdresseConnexionJeuxDepuisNavigateur(instance.port)}
+          </span>
+        </p>
+      ) : null}
 
       <div className="kp-carte-serveur__actions">
         {(instance.status === "STOPPED" ||

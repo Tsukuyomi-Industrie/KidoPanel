@@ -37,23 +37,44 @@ export function PageListeReseaux() {
   );
   const [web, setWeb] = useState<Awaited<ReturnType<typeof listerWebInstancesPasserelle>>>([]);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [avertissementComptage, setAvertissementComptage] = useState<string | null>(null);
   const { pousserToast } = useToastKidoPanel();
 
   const charger = useCallback(async () => {
-    try {
-      const [r, j, w] = await Promise.all([
-        listerReseauxInternesPasserelle(),
-        listerInstancesServeursJeuxPasserelle(),
-        listerWebInstancesPasserelle(),
-      ]);
-      setReseaux(r);
-      setJeu(j);
-      setWeb(w);
-      setErreur(null);
-    } catch (e) {
-      setErreur(e instanceof Error ? e.message : "Chargement impossible.");
+    const resultats = await Promise.allSettled([
+      listerReseauxInternesPasserelle(),
+      listerInstancesServeursJeuxPasserelle(),
+      listerWebInstancesPasserelle(),
+    ]);
+    const [resReseaux, resJeu, resWeb] = resultats;
+    if (resReseaux.status === "rejected") {
+      setErreur(
+        resReseaux.reason instanceof Error
+          ? resReseaux.reason.message
+          : "Chargement des réseaux impossible.",
+      );
       setReseaux([]);
+      setJeu([]);
+      setWeb([]);
+      setAvertissementComptage(null);
+      return;
     }
+    setReseaux(resReseaux.value);
+    setErreur(null);
+    setJeu(resJeu.status === "fulfilled" ? resJeu.value : []);
+    setWeb(resWeb.status === "fulfilled" ? resWeb.value : []);
+    const echecsComptage: string[] = [];
+    if (resJeu.status === "rejected") {
+      echecsComptage.push("instances jeu");
+    }
+    if (resWeb.status === "rejected") {
+      echecsComptage.push("instances web");
+    }
+    setAvertissementComptage(
+      echecsComptage.length > 0
+        ? `Comptage des instances par réseau incomplet : le chargement des ${echecsComptage.join(" et ")} a échoué ; vérifiez que les services métier sont démarrés et joignables par la passerelle. La liste des ponts ci-dessous reste la source de vérité.`
+        : null,
+    );
   }, []);
 
   useEffect(() => {
@@ -97,6 +118,11 @@ export function PageListeReseaux() {
       {erreur !== null ? (
         <pre className="kp-cellule-mono" role="alert">
           {erreur}
+        </pre>
+      ) : null}
+      {avertissementComptage !== null ? (
+        <pre className="kp-cellule-mono" role="status" style={{ opacity: 0.9 }}>
+          {avertissementComptage}
         </pre>
       ) : null}
       {reseaux === null ? (
