@@ -1,3 +1,5 @@
+import { normaliserUrlBasePourFetchLoopbackIpv4 } from "./normaliser-url-loopback-ipv4.js";
+
 /**
  * Lecture centralisée des variables d’environnement de la passerelle
  * (URL du container-engine, limitation de débit, secrets JWT, coût bcrypt, base PostgreSQL).
@@ -33,7 +35,7 @@ export function getContainerEngineBaseUrl(): string {
   const brut = process.env.CONTAINER_ENGINE_BASE_URL?.trim();
   const defaut = "http://127.0.0.1:8787";
   if (!brut) return defaut;
-  return brut.replace(/\/+$/, "");
+  return normaliserUrlBasePourFetchLoopbackIpv4(brut.replace(/\/+$/, ""));
 }
 
 /** Encode le secret JWT pour les API `jose` (signature et vérification). */
@@ -78,6 +80,9 @@ export function loadGatewayEnv(): GatewayEnv {
   } else {
     serverServiceBaseUrl = URL_SERVEUR_JEUX_LOCAL_PAR_DEFAUT;
   }
+  if (typeof serverServiceBaseUrl === "string") {
+    serverServiceBaseUrl = normaliserUrlBasePourFetchLoopbackIpv4(serverServiceBaseUrl);
+  }
 
   const serviceWebBrut = process.env.WEB_SERVICE_BASE_URL?.trim();
   const serviceWebDesactive =
@@ -90,6 +95,9 @@ export function loadGatewayEnv(): GatewayEnv {
     webServiceBaseUrl = serviceWebBrut.replace(/\/+$/, "");
   } else {
     webServiceBaseUrl = URL_SERVICE_WEB_LOCAL_PAR_DEFAUT;
+  }
+  if (typeof webServiceBaseUrl === "string") {
+    webServiceBaseUrl = normaliserUrlBasePourFetchLoopbackIpv4(webServiceBaseUrl);
   }
 
   return {

@@ -21,6 +21,33 @@ function assemblerUrl(cheminRelatif: string): string {
   return `${base}${chemin}`;
 }
 
+/** Construit le message d’erreur affiché (inclut details.causeConnexion si la passerelle l’expose, ex. ECONNREFUSED). */
+function messageErreurPasserelleDepuisJson(
+  json: unknown,
+  statutHttp: number,
+): string {
+  if (typeof json !== "object" || json === null || !("error" in json)) {
+    return `Erreur HTTP ${String(statutHttp)}`;
+  }
+  const corps = (
+    json as {
+      error?: {
+        message?: string;
+        details?: { causeConnexion?: string };
+      };
+    }
+  ).error;
+  let message =
+    typeof corps?.message === "string"
+      ? corps.message
+      : `Erreur HTTP ${String(statutHttp)}`;
+  const cause = corps?.details?.causeConnexion;
+  if (typeof cause === "string" && cause.trim().length > 0) {
+    message = `${message} (${cause.trim()})`;
+  }
+  return message;
+}
+
 async function appelerJsonAuthentifie(
   chemin: string,
   init: RequestInit,
@@ -55,15 +82,7 @@ export async function listerInstancesServeursJeuxPasserelle(): Promise<
   });
   const json = (await reponse.json()) as unknown;
   if (!reponse.ok) {
-    const msg =
-      typeof json === "object" &&
-      json !== null &&
-      "error" in json &&
-      typeof (json as { error?: { message?: unknown } }).error?.message ===
-        "string"
-        ? (json as { error: { message: string } }).error.message
-        : `Erreur HTTP ${String(reponse.status)}`;
-    throw new Error(msg);
+    throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }
   if (
     typeof json !== "object" ||
@@ -86,15 +105,7 @@ export async function obtenirInstanceServeurJeuxPasserelle(
   );
   const json = (await reponse.json()) as unknown;
   if (!reponse.ok) {
-    const msg =
-      typeof json === "object" &&
-      json !== null &&
-      "error" in json &&
-      typeof (json as { error?: { message?: unknown } }).error?.message ===
-        "string"
-        ? (json as { error: { message: string } }).error.message
-        : `Erreur HTTP ${String(reponse.status)}`;
-    throw new Error(msg);
+    throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }
   return json as InstanceServeurJeuxPasserelle;
 }
@@ -111,7 +122,6 @@ export type CorpsCreationInstanceServeurJeux = {
   reseauPrimaireKidopanel?: boolean;
 };
 
-/** Demande la création d’une instance via le service jeu (variables d’environnement métier incluses). */
 /** Demande le démarrage du conteneur associé à une instance jeu. */
 export async function demarrerInstanceServeurJeuxPasserelle(
   idInstance: string,
@@ -122,14 +132,7 @@ export async function demarrerInstanceServeurJeuxPasserelle(
   );
   const json = (await reponse.json()) as unknown;
   if (!reponse.ok) {
-    const msg =
-      typeof json === "object" &&
-      json !== null &&
-      "error" in json &&
-      typeof (json as { error?: { message?: unknown } }).error?.message === "string"
-        ? (json as { error: { message: string } }).error.message
-        : `Erreur HTTP ${String(reponse.status)}`;
-    throw new Error(msg);
+    throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }
   return json as InstanceServeurJeuxPasserelle;
 }
@@ -144,14 +147,7 @@ export async function arreterInstanceServeurJeuxPasserelle(
   );
   const json = (await reponse.json()) as unknown;
   if (!reponse.ok) {
-    const msg =
-      typeof json === "object" &&
-      json !== null &&
-      "error" in json &&
-      typeof (json as { error?: { message?: unknown } }).error?.message === "string"
-        ? (json as { error: { message: string } }).error.message
-        : `Erreur HTTP ${String(reponse.status)}`;
-    throw new Error(msg);
+    throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }
   return json as InstanceServeurJeuxPasserelle;
 }
@@ -166,14 +162,7 @@ export async function redemarrerInstanceServeurJeuxPasserelle(
   );
   const json = (await reponse.json()) as unknown;
   if (!reponse.ok) {
-    const msg =
-      typeof json === "object" &&
-      json !== null &&
-      "error" in json &&
-      typeof (json as { error?: { message?: unknown } }).error?.message === "string"
-        ? (json as { error: { message: string } }).error.message
-        : `Erreur HTTP ${String(reponse.status)}`;
-    throw new Error(msg);
+    throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }
   return json as InstanceServeurJeuxPasserelle;
 }
@@ -185,24 +174,21 @@ export async function supprimerInstanceServeurJeuxPasserelle(idInstance: string)
     { method: "DELETE" },
   );
   if (!reponse.ok) {
-    let msg = `Erreur HTTP ${String(reponse.status)}`;
+    let corpsJson: unknown = null;
     try {
-      const json = (await reponse.json()) as unknown;
-      if (
-        typeof json === "object" &&
-        json !== null &&
-        "error" in json &&
-        typeof (json as { error?: { message?: unknown } }).error?.message === "string"
-      ) {
-        msg = (json as { error: { message: string } }).error.message;
-      }
+      corpsJson = await reponse.json();
     } catch {
-      /* conserve msg par défaut */
+      /* réponse vide ou non JSON */
     }
-    throw new Error(msg);
+    throw new Error(
+      corpsJson !== null
+        ? messageErreurPasserelleDepuisJson(corpsJson, reponse.status)
+        : `Erreur HTTP ${String(reponse.status)}`,
+    );
   }
 }
 
+/** Demande la création d’une instance jeu via le corps métier (POST /serveurs-jeux/instances). */
 export async function creerInstanceServeurJeuxPasserelle(
   corps: CorpsCreationInstanceServeurJeux,
 ): Promise<InstanceServeurJeuxPasserelle> {
@@ -213,15 +199,7 @@ export async function creerInstanceServeurJeuxPasserelle(
   });
   const json = (await reponse.json()) as unknown;
   if (!reponse.ok) {
-    const msg =
-      typeof json === "object" &&
-      json !== null &&
-      "error" in json &&
-      typeof (json as { error?: { message?: unknown } }).error?.message ===
-        "string"
-        ? (json as { error: { message: string } }).error.message
-        : `Erreur HTTP ${String(reponse.status)}`;
-    throw new Error(msg);
+    throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }
   return json as InstanceServeurJeuxPasserelle;
 }

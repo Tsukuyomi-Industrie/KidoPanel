@@ -123,12 +123,18 @@ export function monterRoutesServeursJeuSiConfigure(
         erreur,
         c.get("requestId"),
       );
+      const causeTechnique =
+        erreur instanceof Error ? erreur.message : String(erreur);
       return c.json(
         {
           error: {
             code: "SERVICE_INSTANCES_JEU_INJOIGNABLE",
             message:
               "Impossible de joindre le service instances jeu (server-service). Démarrez-le sur le port 8790 ou indiquez SERVER_SERVICE_BASE_URL sur la passerelle. Si le service tourne déjà, vérifiez le pare-feu et que l’URL pointe vers la bonne machine (éviter 127.0.0.1 depuis un conteneur sans accès à l’hôte).",
+            details: {
+              urlTentee: cible.toString(),
+              causeConnexion: causeTechnique,
+            },
           },
         },
         502,
