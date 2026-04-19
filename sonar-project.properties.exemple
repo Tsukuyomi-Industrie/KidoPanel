@@ -1,0 +1,6 @@
+sonar.projectKey=KidoPanel
+sonar.sources=.
+sonar.host.url=http://localhost:9000
+sonar.token=TON_TOKEN
+
+sonar.exclusions=**/node_modules/**,**/dist/**,**/.next/**,**/.cache/**,**/*.zip,**/*.iso
