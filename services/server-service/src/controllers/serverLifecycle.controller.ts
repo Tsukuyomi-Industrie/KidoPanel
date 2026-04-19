@@ -186,5 +186,22 @@ function repondreErreurMetierInstanceJeux(
       erreur.statutHttp as never,
     );
   }
-  throw erreur;
+  console.error(
+    JSON.stringify({
+      service: "server-service",
+      contexte: "erreur_route_instance_jeu_non_metier",
+      message: erreur instanceof Error ? erreur.message : String(erreur),
+      stack: erreur instanceof Error ? erreur.stack : undefined,
+    }),
+  );
+  return c.json(
+    {
+      error: {
+        code: "ERREUR_TECHNIQUE_INSTANCE_JEU",
+        message:
+          "Une erreur technique inattendue s’est produite lors du traitement de la demande.",
+      },
+    },
+    500,
+  );
 }

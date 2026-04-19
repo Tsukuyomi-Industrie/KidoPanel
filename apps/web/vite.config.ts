@@ -25,6 +25,9 @@ export default defineConfig(({ mode }) => {
     [CHEMIN_PROXY_PASSERELLE_DEV]: {
       target: ciblePasserelle,
       changeOrigin: true,
+      /** Création d’instance (ex. pull d’image Docker) : délai longue pour éviter la coupure prématurée du proxy. */
+      timeout: 1_800_000,
+      proxyTimeout: 1_800_000,
       rewrite: (chemin: string) => {
         const suite = chemin.slice(CHEMIN_PROXY_PASSERELLE_DEV.length) || "/";
         return suite.startsWith("/") ? suite : `/${suite}`;
