@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "turbo dev",
     "dev:server-service": "pnpm --filter server-service dev",
+    "dev:web-service": "pnpm --filter web-service dev",
     "build": "turbo build",
     "typecheck": "turbo typecheck",
     "lint": "turbo lint",
