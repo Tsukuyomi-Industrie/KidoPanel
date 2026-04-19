@@ -17,9 +17,9 @@ function formaterDelaiInstallation(secondes: number): string {
 }
 
 type PropsEtapeListeJeux = {
-  gabarits: readonly GabaritJeuCatalogueInstance[];
-  surChoisirJeu: (g: GabaritJeuCatalogueInstance) => void;
-  surChoisirPersonnalise: () => void;
+  readonly gabarits: readonly GabaritJeuCatalogueInstance[];
+  readonly surChoisirJeu: (g: GabaritJeuCatalogueInstance) => void;
+  readonly surChoisirPersonnalise: () => void;
 };
 
 /**

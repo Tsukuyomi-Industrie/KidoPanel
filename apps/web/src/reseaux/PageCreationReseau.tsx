@@ -33,8 +33,8 @@ export function PageCreationReseau() {
       });
       pousserToast("Réseau créé.", "succes");
       navigate("/reseaux");
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Création impossible.";
+    } catch (error_) {
+      const msg = error_ instanceof Error ? error_.message : "Création impossible.";
       setErreurDerniereTentative(msg);
       pousserToast(msg, "erreur");
     } finally {
@@ -52,7 +52,7 @@ export function PageCreationReseau() {
       <div className="kp-page-entete">
         <h1 className="kp-page-titre">Nouveau réseau</h1>
       </div>
-      <form className="kp-panel-corps form-auth-kido" onSubmit={(e) => void gererSoumission(e)}>
+      <form className="kp-panel-corps form-auth-kido" onSubmit={(e) => gererSoumission(e).catch(() => {})}>
         <label className="kp-section-label" htmlFor="nom">
           Nom du réseau
         </label>
@@ -81,7 +81,7 @@ export function PageCreationReseau() {
             type="checkbox"
             checked={sansInternet}
             onChange={(e) => setSansInternet(e.target.checked)}
-          />
+          />{" "}
           Isolé d’internet (aucune route vers l’extérieur)
         </label>
         <button type="submit" className="kp-btn kp-btn--primaire kp-marges-haut-sm" disabled={patient}>

@@ -1,6 +1,6 @@
 type PropsIcoUtilisateurs = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône groupe utilisateurs pour la section administration. */

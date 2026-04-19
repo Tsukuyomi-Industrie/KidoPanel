@@ -39,37 +39,39 @@ function libellePareFeu(diag: DiagnosticPareFeuPanel): string {
  *
  * `lieuAffichage` enrichit le titre pour préciser à quel endroit du panel l’aide s’affiche.
  */
-export function BandeauDiagnosticPareFeuHote(props: {
+export function BandeauDiagnosticPareFeuHote(props: Readonly<{
   /** Texte court (ex. « Réseaux privés ») prefixant le bandeau. Optionnel. */
   lieuAffichage?: string;
-}) {
+}>) {
   const [diag, setDiag] = useState<DiagnosticPareFeuPanel | null>(null);
   const [chargementTermine, setChargementTermine] = useState(false);
 
   useEffect(() => {
     let annule = false;
-    void (async () => {
+    (async () => {
       const r = await chargerDiagnosticPareFeuPasserelle();
       if (!annule) {
         setDiag(r);
         setChargementTermine(true);
       }
-    })();
+    })().catch(() => {});
     return () => {
       annule = true;
     };
   }, []);
 
-  if (!chargementTermine || diag === null) {
+  if (chargementTermine === false || diag === null) {
     return null;
   }
   const messageNonNominal = diag.messageDiagnostic.trim();
   if (messageNonNominal.length === 0) {
     return null;
   }
-  const titre = `${props.lieuAffichage !== undefined ? `${props.lieuAffichage} — ` : ""}${libellePareFeu(diag)}`;
+  const prefixeTitreAffichage =
+    props.lieuAffichage === undefined ? "" : `${props.lieuAffichage} — `;
+  const titre = `${prefixeTitreAffichage}${libellePareFeu(diag)}`;
   return (
-    <div className="kp-bandeau-info kp-marges-haut-sm" role="status" style={STYLE_BANDEAU}>
+    <output className="kp-bandeau-info kp-marges-haut-sm" style={STYLE_BANDEAU}>
       <strong>{titre}</strong>
       <span>{messageNonNominal}</span>
       <span className="kp-texte-muted">
@@ -79,6 +81,6 @@ export function BandeauDiagnosticPareFeuHote(props: {
         sans toucher au pare-feu, connectez-vous à <span className="kp-cellule-mono">127.0.0.1</span>{" "}
         ou à l’IP LAN de la machine depuis le même réseau.
       </span>
-    </div>
+    </output>
   );
 }

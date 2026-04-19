@@ -93,7 +93,10 @@ export class ProxyManagerService {
     }
     const liste = parse.containers ?? [];
     const avecNom = liste.filter((c) =>
-      c.names.some((n) => n.replace(/^\//, "") === nomAttendu || n.endsWith(`/${nomAttendu}`)),
+      c.names.some((n) => {
+        const sansSlashInitial = n.startsWith("/") ? n.slice(1) : n;
+        return sansSlashInitial === nomAttendu || n.endsWith(`/${nomAttendu}`);
+      }),
     );
     const actif = avecNom.find((c) => c.state === "running");
     const cible = actif ?? avecNom[0];
@@ -120,7 +123,7 @@ export class ProxyManagerService {
     const rid = identifiantRequeteHttp ?? randomUUID();
     const idProxy = await this.verifierProxyDisponible(rid);
     const chemin = obtenirCheminConfGenereeDansProxy();
-    const commande = `cat > '${chemin.replace(/'/g, "'\\''")}' && nginx -t && nginx -s reload`;
+    const commande = `cat > '${chemin.replaceAll("'", "'\\''")}' && nginx -t && nginx -s reload`;
     const reponseExec = await this.clientMoteur.posterExecDansConteneur(
       idProxy,
       {

@@ -12,5 +12,5 @@ export type DockerConnectionOptions = ConstructorParameters<typeof Docker>[0];
 export function createDockerClient(
   options?: DockerConnectionOptions,
 ): DockerClient {
-  return options !== undefined ? new Docker(options) : new Docker();
+  return options === undefined ? new Docker() : new Docker(options);
 }

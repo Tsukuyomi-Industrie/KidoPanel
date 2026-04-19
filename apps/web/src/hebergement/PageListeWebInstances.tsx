@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   listerWebInstancesPasserelle,
@@ -16,14 +16,14 @@ export function PageListeWebInstances() {
       const liste = await listerWebInstancesPasserelle();
       setInstances(liste);
       setErreur(null);
-    } catch (e) {
-      setErreur(e instanceof Error ? e.message : "Chargement impossible.");
+    } catch (error_) {
+      setErreur(error_ instanceof Error ? error_.message : "Chargement impossible.");
       setInstances([]);
     }
   }, []);
 
   useEffect(() => {
-    void charger();
+    charger();
   }, [charger]);
 
   const remplacerInstance = useCallback((maj: WebInstancePasserelle) => {
@@ -32,6 +32,26 @@ export function PageListeWebInstances() {
       return prev.map((x) => (x.id === maj.id ? maj : x));
     });
   }, []);
+
+  let corpsListeInstancesWeb: ReactNode;
+  if (instances === null) {
+    corpsListeInstancesWeb = <p className="kp-texte-muted">Chargement…</p>;
+  } else if (instances.length === 0) {
+    corpsListeInstancesWeb = <p className="kp-texte-muted">Aucune instance pour l’instant.</p>;
+  } else {
+    corpsListeInstancesWeb = (
+      <div className="kp-grille-cartes-serveurs kp-marges-haut-sm">
+        {instances.map((inst) => (
+          <CarteWebInstance
+            key={inst.id}
+            instance={inst}
+            surMiseAJourListe={charger}
+            surMiseAJourPartielle={remplacerInstance}
+          />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -56,22 +76,7 @@ export function PageListeWebInstances() {
           {erreur}
         </pre>
       ) : null}
-      {instances === null ? (
-        <p className="kp-texte-muted">Chargement…</p>
-      ) : instances.length === 0 ? (
-        <p className="kp-texte-muted">Aucune instance pour l’instant.</p>
-      ) : (
-        <div className="kp-grille-cartes-serveurs kp-marges-haut-sm">
-          {instances.map((inst) => (
-            <CarteWebInstance
-              key={inst.id}
-              instance={inst}
-              surMiseAJourListe={charger}
-              surMiseAJourPartielle={remplacerInstance}
-            />
-          ))}
-        </div>
-      )}
+      {corpsListeInstancesWeb}
     </>
   );
 }

@@ -1,6 +1,6 @@
 type PropsIcoReseau = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône lien réseau pour le rail de navigation. */

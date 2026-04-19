@@ -8,8 +8,8 @@ import {
 import { TexteAideChampCreationConteneurLab } from "./TexteAideChampCreationConteneurLab.js";
 
 type Props = {
-  etat: EtatCreationConteneurLab;
-  majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
+  readonly etat: EtatCreationConteneurLab;
+  readonly majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
 };
 
 const AIDE_JSON_CORPS_SUPPLEMENTAIRE =

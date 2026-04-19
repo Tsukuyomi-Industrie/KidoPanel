@@ -2,18 +2,18 @@ import { enregistrerJetonStockage } from "./passerelleClient.js";
 import { styleBlocLab } from "./stylesCommunsLab.js";
 
 type PropsSectionAuthLab = {
-  emailInscription: string;
-  setEmailInscription: (v: string) => void;
-  motDePasseInscription: string;
-  setMotDePasseInscription: (v: string) => void;
-  emailConnexion: string;
-  setEmailConnexion: (v: string) => void;
-  motDePasseConnexion: string;
-  setMotDePasseConnexion: (v: string) => void;
-  jeton: string;
-  setJeton: (v: string) => void;
-  surInscription: () => void;
-  surConnexion: () => void;
+  readonly emailInscription: string;
+  readonly setEmailInscription: (v: string) => void;
+  readonly motDePasseInscription: string;
+  readonly setMotDePasseInscription: (v: string) => void;
+  readonly emailConnexion: string;
+  readonly setEmailConnexion: (v: string) => void;
+  readonly motDePasseConnexion: string;
+  readonly setMotDePasseConnexion: (v: string) => void;
+  readonly jeton: string;
+  readonly setJeton: (v: string) => void;
+  readonly surInscription: () => void;
+  readonly surConnexion: () => void;
 };
 
 /** Formulaires d’inscription, de connexion et champ jeton JWT pour la passerelle. */
@@ -45,7 +45,7 @@ export function SectionAuthLab({
         <div>
           <h3 style={{ fontSize: "0.95rem" }}>Inscription</h3>
           <label style={{ display: "block", marginBottom: 6 }}>
-            E-mail
+            E-mail{" "}
             <input
               type="email"
               value={emailInscription}
@@ -55,7 +55,7 @@ export function SectionAuthLab({
             />
           </label>
           <label style={{ display: "block", marginBottom: 6 }}>
-            Mot de passe
+            Mot de passe{" "}
             <input
               type="password"
               value={motDePasseInscription}
@@ -64,14 +64,14 @@ export function SectionAuthLab({
               style={{ display: "block", width: "100%", marginTop: 4 }}
             />
           </label>
-          <button type="button" onClick={() => void surInscription()}>
+          <button type="button" onClick={() => surInscription()}>
             S’inscrire
           </button>
         </div>
         <div>
           <h3 style={{ fontSize: "0.95rem" }}>Connexion</h3>
           <label style={{ display: "block", marginBottom: 6 }}>
-            E-mail
+            E-mail{" "}
             <input
               type="email"
               value={emailConnexion}
@@ -81,7 +81,7 @@ export function SectionAuthLab({
             />
           </label>
           <label style={{ display: "block", marginBottom: 6 }}>
-            Mot de passe
+            Mot de passe{" "}
             <input
               type="password"
               value={motDePasseConnexion}
@@ -90,14 +90,14 @@ export function SectionAuthLab({
               style={{ display: "block", width: "100%", marginTop: 4 }}
             />
           </label>
-          <button type="button" onClick={() => void surConnexion()}>
+          <button type="button" onClick={() => surConnexion()}>
             Se connecter
           </button>
         </div>
       </div>
       <div style={{ marginTop: "0.75rem" }}>
         <label style={{ display: "block", maxWidth: 480 }}>
-          Jeton JWT (stocké en local, utilisé pour les requêtes)
+          Jeton JWT (stocké en local, utilisé pour les requêtes){" "}
           <input
             type="password"
             value={jeton}

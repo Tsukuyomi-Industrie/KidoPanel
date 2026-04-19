@@ -1,10 +1,10 @@
 import type { RefObject } from "react";
 
 type PropsDialogueSuppressionInstanceServeur = {
-  refDialogue: RefObject<HTMLDialogElement | null>;
-  patient: boolean;
-  surAnnuler: () => void;
-  surConfirmer: () => void;
+  readonly refDialogue: RefObject<HTMLDialogElement | null>;
+  readonly patient: boolean;
+  readonly surAnnuler: () => void;
+  readonly surConfirmer: () => void;
 };
 
 /**
@@ -41,7 +41,7 @@ export function DialogueSuppressionInstanceServeur({
           type="button"
           className="kp-btn kp-btn--danger"
           disabled={patient}
-          onClick={() => void surConfirmer()}
+          onClick={() => surConfirmer()}
         >
           Supprimer
         </button>

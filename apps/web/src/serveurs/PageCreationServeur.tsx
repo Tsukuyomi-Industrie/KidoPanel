@@ -68,12 +68,12 @@ export function PageCreationServeur() {
     if (secondesInstallationAffichees === null || secondesInstallationAffichees <= 0) {
       return;
     }
-    const id = window.setInterval(() => {
+    const id = globalThis.setInterval(() => {
       setSecondesInstallationAffichees((s) =>
         s !== null && s > 0 ? s - 1 : 0,
       );
     }, 1000);
-    return () => window.clearInterval(id);
+    return () => globalThis.clearInterval(id);
   }, [secondesInstallationAffichees]);
 
   const gabarits = useMemo(
@@ -169,7 +169,7 @@ export function PageCreationServeur() {
 
   const lancerInstallation = useCallback(() => {
     if (modePersonnalise) {
-      void (async () => {
+      (async () => {
         const estime = 120;
         setSecondesInstallationAffichees(estime);
         setEnCours(true);
@@ -190,20 +190,20 @@ export function PageCreationServeur() {
             optsReseau,
           );
           const cree = await creerInstanceServeurJeuxPasserelle(corps);
-          void navigate(`/serveurs/${encodeURIComponent(cree.id)}`, { replace: true });
-        } catch (e) {
-          setErreur(e instanceof Error ? e.message : "Création refusée.");
+          navigate(`/serveurs/${encodeURIComponent(cree.id)}`, { replace: true });
+        } catch (error_) {
+          setErreur(error_ instanceof Error ? error_.message : "Création refusée.");
         } finally {
           setEnCours(false);
           setSecondesInstallationAffichees(null);
         }
-      })();
+      })().catch(() => {});
       return;
     }
     if (gabaritChoisi === null) {
       return;
     }
-    void (async () => {
+    (async () => {
       const estime = gabaritChoisi.installTimeEstimateSeconds;
       setSecondesInstallationAffichees(estime);
       setEnCours(true);
@@ -226,14 +226,14 @@ export function PageCreationServeur() {
           optsReseau,
         );
         const cree = await creerInstanceServeurJeuxPasserelle(corps);
-        void navigate(`/serveurs/${encodeURIComponent(cree.id)}`, { replace: true });
-      } catch (e) {
-        setErreur(e instanceof Error ? e.message : "Création refusée.");
+        navigate(`/serveurs/${encodeURIComponent(cree.id)}`, { replace: true });
+      } catch (error_) {
+        setErreur(error_ instanceof Error ? error_.message : "Création refusée.");
       } finally {
         setEnCours(false);
         setSecondesInstallationAffichees(null);
       }
-    })();
+    })().catch(() => {});
   }, [
     cpuCores,
     diskGb,

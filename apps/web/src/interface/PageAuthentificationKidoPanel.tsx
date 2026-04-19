@@ -31,9 +31,9 @@ export function PageAuthentificationKidoPanel() {
     try {
       const { jeton } = await connecterViaPasserelle(email.trim(), motDePasse);
       enregistrerJetonApresAuthentificationPanel(jeton, seSouvenir);
-      void navigate("/", { replace: true });
-    } catch (e) {
-      setErreur(e instanceof Error ? e.message : "Connexion impossible.");
+      navigate("/", { replace: true });
+    } catch (error_) {
+      setErreur(error_ instanceof Error ? error_.message : "Connexion impossible.");
     } finally {
       setChargement(false);
     }
@@ -54,9 +54,9 @@ export function PageAuthentificationKidoPanel() {
     try {
       const { jeton } = await inscrireViaPasserelle(email.trim(), motDePasse);
       enregistrerJetonApresAuthentificationPanel(jeton, seSouvenir);
-      void navigate("/", { replace: true });
-    } catch (e) {
-      setErreur(e instanceof Error ? e.message : "Inscription impossible.");
+      navigate("/", { replace: true });
+    } catch (error_) {
+      setErreur(error_ instanceof Error ? error_.message : "Inscription impossible.");
     } finally {
       setChargement(false);
     }
@@ -105,7 +105,7 @@ export function PageAuthentificationKidoPanel() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              void soumettreConnexion();
+              soumettreConnexion().catch(() => {});
             }}
           >
             <div className="kp-champ">
@@ -143,7 +143,7 @@ export function PageAuthentificationKidoPanel() {
                 type="checkbox"
                 checked={seSouvenir}
                 onChange={(e) => setSeSouvenir(e.target.checked)}
-              />
+              />{" "}
               Se souvenir de cet appareil (jeton conservé en local ; à désactiver sur un poste partagé)
             </label>
             <button className="kp-btn kp-btn--primaire" style={{ width: "100%", marginTop: "0.5rem" }} type="submit" disabled={chargement}>
@@ -154,7 +154,7 @@ export function PageAuthentificationKidoPanel() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              void soumettreInscription();
+              soumettreInscription().catch(() => {});
             }}
           >
             <div className="kp-champ">
@@ -207,7 +207,7 @@ export function PageAuthentificationKidoPanel() {
                 type="checkbox"
                 checked={seSouvenir}
                 onChange={(e) => setSeSouvenir(e.target.checked)}
-              />
+              />{" "}
               Conserver la session sur cet appareil après fermeture du navigateur
             </label>
             <button className="kp-btn kp-btn--primaire" style={{ width: "100%", marginTop: "0.5rem" }} type="submit" disabled={chargement}>

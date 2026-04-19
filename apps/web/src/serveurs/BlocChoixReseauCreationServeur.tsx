@@ -6,13 +6,20 @@ import {
 import type { StrategieReseauCreationInstanceJeux } from "./traducteur-formulaire-vers-api.js";
 
 type PropsBlocChoixReseauCreationServeur = {
-  strategie: StrategieReseauCreationInstanceJeux;
-  surStrategie: (v: StrategieReseauCreationInstanceJeux) => void;
-  idReseauSelectionne: string;
-  surIdReseauSelectionne: (id: string) => void;
-  primaireKidopanel: boolean;
-  surPrimaireKidopanel: (v: boolean) => void;
+  readonly strategie: StrategieReseauCreationInstanceJeux;
+  readonly surStrategie: (v: StrategieReseauCreationInstanceJeux) => void;
+  readonly idReseauSelectionne: string;
+  readonly surIdReseauSelectionne: (id: string) => void;
+  readonly primaireKidopanel: boolean;
+  readonly surPrimaireKidopanel: (v: boolean) => void;
 };
+
+/** Placeholder du sélecteur de pont lorsque la liste panel est vide ou encore chargée. */
+function libellePlaceholderListePontServeur(chargement: boolean, nombrePonts: number): string {
+  if (chargement) return "Chargement…";
+  if (nombrePonts === 0) return "Aucun pont : créez-en un (menu réseaux)";
+  return "Choisir…";
+}
 
 /**
  * Choix du réseau Docker pour une instance jeu : pont partagé, pont personnel, ou les deux.
@@ -31,23 +38,23 @@ export function BlocChoixReseauCreationServeur({
 
   useEffect(() => {
     let annule = false;
-    void (async () => {
+    (async () => {
       try {
         const r = await listerReseauxInternesPasserelle();
         if (!annule) {
           setListe(r);
           setErreurListe(null);
         }
-      } catch (e) {
+      } catch (error_) {
         if (!annule) {
-          setErreurListe(e instanceof Error ? e.message : "Liste réseaux indisponible.");
+          setErreurListe(error_ instanceof Error ? error_.message : "Liste réseaux indisponible.");
         }
       } finally {
         if (!annule) {
           setChargement(false);
         }
       }
-    })();
+    })().catch(() => {});
     return () => {
       annule = true;
     };
@@ -117,7 +124,7 @@ export function BlocChoixReseauCreationServeur({
             }}
           >
             <option value="">
-              {chargement ? "Chargement…" : liste.length === 0 ? "Aucun pont : créez-en un (menu réseaux)" : "Choisir…"}
+              {libellePlaceholderListePontServeur(chargement, liste.length)}
             </option>
             {liste.map((r) => (
               <option key={r.id} value={r.id}>

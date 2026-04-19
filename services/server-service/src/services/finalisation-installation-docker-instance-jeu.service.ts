@@ -24,7 +24,7 @@ export async function finaliserInstallationConteneurDockerInstanceJeux(params: {
 }): Promise<GameServerInstance> {
   const { depot, depotPropriete, clientMoteur, ligne, gabarit, fusionEnv } =
     params;
-  const nomDocker = `kpjeu-${ligne.id.replace(/-/g, "").slice(0, 22)}`;
+  const nomDocker = `kpjeu-${ligne.id.replaceAll("-", "").slice(0, 22)}`;
   const corpsDocker = clientMoteur.construireCorpsCreationDocker({
     nomConteneur: nomDocker,
     gabarit,
@@ -87,9 +87,9 @@ export async function finaliserInstallationConteneurDockerInstanceJeux(params: {
       );
     }
     idDocker = parse.id;
-  } catch (erreur) {
-    if (erreur instanceof ErreurMetierInstanceJeux) {
-      throw erreur;
+  } catch (error_) {
+    if (error_ instanceof ErreurMetierInstanceJeux) {
+      throw error_;
     }
     await depot.mettreAJour(ligne.id, {
       status: "ERROR",

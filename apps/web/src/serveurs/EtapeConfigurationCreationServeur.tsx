@@ -34,26 +34,26 @@ const PRESETS_MEMOIRE_MO = [1024, 2048, 4096, 8192] as const;
 const PRESETS_CPU = [0.5, 1, 2, 4] as const;
 
 type PropsEtapeConfiguration = {
-  messageErreur: string | null;
-  modePersonnalise: boolean;
-  gabaritChoisi: GabaritJeuCatalogueInstance | null;
-  nomAffiche: string;
-  surNomAffiche: (v: string) => void;
-  memoireMb: number;
-  surMemoireMb: (v: number) => void;
-  cpuCores: number;
-  surCpuCores: (v: number) => void;
-  diskGb: number;
-  surDiskGb: (v: number) => void;
-  valeursInitialesFormulaire: Record<string, string>;
-  surContinuerAvecFormulaire: (valeurs: Record<string, string>) => void;
-  surContinuerPersonnalise: () => void;
-  strategieReseau: StrategieReseauCreationInstanceJeux;
-  surStrategieReseau: (v: StrategieReseauCreationInstanceJeux) => void;
-  idReseauInterneSelectionne: string;
-  surIdReseauInterneSelectionne: (id: string) => void;
-  primaireReseauKidopanel: boolean;
-  surPrimaireReseauKidopanel: (v: boolean) => void;
+  readonly messageErreur: string | null;
+  readonly modePersonnalise: boolean;
+  readonly gabaritChoisi: GabaritJeuCatalogueInstance | null;
+  readonly nomAffiche: string;
+  readonly surNomAffiche: (v: string) => void;
+  readonly memoireMb: number;
+  readonly surMemoireMb: (v: number) => void;
+  readonly cpuCores: number;
+  readonly surCpuCores: (v: number) => void;
+  readonly diskGb: number;
+  readonly surDiskGb: (v: number) => void;
+  readonly valeursInitialesFormulaire: Record<string, string>;
+  readonly surContinuerAvecFormulaire: (valeurs: Record<string, string>) => void;
+  readonly surContinuerPersonnalise: () => void;
+  readonly strategieReseau: StrategieReseauCreationInstanceJeux;
+  readonly surStrategieReseau: (v: StrategieReseauCreationInstanceJeux) => void;
+  readonly idReseauInterneSelectionne: string;
+  readonly surIdReseauInterneSelectionne: (id: string) => void;
+  readonly primaireReseauKidopanel: boolean;
+  readonly surPrimaireReseauKidopanel: (v: boolean) => void;
 };
 
 /**
@@ -91,7 +91,7 @@ export function EtapeConfigurationCreationServeur({
       <h1 className="kidopanel-titre-page" style={{ marginTop: "0.75rem" }}>
         Configuration
       </h1>
-      {gabaritChoisi !== null && !modePersonnalise ? (
+      {gabaritChoisi !== null && modePersonnalise === false ? (
         <p className="kidopanel-sous-titre-page">
           {gabaritChoisi.name} · installation typique{" "}
           {formaterDelaiInstallation(gabaritChoisi.installTimeEstimateSeconds)}
@@ -117,7 +117,7 @@ export function EtapeConfigurationCreationServeur({
         <span className="kp-champ__label">Mémoire vive</span>
         <p className="kp-champ__aide">
           Recommandé :{" "}
-          {gabaritChoisi !== null && !modePersonnalise
+          {gabaritChoisi !== null && modePersonnalise === false
             ? memoireVersGo(gabaritChoisi.defaultMemoryMb)
             : "2 Go"}
         </p>
@@ -191,7 +191,7 @@ export function EtapeConfigurationCreationServeur({
         surPrimaireKidopanel={surPrimaireReseauKidopanel}
       />
 
-      {gabaritChoisi !== null && !modePersonnalise ? (
+      {gabaritChoisi !== null && modePersonnalise === false ? (
         <FormulaireGabarit
           champs={gabaritChoisi.champsFormulaire}
           valeursInitiales={valeursInitialesFormulaire}

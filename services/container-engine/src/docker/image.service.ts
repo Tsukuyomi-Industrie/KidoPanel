@@ -68,21 +68,21 @@ export async function executerTirageImageDocker(
         },
       );
     });
-  } catch (e) {
-    const connexion = erreurConnexionDockerSiApplicable(e);
+  } catch (error_) {
+    const connexion = erreurConnexionDockerSiApplicable(error_);
     if (connexion) throw connexion;
-    const sc = statutHttpDocker(e);
+    const sc = statutHttpDocker(error_);
     if (sc === 404) {
       throw new ContainerEngineError(
         "IMAGE_NOT_FOUND",
         `Aucune image ne correspond à la référence « ${imageRef} » sur le registre.`,
-        { cause: e },
+        { cause: error_ },
       );
     }
     throw new ContainerEngineError(
       "IMAGE_PULL_FAILED",
       `Impossible de récupérer l'image ${imageRef}`,
-      { cause: e },
+      { cause: error_ },
     );
   }
 }

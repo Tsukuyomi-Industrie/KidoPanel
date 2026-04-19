@@ -8,11 +8,11 @@ import { SparklineActivite } from "./SparklineActivite.js";
 import { statutBadgeDepuisChaineApi } from "./statutBadgeInstanceJeux.js";
 
 type PropsTableauBordPresentationKidoPanel = {
-  donnees: IndicateursTableauPasserelle | null;
-  instancesJeux: InstanceServeurJeuxPasserelle[];
-  chargement: boolean;
-  erreur: string | null;
-  surRecharger: () => void;
+  readonly donnees: IndicateursTableauPasserelle | null;
+  readonly instancesJeux: InstanceServeurJeuxPasserelle[];
+  readonly chargement: boolean;
+  readonly erreur: string | null;
+  readonly surRecharger: () => void;
 };
 
 function serieNormaliseeInstancesActives(
@@ -23,6 +23,58 @@ function serieNormaliseeInstancesActives(
   const ratio = total === 0 ? 0 : running / total;
   return Array.from({ length: 14 }, (_, i) =>
     Math.min(1, Math.max(0.08, ratio + Math.sin(i * 0.55) * 0.04)),
+  );
+}
+
+type PropsGrilleMetriquesResumeTableau = {
+  readonly donnees: IndicateursTableauPasserelle | null;
+  readonly chargement: boolean;
+  readonly instancesActives: number;
+  readonly nombreInstancesListe: number;
+  readonly libelleLatencePostgresTableau: string;
+};
+
+/** Cartes métriques du bandeau supérieur (conteneurs, instances jeu, latence PostgreSQL). */
+function GrilleMetriquesResumeTableau({
+  donnees,
+  chargement,
+  instancesActives,
+  nombreInstancesListe,
+  libelleLatencePostgresTableau,
+}: PropsGrilleMetriquesResumeTableau) {
+  return (
+    <div className="kp-metrique-grille" aria-busy={chargement}>
+      <article className="kp-metrique-carte kp-metrique-carte--cyan">
+        <IcoDocker className="kp-metrique-carte__ico-bg" size={52} />
+        <span className="kp-metrique-carte__label">Conteneurs visibles</span>
+        <p className="kp-metrique-carte__valeur">
+          {donnees !== null && chargement === false ? String(donnees.conteneurs.total) : "—"}
+        </p>
+        <span className="kp-metrique-carte__detail">Périmètre passerelle</span>
+      </article>
+      <article className="kp-metrique-carte kp-metrique-carte--green">
+        <span className="kp-metrique-carte__label">Conteneurs en ligne</span>
+        <p className="kp-metrique-carte__valeur">
+          {donnees !== null && chargement === false ? String(donnees.conteneurs.enLigne) : "—"}
+        </p>
+        <span className="kp-metrique-carte__detail">
+          Hors ligne :{" "}
+          {donnees !== null && chargement === false ? String(donnees.conteneurs.horsLigne) : "—"}
+        </span>
+      </article>
+      <article className="kp-metrique-carte kp-metrique-carte--purple">
+        <span className="kp-metrique-carte__label">Instances jeu actives</span>
+        <p className="kp-metrique-carte__valeur">{String(instancesActives)}</p>
+        <span className="kp-metrique-carte__detail">Sur {String(nombreInstancesListe)} instance(s) listée(s)</span>
+      </article>
+      <article className="kp-metrique-carte kp-metrique-carte--amber">
+        <span className="kp-metrique-carte__label">Latence PostgreSQL</span>
+        <p className="kp-metrique-carte__valeur">{libelleLatencePostgresTableau}</p>
+        <span className="kp-metrique-carte__detail">
+          {donnees?.postgresql.joignable === true ? "Sonde passerelle" : "Sonde injoignable"}
+        </span>
+      </article>
+    </div>
   );
 }
 
@@ -42,6 +94,24 @@ export function TableauBordPresentationKidoPanel({
   const recentes = instancesJeux.slice(0, 5);
   const serieSparkline = serieNormaliseeInstancesActives(instancesJeux);
 
+  let libelleLatencePostgresTableau = "—";
+  if (donnees !== null && chargement === false) {
+    libelleLatencePostgresTableau =
+      donnees.postgresql.latenceMs !== undefined
+        ? `${String(donnees.postgresql.latenceMs)} ms`
+        : "N/D";
+  }
+
+  let statutCourtPostgreSQL = "…";
+  if (donnees !== null && chargement === false) {
+    statutCourtPostgreSQL = donnees.postgresql.joignable ? "Joignable" : "Injoignable";
+  }
+
+  let statutCourtMoteurDocker = "…";
+  if (donnees !== null && chargement === false) {
+    statutCourtMoteurDocker = donnees.moteurDocker.joignable ? "Joignable" : "Injoignable";
+  }
+
   return (
     <div className="kp-dash-travail">
       <div className="kp-page-entete">
@@ -50,7 +120,7 @@ export function TableauBordPresentationKidoPanel({
           <p className="kp-page-sous-titre">Vue synthétique de votre périmètre et des services.</p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <button type="button" className="kp-btn kp-btn--secondaire kp-btn--sm" onClick={() => void surRecharger()}>
+          <button type="button" className="kp-btn kp-btn--secondaire kp-btn--sm" onClick={() => surRecharger()}>
             Actualiser
           </button>
           <Link to="/coeur-docker" className="kp-btn kp-btn--secondaire kp-btn--sm">
@@ -64,44 +134,13 @@ export function TableauBordPresentationKidoPanel({
 
       {erreur !== null ? <div className="bandeau-erreur-auth kp-dash-erreur">{erreur}</div> : null}
 
-      <div className="kp-metrique-grille" aria-busy={chargement}>
-        <article className="kp-metrique-carte kp-metrique-carte--cyan">
-          <IcoDocker className="kp-metrique-carte__ico-bg" size={52} />
-          <span className="kp-metrique-carte__label">Conteneurs visibles</span>
-          <p className="kp-metrique-carte__valeur">
-            {chargement || donnees === null ? "—" : String(donnees.conteneurs.total)}
-          </p>
-          <span className="kp-metrique-carte__detail">Périmètre passerelle</span>
-        </article>
-        <article className="kp-metrique-carte kp-metrique-carte--green">
-          <span className="kp-metrique-carte__label">Conteneurs en ligne</span>
-          <p className="kp-metrique-carte__valeur">
-            {chargement || donnees === null ? "—" : String(donnees.conteneurs.enLigne)}
-          </p>
-          <span className="kp-metrique-carte__detail">
-            Hors ligne :{" "}
-            {chargement || donnees === null ? "—" : String(donnees.conteneurs.horsLigne)}
-          </span>
-        </article>
-        <article className="kp-metrique-carte kp-metrique-carte--purple">
-          <span className="kp-metrique-carte__label">Instances jeu actives</span>
-          <p className="kp-metrique-carte__valeur">{String(instancesActives)}</p>
-          <span className="kp-metrique-carte__detail">Sur {String(instancesJeux.length)} instance(s) listée(s)</span>
-        </article>
-        <article className="kp-metrique-carte kp-metrique-carte--amber">
-          <span className="kp-metrique-carte__label">Latence PostgreSQL</span>
-          <p className="kp-metrique-carte__valeur">
-            {chargement || donnees === null
-              ? "—"
-              : donnees.postgresql.latenceMs !== undefined
-                ? `${String(donnees.postgresql.latenceMs)} ms`
-                : "N/D"}
-          </p>
-          <span className="kp-metrique-carte__detail">
-            {donnees?.postgresql.joignable === false ? "Sonde injoignable" : "Sonde passerelle"}
-          </span>
-        </article>
-      </div>
+      <GrilleMetriquesResumeTableau
+        donnees={donnees}
+        chargement={chargement}
+        instancesActives={instancesActives}
+        nombreInstancesListe={instancesJeux.length}
+        libelleLatencePostgresTableau={libelleLatencePostgresTableau}
+      />
 
       <section className="kp-panel-section">
         <div className="kp-dash-vedette__corps">
@@ -137,13 +176,7 @@ export function TableauBordPresentationKidoPanel({
             </tr>
           </thead>
           <tbody>
-            {recentes.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="kp-texte-muted" style={{ padding: "1.25rem" }}>
-                  Aucune instance jeu chargée (service désactivé ou liste vide).
-                </td>
-              </tr>
-            ) : (
+            {recentes.length > 0 ? (
               recentes.map((row) => (
                 <tr key={row.id}>
                   <td>
@@ -160,6 +193,12 @@ export function TableauBordPresentationKidoPanel({
                   </td>
                 </tr>
               ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="kp-texte-muted" style={{ padding: "1.25rem" }}>
+                  Aucune instance jeu chargée (service désactivé ou liste vide).
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -173,34 +212,26 @@ export function TableauBordPresentationKidoPanel({
               PostgreSQL
             </p>
             <p style={{ margin: "0.35rem 0 0", fontWeight: 600, color: "var(--kp-text-primary)" }}>
-              {chargement || donnees === null
-                ? "…"
-                : donnees.postgresql.joignable
-                  ? "Joignable"
-                  : "Injoignable"}
+              {statutCourtPostgreSQL}
             </p>
-            {donnees?.postgresql.message !== undefined ? (
+            {donnees?.postgresql.message === undefined ? null : (
               <p className="kp-texte-muted" style={{ fontSize: "0.78rem", marginTop: "0.35rem" }}>
                 {donnees.postgresql.message}
               </p>
-            ) : null}
+            )}
           </div>
           <div>
             <p className="kp-texte-muted" style={{ fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Moteur Docker
             </p>
             <p style={{ margin: "0.35rem 0 0", fontWeight: 600, color: "var(--kp-text-primary)" }}>
-              {chargement || donnees === null
-                ? "…"
-                : donnees.moteurDocker.joignable
-                  ? "Joignable"
-                  : "Injoignable"}
+              {statutCourtMoteurDocker}
             </p>
-            {donnees?.moteurDocker.message !== undefined ? (
+            {donnees?.moteurDocker.message === undefined ? null : (
               <p className="kp-texte-muted" style={{ fontSize: "0.78rem", marginTop: "0.35rem" }}>
                 {donnees.moteurDocker.message}
               </p>
-            ) : null}
+            )}
           </div>
         </div>
         <p className="kp-texte-muted" style={{ fontSize: "0.78rem", marginTop: "1rem" }}>

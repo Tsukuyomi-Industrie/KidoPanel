@@ -19,10 +19,10 @@ import { construireAdresseConnexionJeux } from "../construire-adresse-connexion-
 import { useHotePublicConnexionJeux } from "../../interface/FournisseurHotePublicConnexionJeux.js";
 
 type PropsCarteServeur = {
-  instance: InstanceServeurJeuxPasserelle;
-  surMiseAJourListe: () => void;
+  readonly instance: InstanceServeurJeuxPasserelle;
+  readonly surMiseAJourListe: () => void;
   /** Remplace une ligne sans recharger toute la liste après une action de pilotage. */
-  surMiseAJourPartielle?: (instance: InstanceServeurJeuxPasserelle) => void;
+  readonly surMiseAJourPartielle?: (instance: InstanceServeurJeuxPasserelle) => void;
 };
 
 function classeCarteServeurPourStatut(statut: ReturnType<typeof statutBadgeDepuisChaineApi>): string {
@@ -53,14 +53,14 @@ export function CarteServeur({
     setPatient(true);
     try {
       const maj = await demarrerInstanceServeurJeuxPasserelle(instance.id);
-      if (surMiseAJourPartielle !== undefined) {
-        surMiseAJourPartielle(maj);
-      } else {
+      if (surMiseAJourPartielle === undefined) {
         surMiseAJourListe();
+      } else {
+        surMiseAJourPartielle(maj);
       }
       pousserToast("Ordre de démarrage envoyé.", "succes");
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Démarrage impossible.", "erreur");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Démarrage impossible.", "erreur");
     } finally {
       setPatient(false);
     }
@@ -79,8 +79,8 @@ export function CarteServeur({
       await supprimerInstanceServeur(instance.id);
       pousserToast("Instance supprimée.", "succes");
       surMiseAJourListe();
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Suppression impossible.", "erreur");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Suppression impossible.", "erreur");
     } finally {
       setPatient(false);
     }
@@ -92,14 +92,14 @@ export function CarteServeur({
     setPatient(true);
     try {
       const maj = await arreterInstanceServeurJeuxPasserelle(instance.id);
-      if (surMiseAJourPartielle !== undefined) {
-        surMiseAJourPartielle(maj);
-      } else {
+      if (surMiseAJourPartielle === undefined) {
         surMiseAJourListe();
+      } else {
+        surMiseAJourPartielle(maj);
       }
       pousserToast("Ordre d’arrêt envoyé.", "succes");
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Arrêt impossible.", "erreur");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Arrêt impossible.", "erreur");
     } finally {
       setPatient(false);
     }

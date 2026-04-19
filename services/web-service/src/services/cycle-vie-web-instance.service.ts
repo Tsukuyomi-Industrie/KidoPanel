@@ -142,7 +142,7 @@ export class CycleVieWebInstance {
         : {}),
     });
 
-    const nomDocker = `kpweb-${ligne.id.replace(/-/g, "").slice(0, 22)}`;
+    const nomDocker = `kpweb-${ligne.id.replaceAll("-", "").slice(0, 22)}`;
     const corpsDocker = construireCorpsCreationMoteurPourInstanceWeb({
       nomConteneurDocker: nomDocker,
       memoryMb: params.memoryMb,
@@ -164,26 +164,31 @@ export class CycleVieWebInstance {
 
     const domaineBrut = params.domaineInitial?.trim();
     let instanceFinale = instance;
-    if (domaineBrut !== undefined && domaineBrut.length > 0 && ipReseauInterne !== undefined) {
-      await this.depotDomaine.creer({
-        id: randomUUID(),
-        userId: params.utilisateurIdProprietaire,
-        webInstanceId: instance.id,
-        domaine: domaineBrut.toLowerCase(),
-        cibleInterne: ipReseauInterne,
-        portCible: portInterneDefautPourStack(params.techStack),
-      });
-      instanceFinale = await this.depot.mettreAJour(instance.id, {
-        domain: domaineBrut.toLowerCase(),
-      });
-      try {
-        await this.proxyManager.rechargerConfigurationProxy(
-          undefined,
-          params.identifiantRequeteHttp,
-        );
-      } catch {
-        /* La configuration proxy reste cohérente en base même si le conteneur proxy est absent. */
-      }
+    if (
+      domaineBrut === undefined ||
+      domaineBrut.length === 0 ||
+      ipReseauInterne === undefined
+    ) {
+      return instanceFinale;
+    }
+    await this.depotDomaine.creer({
+      id: randomUUID(),
+      userId: params.utilisateurIdProprietaire,
+      webInstanceId: instance.id,
+      domaine: domaineBrut.toLowerCase(),
+      cibleInterne: ipReseauInterne,
+      portCible: portInterneDefautPourStack(params.techStack),
+    });
+    instanceFinale = await this.depot.mettreAJour(instance.id, {
+      domain: domaineBrut.toLowerCase(),
+    });
+    try {
+      await this.proxyManager.rechargerConfigurationProxy(
+        undefined,
+        params.identifiantRequeteHttp,
+      );
+    } catch {
+      /* La configuration proxy reste cohérente en base même si le conteneur proxy est absent. */
     }
 
     return instanceFinale;

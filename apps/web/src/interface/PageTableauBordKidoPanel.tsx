@@ -28,16 +28,16 @@ export function PageTableauBordKidoPanel() {
       ]);
       setDonnees(indicateurs);
       setInstancesJeux(listeJeux);
-    } catch (e) {
+    } catch (error_) {
       setDonnees(null);
-      setErreur(e instanceof Error ? e.message : "Chargement des indicateurs impossible.");
+      setErreur(error_ instanceof Error ? error_.message : "Chargement des indicateurs impossible.");
     } finally {
       setChargement(false);
     }
   }, []);
 
   useEffect(() => {
-    void charger();
+    charger();
   }, [charger]);
 
   return (

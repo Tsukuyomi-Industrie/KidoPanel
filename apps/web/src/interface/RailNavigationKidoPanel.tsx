@@ -15,14 +15,14 @@ import { IcoContainer } from "./icones/IcoContainer.js";
 import { IcoProxy } from "./icones/IcoProxy.js";
 
 type PropsRailNavigationKidoPanel = {
-  surDeconnexion: () => void;
-  roleSession?: RoleUtilisateurJetonClient | null;
-  emailAffiche: string;
+  readonly surDeconnexion: () => void;
+  readonly roleSession?: RoleUtilisateurJetonClient | null;
+  readonly emailAffiche: string;
 };
 
 function initialesDepuisCourriel(email: string): string {
   const partie = email.includes("@") ? email.split("@")[0] : email;
-  const nettoye = partie.replace(/[^a-zA-ZÀ-ÿ0-9]/g, "");
+  const nettoye = partie.replaceAll(/[^a-zA-ZÀ-ÿ0-9]/g, "");
   const deux = nettoye.slice(0, 2).toUpperCase();
   return deux.length > 0 ? deux : "?";
 }
@@ -48,7 +48,7 @@ export function RailNavigationKidoPanel({
 
   useEffect(() => {
     let vivant = true;
-    void listerInstancesServeursJeuxPasserelle()
+    listerInstancesServeursJeuxPasserelle()
       .then((liste) => {
         if (vivant) {
           setNombreServeursJeux(liste.length);

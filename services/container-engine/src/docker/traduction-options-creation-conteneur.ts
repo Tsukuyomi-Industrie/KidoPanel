@@ -258,7 +258,7 @@ export function traduireOptionsCreationConteneur(
     Labels: spec.labels,
     ExposedPorts: exposerPortsDepuisListe(spec.exposedPorts),
     HostConfig: hostConfigVersDocker(spec.hostConfig),
-    ...(reseau !== undefined ? { NetworkingConfig: reseau } : {}),
+    ...(reseau === undefined ? {} : { NetworkingConfig: reseau }),
     Healthcheck: healthcheckVersDocker(spec.healthcheck),
     OpenStdin: spec.openStdin,
     Tty: spec.tty,

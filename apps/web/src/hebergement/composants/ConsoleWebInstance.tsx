@@ -4,8 +4,8 @@ import { lireJetonStockage } from "../../lab/passerelleClient.js";
 import { useConsoleWebInstance } from "../hooks/useConsoleWebInstance.js";
 
 type PropsConsoleWebInstance = {
-  idInstanceWeb: string;
-  actif: boolean;
+  readonly idInstanceWeb: string;
+  readonly actif: boolean;
 };
 
 /**

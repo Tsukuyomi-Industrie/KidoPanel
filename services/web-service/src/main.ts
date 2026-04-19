@@ -12,13 +12,13 @@ const adresseEcoute = obtenirAdresseEcouteWebService();
 let application;
 try {
   application = creerApplicationWeb();
-} catch (erreur) {
+} catch (error_) {
   console.error(
     JSON.stringify({
       niveau: "error",
       message: "demarrage_refuse_configuration",
       detail:
-        erreur instanceof Error ? erreur.message : "erreur_initialisation_inconnue",
+        error_ instanceof Error ? error_.message : "erreur_initialisation_inconnue",
     }),
   );
   process.exitCode = 1;

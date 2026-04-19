@@ -3,7 +3,7 @@ import type { RoleUtilisateurJetonClient } from "../passerelle/lectureRoleJetonC
 import { segmentsFilArianeDepuisChemin } from "./segmentsFilArianeRoute.js";
 
 type PropsEnteteSessionKidoPanel = {
-  roleSession?: RoleUtilisateurJetonClient | null;
+  readonly roleSession?: RoleUtilisateurJetonClient | null;
 };
 
 /**

@@ -135,14 +135,14 @@ export async function executerCreationConteneurDocker(
           },
         });
       }
-    } catch (errInspection) {
+    } catch (error_) {
       journaliserMoteur({
         niveau: "warn",
         message: "creation_conteneur_inspection_post_creation_echouee",
         requestId,
         metadata: {
           idConteneur: container.id,
-          codeErreur: String(errInspection),
+          codeErreur: String(error_),
         },
       });
     }
@@ -163,7 +163,7 @@ export async function executerCreationConteneurDocker(
       ...(ipReseauInterne !== undefined ? { ipReseauInterne } : {}),
       ...(ipReseauAdjoint !== undefined ? { ipReseauAdjoint } : {}),
     };
-    void deps.journauxFichierConteneur
+    deps.journauxFichierConteneur
       ?.notifierCreation(resultat.id, {
         referenceDockerEffective: resolu.referenceDocker,
         idCatalogueImage:
@@ -174,7 +174,7 @@ export async function executerCreationConteneurDocker(
       })
       .catch(() => {});
     return resultat;
-  } catch (e) {
-    wrapDockerError(e);
+  } catch (error_) {
+    wrapDockerError(error_);
   }
 }

@@ -31,8 +31,8 @@ if (!Number.isFinite(port) || port < 1 || port > 65_535) {
   try {
     const engine = new ContainerEngine();
     app = createEngineHttpApp(engine);
-  } catch (erreur) {
-    journaliserErreurMoteur("demarrage_refuse_initialisation", erreur);
+  } catch (error_) {
+    journaliserErreurMoteur("demarrage_refuse_initialisation", error_);
     process.exitCode = 1;
   }
 

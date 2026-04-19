@@ -7,8 +7,8 @@ import {
 } from "./etat-formulaire-expert-conteneur.js";
 
 type PropsSections = {
-  etat: EtatFormulaireExpertConteneur;
-  surChangement: (suivant: EtatFormulaireExpertConteneur) => void;
+  readonly etat: EtatFormulaireExpertConteneur;
+  readonly surChangement: (suivant: EtatFormulaireExpertConteneur) => void;
 };
 
 /**
@@ -72,7 +72,7 @@ export function FormulaireExpertSectionsDynamiquesConteneur({
                       ),
                     })
                   }
-                />
+                />{" "}
                 TCP
               </label>
               <label className="kp-inline-radio">
@@ -88,7 +88,7 @@ export function FormulaireExpertSectionsDynamiquesConteneur({
                       ),
                     })
                   }
-                />
+                />{" "}
                 UDP
               </label>
               <button

@@ -3,12 +3,12 @@ import { useId, useState, type ReactNode } from "react";
 export type VarianteSegmentCreationKidoPanel = "neutre" | "accent";
 
 type Props = {
-  titre: string;
-  sousTitre?: string;
+  readonly titre: string;
+  readonly sousTitre?: string;
   /** Premier rendu ouvert : utile pour les blocs que la majorité des opérateurs déploie souvent. */
-  defautOuvert?: boolean;
-  variante?: VarianteSegmentCreationKidoPanel;
-  children: ReactNode;
+  readonly defautOuvert?: boolean;
+  readonly variante?: VarianteSegmentCreationKidoPanel;
+  readonly children: ReactNode;
 };
 
 /**

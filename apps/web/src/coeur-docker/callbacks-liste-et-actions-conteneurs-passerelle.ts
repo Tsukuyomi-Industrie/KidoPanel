@@ -55,10 +55,10 @@ export function creerCallbacksListeEtActionsConteneurs({
       if (liste !== null) {
         setConteneurs(liste);
       }
-    } catch (e) {
+    } catch (error_) {
       setMessageErreur(
         formaterErreurPourAffichagePanel(
-          e,
+          error_,
           composerUrlPasserelle("/containers"),
           "liste des instances",
         ),
@@ -101,10 +101,10 @@ export function creerCallbacksListeEtActionsConteneurs({
         return;
       }
       await rafraichirListe();
-    } catch (e) {
+    } catch (error_) {
       setMessageErreur(
         formaterErreurPourAffichagePanel(
-          e,
+          error_,
           composerUrlPasserelle(
             `/containers/${encodeURIComponent(id)}${cheminSuffixe}`,
           ),

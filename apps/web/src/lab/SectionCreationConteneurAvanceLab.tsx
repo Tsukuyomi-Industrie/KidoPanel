@@ -11,20 +11,20 @@ import { styleBlocLab } from "./stylesCommunsLab.js";
 import { TexteAideChampCreationConteneurLab } from "./TexteAideChampCreationConteneurLab.js";
 
 type Props = {
-  etat: EtatCreationConteneurLab;
-  majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
-  surCreer: () => void;
-  surRemplirFormulaire: (nouvelEtat: EtatCreationConteneurLab) => void;
-  surErreurConfiguration: (message: string) => void;
+  readonly etat: EtatCreationConteneurLab;
+  readonly majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
+  readonly surCreer: () => void;
+  readonly surRemplirFormulaire: (nouvelEtat: EtatCreationConteneurLab) => void;
+  readonly surErreurConfiguration: (message: string) => void;
   /** Jeton JWT pour charger le catalogue `GET /images` côté formulaire. */
-  jetonSession: string;
+  readonly jetonSession: string;
   /**
    * Masque le paragraphe technique long : utile sur la page « nouveau conteneur » du panel,
    * où l’en-tête de page porte déjà le contexte.
    */
-  masquerParagrapheDocumentationApi?: boolean;
+  readonly masquerParagrapheDocumentationApi?: boolean;
   /** Libellés « instance » au lieu de « conteneur » pour le panel PaaS (formulaire expert). */
-  terminologieInstance?: boolean;
+  readonly terminologieInstance?: boolean;
 };
 
 /** Formulaire avancé de création (image catalogue, commande, réseau, ressources, JSON santé / réseau / host). */
@@ -39,12 +39,14 @@ export function SectionCreationConteneurAvanceLab({
   terminologieInstance = false,
 }: Props) {
   const modePanel = masquerParagrapheDocumentationApi;
-  const titrePrincipal =
-    modePanel && terminologieInstance
-      ? "Mode expert — création d’instance"
-      : modePanel
-        ? "Atelier de création"
-        : "Créer un conteneur (aide par champ)";
+  let titrePrincipal: string;
+  if (modePanel && terminologieInstance) {
+    titrePrincipal = "Mode expert — création d’instance";
+  } else if (modePanel) {
+    titrePrincipal = "Atelier de création";
+  } else {
+    titrePrincipal = "Créer un conteneur (aide par champ)";
+  }
   const libelleBoutonCreer =
     modePanel && terminologieInstance ? "Créer l’instance" : "Créer le conteneur";
 
@@ -97,12 +99,12 @@ export function SectionCreationConteneurAvanceLab({
 
       {modePanel ? (
         <div className="kp-creation-actions">
-          <button type="button" className="bouton-principal-kido" onClick={() => void surCreer()}>
+          <button type="button" className="bouton-principal-kido" onClick={() => surCreer()}>
             {libelleBoutonCreer}
           </button>
         </div>
       ) : (
-        <button type="button" onClick={() => void surCreer()}>
+        <button type="button" onClick={() => surCreer()}>
           {libelleBoutonCreer}
         </button>
       )}

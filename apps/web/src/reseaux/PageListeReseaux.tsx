@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   listerReseauxInternesPasserelle,
@@ -28,6 +28,20 @@ function compterParReseau(
     }
   }
   return n;
+}
+
+/** Texte d’avertissement lorsque le comptage d’instances par pont ne peut pas joindre les services métier. */
+function libelleAvertissementComptageReseaux(echecJeu: boolean, echecWeb: boolean): string | null {
+  if (echecJeu && echecWeb) {
+    return "Comptage des instances par pont indisponible (services jeu et web injoignables). La liste des ponts ci-dessous reste correcte ; la création et la suppression de réseaux fonctionnent normalement.";
+  }
+  if (echecWeb) {
+    return "Comptage « sites par pont » indisponible : service d’hébergement web (`web-service`, port 8791) non démarré. Sans hébergement web, ignorez cet avertissement — la liste des ponts et la création / suppression de réseaux fonctionnent normalement.";
+  }
+  if (echecJeu) {
+    return "Comptage « serveurs jeu par pont » indisponible : service jeu (`server-service`, port 8790) non démarré. La liste des ponts ci-dessous reste correcte ; la création et la suppression de réseaux fonctionnent normalement.";
+  }
+  return null;
 }
 
 /** Liste des ponts réseau bridge privés du compte. */
@@ -66,19 +80,11 @@ export function PageListeReseaux() {
     setWeb(resWeb.status === "fulfilled" ? resWeb.value : []);
     const echecJeu = resJeu.status === "rejected";
     const echecWeb = resWeb.status === "rejected";
-    setAvertissementComptage(
-      echecJeu && echecWeb
-        ? "Comptage des instances par pont indisponible (services jeu et web injoignables). La liste des ponts ci-dessous reste correcte ; la création et la suppression de réseaux fonctionnent normalement."
-        : echecWeb
-          ? "Comptage « sites par pont » indisponible : service d’hébergement web (`web-service`, port 8791) non démarré. Sans hébergement web, ignorez cet avertissement — la liste des ponts et la création / suppression de réseaux fonctionnent normalement."
-          : echecJeu
-            ? "Comptage « serveurs jeu par pont » indisponible : service jeu (`server-service`, port 8790) non démarré. La liste des ponts ci-dessous reste correcte ; la création et la suppression de réseaux fonctionnent normalement."
-            : null,
-    );
+    setAvertissementComptage(libelleAvertissementComptageReseaux(echecJeu, echecWeb));
   }, []);
 
   useEffect(() => {
-    void charger();
+    charger();
   }, [charger]);
 
   const supprimer = async (id: string) => {
@@ -86,8 +92,8 @@ export function PageListeReseaux() {
       await supprimerReseauInternePasserelle(id);
       await charger();
       pousserToast("Réseau supprimé.", "succes");
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Suppression refusée.", "erreur");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Suppression refusée.", "erreur");
     }
   };
 
@@ -101,6 +107,34 @@ export function PageListeReseaux() {
     }
     return m;
   }, [jeu, reseaux, web]);
+
+  let corpsListeReseaux: ReactNode;
+  if (reseaux === null) {
+    corpsListeReseaux = <p className="kp-texte-muted kp-marges-haut-sm">Chargement…</p>;
+  } else if (reseaux.length > 0) {
+    corpsListeReseaux = (
+      <div className="kp-grille-cartes-serveurs kp-marges-haut-sm">
+        {reseaux.map((r) => {
+          const comptagePourReseau = comptages.get(r.id) ?? 0;
+          return (
+            <CarteReseau
+              key={r.id}
+              reseau={r}
+              nombreInstancesLiees={comptagePourReseau}
+              peutSupprimer={comptagePourReseau === 0}
+              surSupprimer={(id) => supprimer(id).catch(() => {})}
+            />
+          );
+        })}
+      </div>
+    );
+  } else {
+    corpsListeReseaux = (
+      <p className="kp-texte-muted kp-marges-haut-sm">
+        Aucun réseau pour l’instant. Cliquez sur « Créer un réseau » ci-dessus pour ajouter votre premier pont privé.
+      </p>
+    );
+  }
 
   return (
     <>
@@ -122,9 +156,8 @@ export function PageListeReseaux() {
       ) : null}
       <BandeauDiagnosticPareFeuHote lieuAffichage="Réseaux privés" />
       {avertissementComptage !== null ? (
-        <div
+        <output
           className="kp-bandeau-info kp-marges-haut-sm"
-          role="status"
           style={{
             border: "1px solid var(--kp-couleur-bordure-douce, rgba(255,255,255,0.12))",
             borderRadius: "0.5rem",
@@ -139,27 +172,9 @@ export function PageListeReseaux() {
           <span>
             <strong>Information (n’empêche pas la création)</strong> — {avertissementComptage}
           </span>
-        </div>
+        </output>
       ) : null}
-      {reseaux === null ? (
-        <p className="kp-texte-muted kp-marges-haut-sm">Chargement…</p>
-      ) : reseaux.length === 0 ? (
-        <p className="kp-texte-muted kp-marges-haut-sm">
-          Aucun réseau pour l’instant. Cliquez sur « Créer un réseau » ci-dessus pour ajouter votre premier pont privé.
-        </p>
-      ) : (
-        <div className="kp-grille-cartes-serveurs kp-marges-haut-sm">
-          {reseaux.map((r) => (
-            <CarteReseau
-              key={r.id}
-              reseau={r}
-              nombreInstancesLiees={comptages.get(r.id) ?? 0}
-              peutSupprimer={(comptages.get(r.id) ?? 0) === 0}
-              surSupprimer={(id) => void supprimer(id)}
-            />
-          ))}
-        </div>
-      )}
+      {corpsListeReseaux}
     </>
   );
 }

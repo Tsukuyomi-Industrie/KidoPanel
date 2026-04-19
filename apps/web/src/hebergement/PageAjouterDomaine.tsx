@@ -21,7 +21,7 @@ export function PageAjouterDomaine() {
   const [patient, setPatient] = useState(false);
 
   useEffect(() => {
-    void listerWebInstancesPasserelle()
+    listerWebInstancesPasserelle()
       .then((liste) => {
         setInstances(liste.filter((i) => i.status === "RUNNING"));
         if (liste[0]?.id !== undefined) {
@@ -59,8 +59,8 @@ export function PageAjouterDomaine() {
       await rechargerProxyPasserelle();
       pousserToast("Domaine ajouté et proxy rechargé.", "succes");
       navigate("/hebergement/proxy");
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Ajout impossible.", "erreur");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Ajout impossible.", "erreur");
     } finally {
       setPatient(false);
     }
@@ -76,7 +76,7 @@ export function PageAjouterDomaine() {
       <div className="kp-page-entete">
         <h1 className="kp-page-titre">Ajouter un domaine</h1>
       </div>
-      <form className="kp-panel-corps form-auth-kido" onSubmit={(e) => void gererSoumission(e)}>
+      <form className="kp-panel-corps form-auth-kido" onSubmit={(e) => gererSoumission(e).catch(() => {})}>
         <label className="kp-section-label" htmlFor="dom">
           Domaine
         </label>

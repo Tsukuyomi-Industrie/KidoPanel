@@ -4,8 +4,8 @@ import { urlBasePasserelle } from "../../passerelle/url-base-passerelle.js";
 import { lireJetonStockage } from "../../lab/passerelleClient.js";
 
 type PropsConsoleServeur = {
-  idInstanceJeux: string;
-  actif: boolean;
+  readonly idInstanceJeux: string;
+  readonly actif: boolean;
 };
 
 /**

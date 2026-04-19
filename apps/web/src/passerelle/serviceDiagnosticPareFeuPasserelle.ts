@@ -8,6 +8,20 @@ import { appelerPasserelle } from "../lab/passerelleClient.js";
  * - **`backendChoisi`** : `"firewalld"`, `"ufw"`, ou `null` si aucun backend actif ou si moteur injoignable.
  * - **`messageDiagnostic`** : message court francophone à afficher en bandeau (vide si situation nominale).
  */
+/** Normalise le bloc `details` JSON du diagnostic pare-feu en enregistrement chaîne / chaîne. */
+function detailsPareFeuVersEnregistrement(
+  details: unknown,
+): Record<string, string> | undefined {
+  if (typeof details !== "object" || details === null || Array.isArray(details)) {
+    return undefined;
+  }
+  const paires: Record<string, string> = {};
+  for (const [cle, valeur] of Object.entries(details)) {
+    paires[cle] = typeof valeur === "string" ? valeur : String(valeur);
+  }
+  return Object.keys(paires).length > 0 ? paires : undefined;
+}
+
 export type DiagnosticPareFeuPanel = {
   automatisationActivee: boolean | null;
   backendChoisi: "firewalld" | "ufw" | null;
@@ -44,10 +58,7 @@ export async function chargerDiagnosticPareFeuPasserelle(): Promise<DiagnosticPa
       sansSudoForce: c.sansSudoForce === true,
       messageDiagnostic:
         typeof c.messageDiagnostic === "string" ? c.messageDiagnostic : "",
-      details:
-        typeof c.details === "object" && c.details !== null
-          ? (c.details as Record<string, string>)
-          : undefined,
+      details: detailsPareFeuVersEnregistrement(c.details),
     };
   } catch {
     return null;

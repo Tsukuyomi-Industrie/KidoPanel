@@ -1,4 +1,5 @@
 import type { ImageCatalogueApi } from "@kidopanel/container-catalog";
+import type { ReactNode } from "react";
 import type { EtatCreationConteneurLab } from "./etatCreationConteneurLab.js";
 import {
   GrilleCatalogueImagesCreationConteneurLab,
@@ -13,12 +14,12 @@ import {
 import { TexteAideChampCreationConteneurLab } from "./TexteAideChampCreationConteneurLab.js";
 
 type Props = {
-  etat: EtatCreationConteneurLab;
-  majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
-  jetonSession: string;
-  imagesCatalogue: ImageCatalogueApi[];
-  chargementCatalogue: boolean;
-  erreurCatalogue: string | null;
+  readonly etat: EtatCreationConteneurLab;
+  readonly majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
+  readonly jetonSession: string;
+  readonly imagesCatalogue: ImageCatalogueApi[];
+  readonly chargementCatalogue: boolean;
+  readonly erreurCatalogue: string | null;
 };
 
 /**
@@ -33,6 +34,25 @@ export function SousBlocChoixImageDockerCreationConteneurLab({
   erreurCatalogue,
 }: Props) {
   const selection = imagesCatalogue.find((x) => x.id === etat.imageCatalogId);
+
+  let contenuListeDeroulanteCatalogue: ReactNode;
+  if (jetonSession.trim() === "") {
+    contenuListeDeroulanteCatalogue = (
+      <option value="">Connexion requise pour lister les images</option>
+    );
+  } else if (chargementCatalogue) {
+    contenuListeDeroulanteCatalogue = <option value="">Chargement du catalogue…</option>;
+  } else if (imagesCatalogue.length === 0) {
+    contenuListeDeroulanteCatalogue = (
+      <option value="">Aucune image catalogue (vérifiez la connexion)</option>
+    );
+  } else {
+    contenuListeDeroulanteCatalogue = imagesCatalogue.map((img) => (
+      <option key={img.id} value={img.id}>
+        {img.id} — {img.referenceDocker}
+      </option>
+    ));
+  }
 
   return (
     <div style={styleLabelChampCreation}>
@@ -64,30 +84,18 @@ export function SousBlocChoixImageDockerCreationConteneurLab({
         }
         onChange={(e) => {
           const v = e.target.value;
-          if (v !== "") {
+          if (v.length > 0) {
             majEtat({ origineImage: "catalogue", imageCatalogId: v });
           }
         }}
         disabled={
           chargementCatalogue ||
-          jetonSession.trim() === "" ||
+          jetonSession.trim().length === 0 ||
           imagesCatalogue.length === 0
         }
         style={styleChampTexteCreation}
       >
-        {jetonSession.trim() === "" ? (
-          <option value="">Connexion requise pour lister les images</option>
-        ) : chargementCatalogue ? (
-          <option value="">Chargement du catalogue…</option>
-        ) : imagesCatalogue.length === 0 ? (
-          <option value="">Aucune image catalogue (vérifiez la connexion)</option>
-        ) : (
-          imagesCatalogue.map((img) => (
-            <option key={img.id} value={img.id}>
-              {img.id} — {img.referenceDocker}
-            </option>
-          ))
-        )}
+        {contenuListeDeroulanteCatalogue}
       </select>
       {erreurCatalogue !== null ? (
         <p style={{ fontSize: "0.85rem", color: "#b00020", marginTop: 6 }}>

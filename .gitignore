@@ -5,6 +5,7 @@
 Lore.md
 .env
 sonar-project.properties
+issues_full.json
 
 #fichier de dependances
 

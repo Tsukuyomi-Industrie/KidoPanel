@@ -30,15 +30,15 @@ export function mountImagesRoutes(
           { requestId: c.get("requestId") },
         );
         return c.json(suggestion);
-      } catch (err) {
-        const response = tryRespondWithEngineError(c, err);
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
         if (response) return response;
         journaliserErreurMoteur(
           "suggestion_image_echec_inattendu",
-          err,
+          error_,
           c.get("requestId"),
         );
-        throw err;
+        throw error_;
       }
     },
   );

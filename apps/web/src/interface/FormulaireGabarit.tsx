@@ -3,15 +3,15 @@ import type { FormEvent } from "react";
 import type { ChampGabaritDockerRapide } from "@kidopanel/container-catalog";
 
 export type PropsFormulaireGabarit = {
-  champs: readonly ChampGabaritDockerRapide[];
+  readonly champs: readonly ChampGabaritDockerRapide[];
   /** Valeurs initiales pré-remplies depuis les défauts du gabarit. */
-  valeursInitiales: Record<string, string>;
+  readonly valeursInitiales: Record<string, string>;
   /** Libellé du bouton de soumission. */
-  libelleAction: string;
+  readonly libelleAction: string;
   /** Indique si la soumission est en cours. */
-  enCours: boolean;
-  messageErreur: string | null;
-  onSubmit: (valeurs: Record<string, string>) => void;
+  readonly enCours: boolean;
+  readonly messageErreur: string | null;
+  readonly onSubmit: (valeurs: Record<string, string>) => void;
 };
 
 /**
@@ -25,7 +25,7 @@ export function FormulaireGabarit({
   enCours,
   messageErreur,
   onSubmit,
-}: PropsFormulaireGabarit) {
+}: Readonly<PropsFormulaireGabarit>) {
   const [valeurs, setValeurs] = useState<Record<string, string>>(() => ({
     ...valeursInitiales,
   }));
@@ -35,7 +35,7 @@ export function FormulaireGabarit({
     () =>
       champs
         .map((c) => c.cle)
-        .sort()
+        .sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }))
         .join("|"),
     [champs],
   );

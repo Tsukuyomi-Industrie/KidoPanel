@@ -55,10 +55,10 @@ export async function sondageSantePasserelle(): Promise<{
         message: lignes.join("\n"),
       };
     }
-  } catch (erreur) {
+  } catch (error_) {
     return {
       joignable: false,
-      message: formaterErreurReseauFetch(urlPasserelleSeule, erreur),
+      message: formaterErreurReseauFetch(urlPasserelleSeule, error_),
     };
   }
 
@@ -84,13 +84,13 @@ export async function sondageSantePasserelle(): Promise<{
         "",
         "Côté serveur : démarrer le processus container-engine (port 8787 par défaut, variable racine CONTAINER_ENGINE_BASE_URL pour la passerelle).",
         "Journal : infra/logs/moteur.log",
-        ...(detail !== "" ? ["", `Détail passerelle : ${detail}`] : []),
+        ...(detail === "" ? [] : ["", `Détail passerelle : ${detail}`]),
       ].join("\n"),
     };
-  } catch (erreur) {
+  } catch (error_) {
     return {
       joignable: false,
-      message: formaterErreurReseauFetch(urlHealthComplet, erreur),
+      message: formaterErreurReseauFetch(urlHealthComplet, error_),
     };
   }
 }

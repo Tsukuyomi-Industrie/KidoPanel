@@ -1,6 +1,6 @@
 type PropsIcoConsoleJeux = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône console / terminal pour les actions rapides d’une carte serveur. */

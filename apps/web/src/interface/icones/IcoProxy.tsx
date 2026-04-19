@@ -1,6 +1,6 @@
 type PropsIcoProxy = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône proxy / relais HTTP pour le rail de navigation. */

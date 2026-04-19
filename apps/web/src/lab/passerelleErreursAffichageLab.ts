@@ -8,21 +8,21 @@ function hoteUrlEstLoopback(urlComplete: string): boolean {
 }
 
 function hoteUrlEgaleHotePage(urlComplete: string): boolean {
-  if (typeof window === "undefined") {
+  if (typeof globalThis.window === "undefined") {
     return false;
   }
   try {
-    return new URL(urlComplete).hostname === window.location.hostname;
+    return new URL(urlComplete).hostname === globalThis.window.location.hostname;
   } catch {
     return false;
   }
 }
 
 function hotePageEstLoopback(): boolean {
-  if (typeof window === "undefined") {
+  if (typeof globalThis.window === "undefined") {
     return true;
   }
-  const h = window.location.hostname.toLowerCase();
+  const h = globalThis.window.location.hostname.toLowerCase();
   return h === "127.0.0.1" || h === "localhost" || h === "[::1]";
 }
 
@@ -85,6 +85,24 @@ function messageErreurDejaEnrichiPourPanel(message: string): boolean {
   return MARQUEURS_MESSAGE_DEJA_ENRICHI.some((s) => message.includes(s));
 }
 
+/** Texte d’exception ou valeur arbitraire pour le bandeau sans `String` implicite sur objet complexe. */
+function valeurArbitraireVersTexteErreurPanel(valeur: unknown): string {
+  if (typeof valeur === "string") {
+    return valeur;
+  }
+  if (typeof valeur === "number" || typeof valeur === "boolean") {
+    return String(valeur);
+  }
+  if (valeur === null || valeur === undefined) {
+    return String(valeur);
+  }
+  try {
+    return JSON.stringify(valeur);
+  } catch {
+    return "";
+  }
+}
+
 /** Libellés réseau vagues renvoyés par les navigateurs quand la requête échoue avant un corps HTTP lisible. */
 const MOTIFS_ERREUR_RESEAU_GENERIQUE_NAVIGATEUR = [
   "Failed to fetch",
@@ -104,8 +122,8 @@ const MOTIFS_ERREUR_RESEAU_GENERIQUE_NAVIGATEUR = [
 ] as const;
 
 export function estErreurReseauNavigateurGenerique(erreur: unknown): boolean {
-  const msg = erreur instanceof Error ? erreur.message : String(erreur);
-  const normalise = msg.replace(/\s+/g, " ").trim();
+  const msg = erreur instanceof Error ? erreur.message : valeurArbitraireVersTexteErreurPanel(erreur);
+  const normalise = msg.replaceAll(/\s+/g, " ").trim();
   if (MOTIFS_ERREUR_RESEAU_GENERIQUE_NAVIGATEUR.some((g) => normalise.includes(g))) {
     return true;
   }
@@ -127,7 +145,7 @@ export function enrichirTexteErreurPourAffichage(
   if (t.length > 2000) {
     return texteBrut;
   }
-  const uneLigne = t.replace(/\s+/g, " ");
+  const uneLigne = t.replaceAll(/\s+/g, " ");
   const ressembleEchecFetch =
     estErreurReseauNavigateurGenerique(new Error(uneLigne)) ||
     (/^typeerror\s*:/i.test(t) && /fetch|réseau|network|cors/i.test(t));
@@ -174,7 +192,7 @@ export function formaterErreurPourAffichagePanel(
       );
     }
   } else {
-    parties.push("", String(erreur));
+    parties.push("", valeurArbitraireVersTexteErreurPanel(erreur));
   }
   return parties.join("\n");
 }

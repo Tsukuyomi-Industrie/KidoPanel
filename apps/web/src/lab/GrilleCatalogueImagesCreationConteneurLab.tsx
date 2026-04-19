@@ -1,10 +1,10 @@
 import type { ImageCatalogueApi } from "@kidopanel/container-catalog";
 
 type Props = {
-  images: ImageCatalogueApi[];
-  identifiantSelectionne: string;
-  surSelection: (id: string) => void;
-  interactionDesactivee: boolean;
+  readonly images: ImageCatalogueApi[];
+  readonly identifiantSelectionne: string;
+  readonly surSelection: (id: string) => void;
+  readonly interactionDesactivee: boolean;
 };
 
 /** Libellé court pour l’affichage de la catégorie métier dans le lab. */
@@ -40,36 +40,32 @@ export function GrilleCatalogueImagesCreationConteneurLab({
   }
 
   return (
-    <div
-      className="kp-creation-catalogue-grille"
-      role="list"
-      aria-label="Catalogue d’images officielles"
-    >
+    <ul className="kp-creation-catalogue-grille" aria-label="Catalogue d’images officielles">
       {images.map((img) => {
         const actif = img.id === identifiantSelectionne;
         return (
-          <button
-            key={img.id}
-            type="button"
-            role="listitem"
-            className={
-              actif
-                ? "kp-creation-catalogue-fiche kp-creation-catalogue-fiche--actif"
-                : "kp-creation-catalogue-fiche"
-            }
-            disabled={interactionDesactivee}
-            onClick={() => {
-              surSelection(img.id);
-            }}
-          >
-            <span className="kp-creation-catalogue-fiche__id">{img.id}</span>
-            <span className="kp-creation-catalogue-fiche__cat">
-              {libelleCategorieImageCatalogueLab(img.categorie)}
-            </span>
-            <code className="kp-creation-catalogue-fiche__ref">{img.referenceDocker}</code>
-          </button>
+          <li key={img.id} className="kp-creation-catalogue-grille__cellule">
+            <button
+              type="button"
+              className={
+                actif
+                  ? "kp-creation-catalogue-fiche kp-creation-catalogue-fiche--actif"
+                  : "kp-creation-catalogue-fiche"
+              }
+              disabled={interactionDesactivee}
+              onClick={() => {
+                surSelection(img.id);
+              }}
+            >
+              <span className="kp-creation-catalogue-fiche__id">{img.id}</span>
+              <span className="kp-creation-catalogue-fiche__cat">
+                {libelleCategorieImageCatalogueLab(img.categorie)}
+              </span>
+              <code className="kp-creation-catalogue-fiche__ref">{img.referenceDocker}</code>
+            </button>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }

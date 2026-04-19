@@ -60,7 +60,7 @@ export function mountContainerLogStreamRoute(
           };
           requeteEntrante.signal.addEventListener("abort", fermerSurArretClient);
           const minuteurPing = setInterval(() => {
-            void sse.writeSSE({ event: "ping", data: "1" }).catch(() => {});
+            sse.writeSSE({ event: "ping", data: "1" }).catch(() => {});
           }, 25_000);
           try {
             const decodeur = new StringDecoder("utf8");
@@ -82,14 +82,14 @@ export function mountContainerLogStreamRoute(
                 data: JSON.stringify({ line: reste }),
               });
             }
-          } catch (errFlux) {
+          } catch (error_) {
             const meta: Record<string, unknown> = { idConteneur: id };
-            if (errFlux instanceof Error) {
-              if (errFlux.message.length > 0) {
-                meta.erreurMessage = errFlux.message;
+            if (error_ instanceof Error) {
+              if (error_.message.length > 0) {
+                meta.erreurMessage = error_.message;
               }
-              if (errFlux.stack !== undefined) {
-                meta.stack = errFlux.stack;
+              if (error_.stack !== undefined) {
+                meta.stack = error_.stack;
               }
             }
             journaliserMoteur({
@@ -99,7 +99,7 @@ export function mountContainerLogStreamRoute(
               metadata: meta,
             });
             const msg =
-              errFlux instanceof Error ? errFlux.message : String(errFlux);
+              error_ instanceof Error ? error_.message : String(error_);
             await sse.writeSSE({
               event: "error",
               data: JSON.stringify({ message: msg }),
@@ -120,12 +120,12 @@ export function mountContainerLogStreamRoute(
             });
           }
         });
-      } catch (err) {
-        const response = tryRespondWithEngineError(c, err);
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
         if (response) {
           return response;
         }
-        throw err;
+        throw error_;
       }
     },
   );

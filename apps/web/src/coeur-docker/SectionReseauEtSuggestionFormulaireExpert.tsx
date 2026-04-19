@@ -9,8 +9,8 @@ import {
 import type { EtatFormulaireExpertConteneur } from "./etat-formulaire-expert-conteneur.js";
 
 type PropsSectionReseauEtSuggestion = {
-  etat: EtatFormulaireExpertConteneur;
-  surChangement: (suivant: EtatFormulaireExpertConteneur) => void;
+  readonly etat: EtatFormulaireExpertConteneur;
+  readonly surChangement: (suivant: EtatFormulaireExpertConteneur) => void;
 };
 
 function parserClePortExposee(cle: string): {
@@ -30,6 +30,16 @@ function cleDedupPortConteneur(l: {
   return `${l.portConteneur.trim()}/${l.protocole}`;
 }
 
+/** Libellé du placeholder du sélecteur de pont utilisateur lorsque les données sont en cours ou absentes. */
+function libelleOptionPontFormulaireExpertDefaut(
+  chargementPonts: boolean,
+  nombrePonts: number,
+): string {
+  if (chargementPonts) return "Chargement…";
+  if (nombrePonts === 0) return "Aucun pont : créez-en un via /reseaux-internes";
+  return "Choisir un pont…";
+}
+
 /**
  * Préremplissage depuis l’inspection Docker et choix des ponts KidoPanel (mode bridge).
  */
@@ -45,23 +55,23 @@ export function SectionReseauEtSuggestionFormulaireExpert({
 
   useEffect(() => {
     let annule = false;
-    void (async () => {
+    (async () => {
       try {
         const r = await listerReseauxInternesPasserelle();
         if (!annule) {
           setListePonts(r);
           setErreurPonts(null);
         }
-      } catch (e) {
+      } catch (error_) {
         if (!annule) {
-          setErreurPonts(e instanceof Error ? e.message : "Liste des ponts indisponible.");
+          setErreurPonts(error_ instanceof Error ? error_.message : "Liste des ponts indisponible.");
         }
       } finally {
         if (!annule) {
           setChargementPonts(false);
         }
       }
-    })();
+    })().catch(() => {});
     return () => {
       annule = true;
     };
@@ -131,8 +141,8 @@ export function SectionReseauEtSuggestionFormulaireExpert({
           ? suggestion.avertissements.join(" ")
           : "Suggestion appliquée à partir du manifeste d’image.",
       );
-    } catch (e) {
-      setMessageSuggestion(e instanceof Error ? e.message : "Suggestion impossible.");
+    } catch (error_) {
+      setMessageSuggestion(error_ instanceof Error ? error_.message : "Suggestion impossible.");
     } finally {
       setChargementSuggestion(false);
     }
@@ -156,7 +166,7 @@ export function SectionReseauEtSuggestionFormulaireExpert({
           type="button"
           className="bouton-secondaire-kido"
           disabled={chargementSuggestion || etat.imageDocker.trim().length === 0}
-          onClick={() => void appliquerSuggestionImage()}
+          onClick={() => appliquerSuggestionImage()}
         >
           {chargementSuggestion ? "Analyse de l’image…" : "Préremplir depuis l’image"}
         </button>
@@ -284,11 +294,10 @@ export function SectionReseauEtSuggestionFormulaireExpert({
                     }}
                   >
                     <option value="">
-                      {chargementPonts
-                        ? "Chargement…"
-                        : listePonts.length === 0
-                          ? "Aucun pont : créez-en un via /reseaux-internes"
-                          : "Choisir un pont…"}
+                      {libelleOptionPontFormulaireExpertDefaut(
+                        chargementPonts,
+                        listePonts.length,
+                      )}
                     </option>
                     {listePonts.map((p) => (
                       <option key={p.id} value={p.id}>

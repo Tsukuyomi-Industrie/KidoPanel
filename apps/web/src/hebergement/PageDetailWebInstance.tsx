@@ -20,6 +20,13 @@ import { ConsoleWebInstance } from "./composants/ConsoleWebInstance.js";
 
 type Onglet = "resume" | "console" | "domaines";
 
+/** Titre lisible pour les onglets vue / journaux / domaines proxy. */
+function titreOngletDetailWeb(o: Onglet): string {
+  if (o === "resume") return "Vue d’ensemble";
+  if (o === "console") return "Journaux";
+  return "Domaines";
+}
+
 /** Détail instance web avec onglets vue, journaux SSE et domaines proxy liés. */
 export function PageDetailWebInstance() {
   const { idInstance } = useParams<{ idInstance: string }>();
@@ -34,9 +41,10 @@ export function PageDetailWebInstance() {
   const { pousserToast } = useToastKidoPanel();
 
   const charger = useCallback(async () => {
-    if (!idInstance?.trim()) return;
+    const identifiantTrim = idInstance?.trim();
+    if (identifiantTrim === undefined || identifiantTrim.length === 0) return;
     const [detail, tousDomaines] = await Promise.all([
-      obtenirWebInstancePasserelle(idInstance),
+      obtenirWebInstancePasserelle(identifiantTrim),
       listerDomainesProxyPasserelle(),
     ]);
     setInstance(detail);
@@ -45,28 +53,35 @@ export function PageDetailWebInstance() {
   }, [idInstance]);
 
   useEffect(() => {
-    if (!idInstance?.trim()) return;
+    const identifiantTrim = idInstance?.trim();
+    if (identifiantTrim === undefined || identifiantTrim.length === 0) return;
     let annule = false;
-    void (async () => {
+    (async () => {
       try {
         await charger();
-      } catch (e) {
-        if (!annule) {
-          setErreur(e instanceof Error ? e.message : "Erreur de chargement.");
+      } catch (error_) {
+        if (annule === false) {
+          setErreur(error_ instanceof Error ? error_.message : "Erreur de chargement.");
         }
       }
-    })();
+    })().catch(() => {});
     return () => {
       annule = true;
     };
   }, [charger, idInstance]);
 
   useEffect(() => {
-    if (!idInstance?.trim() || onglet !== "resume") return;
-    const idIntervalle = window.setInterval(() => {
-      void charger().catch(() => {});
+    const identifiantTrim = idInstance?.trim();
+    if (
+      identifiantTrim === undefined ||
+      identifiantTrim.length === 0 ||
+      onglet !== "resume"
+    )
+      return;
+    const idIntervalle = globalThis.setInterval(() => {
+      charger().catch(() => {});
     }, 10_000);
-    return () => window.clearInterval(idIntervalle);
+    return () => globalThis.clearInterval(idIntervalle);
   }, [charger, idInstance, onglet]);
 
   const executer = async (libelle: string, fn: () => Promise<void>) => {
@@ -75,8 +90,8 @@ export function PageDetailWebInstance() {
       await fn();
       await charger();
       pousserToast(libelle, "succes");
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Action impossible.", "erreur");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Action impossible.", "erreur");
     } finally {
       setPatient(false);
     }
@@ -86,7 +101,8 @@ export function PageDetailWebInstance() {
   const transit =
     statut === "INSTALLING" || statut === "STARTING" || statut === "STOPPING";
 
-  if (!idInstance?.trim()) {
+  const identifiantTrimPourRendu = idInstance?.trim();
+  if (identifiantTrimPourRendu === undefined || identifiantTrimPourRendu.length === 0) {
     return <pre className="kp-cellule-mono">Identifiant manquant.</pre>;
   }
 
@@ -118,11 +134,7 @@ export function PageDetailWebInstance() {
                 className={`kp-btn kp-btn--sm${onglet === o ? " kp-btn--primaire" : ""}`}
                 onClick={() => setOnglet(o)}
               >
-                {o === "resume"
-                  ? "Vue d’ensemble"
-                  : o === "console"
-                    ? "Journaux"
-                    : "Domaines"}
+                {titreOngletDetailWeb(o)}
               </button>
             ))}
           </div>
@@ -130,30 +142,30 @@ export function PageDetailWebInstance() {
           {onglet === "resume" ? (
             <section className="kp-panel-corps kp-marges-haut-sm">
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
-                {!transit && statut === "STOPPED" ? (
+                {transit === false && statut === "STOPPED" ? (
                   <button
                     type="button"
                     className="kp-btn kp-btn--primaire"
                     disabled={patient}
                     onClick={() =>
-                      void executer("Démarrage demandé.", () =>
+                      executer("Démarrage demandé.", () =>
                         demarrerWebInstancePasserelle(instance.id).then(() => {}),
-                      )
+                      ).catch(() => {})
                     }
                   >
                     Démarrer
                   </button>
                 ) : null}
-                {!transit && statut === "RUNNING" ? (
+                {transit === false && statut === "RUNNING" ? (
                   <>
                     <button
                       type="button"
                       className="kp-btn kp-btn--danger"
                       disabled={patient}
                       onClick={() =>
-                        void executer("Arrêt demandé.", () =>
+                        executer("Arrêt demandé.", () =>
                           arreterWebInstancePasserelle(instance.id).then(() => {}),
-                        )
+                        ).catch(() => {})
                       }
                     >
                       Arrêter
@@ -163,16 +175,16 @@ export function PageDetailWebInstance() {
                       className="kp-btn kp-btn--secondaire"
                       disabled={patient}
                       onClick={() =>
-                        void executer("Redémarrage demandé.", () =>
+                        executer("Redémarrage demandé.", () =>
                           redemarrerWebInstancePasserelle(instance.id).then(() => {}),
-                        )
+                        ).catch(() => {})
                       }
                     >
                       Redémarrer
                     </button>
                   </>
                 ) : null}
-                {!transit ? (
+                {transit === false ? (
                   <button
                     type="button"
                     className="kp-btn kp-btn--danger"
@@ -229,9 +241,9 @@ export function PageDetailWebInstance() {
                       className="kp-btn kp-btn--ghost kp-btn--sm"
                       disabled={patient}
                       onClick={() =>
-                        void executer("Domaine retiré.", async () => {
+                        executer("Domaine retiré.", async () => {
                           await supprimerDomaineProxyPasserelle(d.id);
-                        })
+                        }).catch(() => {})
                       }
                     >
                       Supprimer
@@ -258,20 +270,20 @@ export function PageDetailWebInstance() {
             className="kp-btn kp-btn--danger"
             disabled={patient}
             onClick={() =>
-              void (async () => {
-                if (!instance) return;
+              (async () => {
+                if (instance === null) return;
                 refSuppression.current?.close();
                 setPatient(true);
                 try {
                   await supprimerWebInstancePasserelle(instance.id);
                   pousserToast("Instance supprimée.", "succes");
-                  window.location.assign("/hebergement/containers");
-                } catch (e) {
-                  pousserToast(e instanceof Error ? e.message : "Échec.", "erreur");
+                  globalThis.window.location.assign("/hebergement/containers");
+                } catch (error_) {
+                  pousserToast(error_ instanceof Error ? error_.message : "Échec.", "erreur");
                 } finally {
                   setPatient(false);
                 }
-              })()
+              })().catch(() => {})
             }
           >
             Supprimer

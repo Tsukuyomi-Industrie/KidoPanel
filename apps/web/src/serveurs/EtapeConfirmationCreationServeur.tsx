@@ -16,17 +16,37 @@ function formaterDelaiInstallation(secondes: number): string {
   return `~${String(Math.ceil(secondes / 60))} min`;
 }
 
+function libelleTypeJeuRecapitulatif(
+  modePersonnalise: boolean,
+  gabaritChoisi: GabaritJeuCatalogueInstance | null,
+): string {
+  if (modePersonnalise) return "Personnalisé (CUSTOM)";
+  if (gabaritChoisi !== null) return gabaritChoisi.name;
+  return "—";
+}
+
+function libelleDelaiInstallationRecapitulatif(
+  modePersonnalise: boolean,
+  gabaritChoisi: GabaritJeuCatalogueInstance | null,
+): string {
+  if (modePersonnalise) return "~2 min";
+  if (gabaritChoisi !== null) {
+    return formaterDelaiInstallation(gabaritChoisi.installTimeEstimateSeconds);
+  }
+  return "—";
+}
+
 type PropsEtapeConfirmation = {
-  modePersonnalise: boolean;
-  gabaritChoisi: GabaritJeuCatalogueInstance | null;
-  nomAffiche: string;
-  memoireMb: number;
-  cpuCores: number;
-  diskGb: number;
-  erreur: string | null;
-  enCours: boolean;
-  secondesInstallationAffichees: number | null;
-  surLancer: () => void;
+  readonly modePersonnalise: boolean;
+  readonly gabaritChoisi: GabaritJeuCatalogueInstance | null;
+  readonly nomAffiche: string;
+  readonly memoireMb: number;
+  readonly cpuCores: number;
+  readonly diskGb: number;
+  readonly erreur: string | null;
+  readonly enCours: boolean;
+  readonly secondesInstallationAffichees: number | null;
+  readonly surLancer: () => void;
 };
 
 /**
@@ -45,9 +65,9 @@ export function EtapeConfirmationCreationServeur({
   surLancer,
 }: PropsEtapeConfirmation) {
   const portIndicatif =
-    gabaritChoisi !== null && gabaritChoisi.defaultPorts.length > 0
-      ? gabaritChoisi.defaultPorts[0]
-      : null;
+    gabaritChoisi === null || gabaritChoisi.defaultPorts.length === 0
+      ? null
+      : gabaritChoisi.defaultPorts[0];
 
   return (
     <section className="kidopanel-carte-principale" style={{ marginTop: "1rem" }}>
@@ -55,11 +75,7 @@ export function EtapeConfirmationCreationServeur({
       <ul className="kp-liste-recap-creation" style={{ lineHeight: 1.7 }}>
         <li>
           <strong>Jeu : </strong>
-          {modePersonnalise
-            ? "Personnalisé (CUSTOM)"
-            : gabaritChoisi !== null
-              ? gabaritChoisi.name
-              : "—"}
+          {libelleTypeJeuRecapitulatif(modePersonnalise, gabaritChoisi)}
         </li>
         <li>
           <strong>Nom du serveur : </strong>
@@ -72,17 +88,13 @@ export function EtapeConfirmationCreationServeur({
         </li>
         <li>
           <strong>Port de jeu : </strong>
-          {portIndicatif !== null
-            ? `${String(portIndicatif)} (publié automatiquement par le service)`
-            : "attribué par le service"}
+          {portIndicatif === null
+            ? "attribué par le service"
+            : `${String(portIndicatif)} (publié automatiquement par le service)`}
         </li>
         <li>
           <strong>Durée d'installation estimée : </strong>
-          {modePersonnalise
-            ? "~2 min"
-            : gabaritChoisi !== null
-              ? formaterDelaiInstallation(gabaritChoisi.installTimeEstimateSeconds)
-              : "—"}
+          {libelleDelaiInstallationRecapitulatif(modePersonnalise, gabaritChoisi)}
         </li>
       </ul>
       {erreur !== null ? (
@@ -91,12 +103,12 @@ export function EtapeConfirmationCreationServeur({
         </div>
       ) : null}
       {enCours ? (
-        <p className="kidopanel-texte-muted" role="status">
+        <output className="kidopanel-texte-muted" style={{ display: "block" }}>
           Installation en cours…
           {secondesInstallationAffichees !== null && secondesInstallationAffichees > 0
             ? ` Temps restant indicatif : ${String(secondesInstallationAffichees)} s`
             : null}
-        </p>
+        </output>
       ) : (
         <button type="button" className="bouton-principal-kido" onClick={surLancer}>
           Lancer l'installation

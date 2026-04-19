@@ -52,8 +52,8 @@ export async function listerReseauxInternesPasserelle(): Promise<
     }
     return (json as { reseauxInternes: EnregistrementReseauInternePasserelle[] })
       .reseauxInternes;
-  } catch (erreur) {
-    throw new Error(formaterErreurReseauFetch(url, erreur));
+  } catch (error_) {
+    throw new Error(formaterErreurReseauFetch(url, error_));
   }
 }
 
@@ -87,8 +87,8 @@ async function fetchJsonReseaux(url: string, init: RequestInit): Promise<Respons
         ...init.headers,
       },
     });
-  } catch (erreur) {
-    throw new Error(formaterErreurReseauFetch(url, erreur));
+  } catch (error_) {
+    throw new Error(formaterErreurReseauFetch(url, error_));
   }
 }
 

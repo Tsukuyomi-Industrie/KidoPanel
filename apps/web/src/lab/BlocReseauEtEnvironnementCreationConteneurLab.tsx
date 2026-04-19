@@ -18,8 +18,8 @@ import {
 import { TexteAideChampCreationConteneurLab } from "./TexteAideChampCreationConteneurLab.js";
 
 type Props = {
-  etat: EtatCreationConteneurLab;
-  majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
+  readonly etat: EtatCreationConteneurLab;
+  readonly majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
 };
 
 /** Réseau, ports, DNS, extra hosts, variables, étiquettes et montages bind. */
@@ -79,7 +79,7 @@ export function BlocReseauEtEnvironnementCreationConteneurLab({
               type="checkbox"
               checked={etat.publierTousLesPorts}
               onChange={(e) => majEtat({ publierTousLesPorts: e.target.checked })}
-            />
+            />{" "}
             Publier automatiquement tous les ports exposés par l’image
           </label>
         </div>

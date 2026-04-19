@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
 type PropsEtatVide = {
-  titre: string;
-  detail: string;
-  icone?: ReactNode;
+  readonly titre: string;
+  readonly detail: string;
+  readonly icone?: ReactNode;
 };
 
 /** Bloc centré pour les vues sans données ou les sections en attente de mise en service. */

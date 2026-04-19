@@ -76,8 +76,8 @@ export async function creerReseauPontUtilisateurDocker(
   let listeExistante: Awaited<ReturnType<DockerClient["listNetworks"]>>;
   try {
     listeExistante = await docker.listNetworks();
-  } catch (err) {
-    throw wrapDockerError(err);
+  } catch (error_) {
+    throw wrapDockerError(error_);
   }
   const messageChevauchement = analyserChevauchementsAvecReseauxExistants(
     intervalle,
@@ -114,18 +114,18 @@ export async function creerReseauPontUtilisateurDocker(
   }
   try {
     await docker.createNetwork(optsCreation);
-  } catch (err) {
-    if (err && typeof err === "object" && "statusCode" in err) {
-      const sc = (err as { statusCode?: number }).statusCode;
+  } catch (error_) {
+    if (error_ && typeof error_ === "object" && "statusCode" in error_) {
+      const sc = (error_ as { statusCode?: number }).statusCode;
       if (sc === 409) {
         throw new ContainerEngineError(
           "CONFLICT",
           "Un réseau Docker portant ce nom existe déjà ou la plage est réservée.",
-          { cause: err },
+          { cause: error_ },
         );
       }
     }
-    throw wrapDockerError(err);
+    throw wrapDockerError(error_);
   }
   journaliserMoteur({
     niveau: "info",
@@ -181,8 +181,8 @@ export async function supprimerReseauPontParNomDocker(
   try {
     const reseau = docker.getNetwork(trouve.Id);
     await reseau.remove();
-  } catch (err) {
-    wrapDockerError(err);
+  } catch (error_) {
+    wrapDockerError(error_);
   }
   journaliserMoteur({
     niveau: "info",

@@ -34,14 +34,14 @@ function ipv4AfficheeTableau(conteneur: ResumeConteneurLab): string {
 }
 
 type Props = {
-  conteneurs: ResumeConteneurLab[];
-  idSelectionne: string;
-  surSelection: (id: string) => void;
-  chargementListe: boolean;
-  surRafraichir: () => void;
-  surDemarrer: (id: string) => void;
-  surArreter: (id: string) => void;
-  surSupprimer: (id: string) => void;
+  readonly conteneurs: ResumeConteneurLab[];
+  readonly idSelectionne: string;
+  readonly surSelection: (id: string) => void;
+  readonly chargementListe: boolean;
+  readonly surRafraichir: () => void;
+  readonly surDemarrer: (id: string) => void;
+  readonly surArreter: (id: string) => void;
+  readonly surSupprimer: (id: string) => void;
 };
 
 /**
@@ -65,7 +65,7 @@ export function GrilleConteneursCoeurDocker({
           type="button"
           className="bouton-secondaire-kido"
           disabled={chargementListe}
-          onClick={() => void surRafraichir()}
+          onClick={() => surRafraichir()}
         >
           {chargementListe ? "Actualisation…" : "Actualiser"}
         </button>
@@ -109,21 +109,21 @@ export function GrilleConteneursCoeurDocker({
                       <button
                         type="button"
                         className="bouton-ghost-kido"
-                        onClick={() => void surDemarrer(c.id)}
+                        onClick={() => surDemarrer(c.id)}
                       >
                         Démarrer
                       </button>
                       <button
                         type="button"
                         className="bouton-ghost-kido"
-                        onClick={() => void surArreter(c.id)}
+                        onClick={() => surArreter(c.id)}
                       >
                         Arrêter
                       </button>
                       <button
                         type="button"
                         className="bouton-ghost-kido kidopanel-action-danger"
-                        onClick={() => void surSupprimer(c.id)}
+                        onClick={() => surSupprimer(c.id)}
                       >
                         Supprimer
                       </button>

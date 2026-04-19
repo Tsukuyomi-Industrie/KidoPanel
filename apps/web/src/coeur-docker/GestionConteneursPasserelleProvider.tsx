@@ -73,7 +73,7 @@ const Ctx = createContext<GestionConteneursPasserelleContexte | null>(null);
 export function GestionConteneursPasserelleProvider({
   children,
 }: {
-  children: ReactNode;
+  readonly children: ReactNode;
 }) {
   const [conteneurs, setConteneurs] = useState<ResumeConteneurLab[]>([]);
   const [idSelectionne, setIdSelectionne] = useState("");
@@ -95,7 +95,7 @@ export function GestionConteneursPasserelleProvider({
 
   useEffect(() => {
     let annule = false;
-    void (async () => {
+    (async () => {
       setEtatSondePasserelle("en_cours");
       const resultat = await sondageSantePasserelle();
       if (annule) {
@@ -103,7 +103,7 @@ export function GestionConteneursPasserelleProvider({
       }
       setEtatSondePasserelle(resultat.joignable ? "ok" : "echec");
       setTexteSondePasserelle(resultat.message);
-    })();
+    })().catch(() => {});
     return () => {
       annule = true;
     };
@@ -139,7 +139,7 @@ export function GestionConteneursPasserelleProvider({
   );
 
   useEffect(() => {
-    void rafraichirListe();
+    rafraichirListe();
   }, [rafraichirListe]);
 
   const surCreer = useCallback(async () => {
@@ -147,10 +147,10 @@ export function GestionConteneursPasserelleProvider({
     let corps: Record<string, unknown>;
     try {
       corps = construireCorpsCreationConteneurDepuisEtat(etatCreation);
-    } catch (e) {
+    } catch (error_) {
       setMessageErreur(
         formaterErreurPourAffichagePanel(
-          e,
+          error_,
           composerUrlPasserelle("/containers"),
           "préparation du corps de création",
         ),
@@ -167,10 +167,10 @@ export function GestionConteneursPasserelleProvider({
         return;
       }
       await rafraichirListe();
-    } catch (e) {
+    } catch (error_) {
       setMessageErreur(
         formaterErreurPourAffichagePanel(
-          e,
+          error_,
           composerUrlPasserelle("/containers"),
           "création d’instance",
         ),
@@ -192,10 +192,10 @@ export function GestionConteneursPasserelleProvider({
         }
         await rafraichirListe();
         return true;
-      } catch (e) {
+      } catch (error_) {
         setMessageErreur(
           formaterErreurPourAffichagePanel(
-            e,
+            error_,
             composerUrlPasserelle("/containers"),
             "création de conteneur",
           ),
@@ -219,10 +219,10 @@ export function GestionConteneursPasserelleProvider({
           return;
         }
         await rafraichirListe();
-      } catch (e) {
+      } catch (error_) {
         setMessageErreur(
           formaterErreurPourAffichagePanel(
-            e,
+            error_,
             composerUrlPasserelle("/containers"),
             "création d’instance depuis gabarit",
           ),

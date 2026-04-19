@@ -1,6 +1,6 @@
 type PropsIcoDeconnexion = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône sortie de session pour le bouton de déconnexion du rail. */

@@ -1,6 +1,6 @@
 type PropsIcoParametres = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône réglages pour la zone compte du rail. */

@@ -22,8 +22,8 @@ export async function lireJournauxConteneur(
       since: options?.since,
     });
     return Buffer.isBuffer(buf) ? buf.toString("utf8") : String(buf);
-  } catch (e) {
-    wrapDockerError(e);
+  } catch (error_) {
+    wrapDockerError(error_);
   }
 }
 
@@ -47,8 +47,8 @@ export async function ouvrirFluxSuiviJournaux(
   try {
     const inspection = await container.inspect();
     tty = Boolean(inspection.Config?.Tty);
-  } catch (e) {
-    wrapDockerError(e);
+  } catch (error_) {
+    wrapDockerError(error_);
   }
 
   let brut: Readable;
@@ -68,8 +68,8 @@ export async function ouvrirFluxSuiviJournaux(
       );
     }
     brut = resultat as Readable;
-  } catch (e) {
-    wrapDockerError(e);
+  } catch (error_) {
+    wrapDockerError(error_);
   }
 
   if (tty) {

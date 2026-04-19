@@ -28,10 +28,10 @@ if (!Number.isFinite(port) || port < 1 || port > 65_535) {
   let app;
   try {
     app = createGatewayApp();
-  } catch (erreur) {
+  } catch (error_) {
     journaliserErreurPasserelle(
       "demarrage_refuse_configuration",
-      erreur,
+      error_,
     );
     process.exitCode = 1;
   }

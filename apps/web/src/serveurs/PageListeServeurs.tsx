@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { CarteServeur } from "./composants/CarteServeur.js";
 import { BasculeAffichageHotePublicConnexion } from "./composants/BasculeAffichageHotePublicConnexion.js";
@@ -22,8 +22,8 @@ export function PageListeServeurs() {
       const liste = await listerInstancesServeursJeuxPasserelle();
       setInstances(liste);
       setErreur(null);
-    } catch (e) {
-      setErreur(e instanceof Error ? e.message : "Chargement impossible.");
+    } catch (error_) {
+      setErreur(error_ instanceof Error ? error_.message : "Chargement impossible.");
       setInstances([]);
     }
   }, []);
@@ -41,11 +41,33 @@ export function PageListeServeurs() {
   );
 
   useEffect(() => {
-    const id = window.setTimeout(() => {
-      void charger();
+    const id = globalThis.setTimeout(() => {
+      charger();
     }, 0);
-    return () => window.clearTimeout(id);
+    return () => globalThis.clearTimeout(id);
   }, [charger]);
+
+  let corpsListeServeursJeux: ReactNode;
+  if (instances === null) {
+    corpsListeServeursJeux = <p className="kp-texte-muted kp-marges-haut-sm">Chargement…</p>;
+  } else if (instances.length === 0) {
+    corpsListeServeursJeux = (
+      <p className="kp-texte-muted kp-marges-haut-sm">Aucune instance pour l’instant.</p>
+    );
+  } else {
+    corpsListeServeursJeux = (
+      <div className="kp-grille-cartes-serveurs kp-marges-haut-sm">
+        {instances.map((inst) => (
+          <CarteServeur
+            key={inst.id}
+            instance={inst}
+            surMiseAJourListe={charger}
+            surMiseAJourPartielle={remplacerInstanceDansListe}
+          />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -79,22 +101,7 @@ export function PageListeServeurs() {
           {erreur}
         </pre>
       ) : null}
-      {instances === null ? (
-        <p className="kp-texte-muted kp-marges-haut-sm">Chargement…</p>
-      ) : instances.length === 0 ? (
-        <p className="kp-texte-muted kp-marges-haut-sm">Aucune instance pour l’instant.</p>
-      ) : (
-        <div className="kp-grille-cartes-serveurs kp-marges-haut-sm">
-          {instances.map((inst) => (
-            <CarteServeur
-              key={inst.id}
-              instance={inst}
-              surMiseAJourListe={charger}
-              surMiseAJourPartielle={remplacerInstanceDansListe}
-            />
-          ))}
-        </div>
-      )}
+      {corpsListeServeursJeux}
     </>
   );
 }

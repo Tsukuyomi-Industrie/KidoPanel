@@ -1,6 +1,6 @@
 type PropsIcoDocker = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône conteneur / Docker pour le rail de navigation. */

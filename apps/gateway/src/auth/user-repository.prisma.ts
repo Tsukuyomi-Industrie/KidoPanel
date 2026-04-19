@@ -34,18 +34,18 @@ export class UserRepository {
           id: donnees.id,
           email: donnees.email,
           password: donnees.password,
-          ...(donnees.role !== undefined ? { role: donnees.role } : {}),
+          ...(donnees.role === undefined ? {} : { role: donnees.role }),
           quotas: { create: {} },
         },
       });
-    } catch (brut: unknown) {
+    } catch (error_: unknown) {
       if (
-        brut instanceof PrismaClientKnownRequestError &&
-        brut.code === "P2002"
+        error_ instanceof PrismaClientKnownRequestError &&
+        error_.code === "P2002"
       ) {
         throw new Error("EMAIL_DEJA_UTILISE");
       }
-      throw brut;
+      throw error_;
     }
   }
 }

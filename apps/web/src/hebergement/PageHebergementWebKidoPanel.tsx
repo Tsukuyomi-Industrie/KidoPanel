@@ -14,7 +14,7 @@ export function PageHebergementWebKidoPanel() {
 
   useEffect(() => {
     let vivant = true;
-    void (async () => {
+    (async () => {
       try {
         const [instances, domaines] = await Promise.all([
           listerWebInstancesPasserelle(),
@@ -26,14 +26,14 @@ export function PageHebergementWebKidoPanel() {
           setNbDomaines(domaines.length);
           setErreur(null);
         }
-      } catch (e) {
+      } catch (error_) {
         if (vivant) {
-          setErreur(e instanceof Error ? e.message : "Données indisponibles.");
+          setErreur(error_ instanceof Error ? error_.message : "Données indisponibles.");
           setNbConteneurs(null);
           setNbDomaines(null);
         }
       }
-    })();
+    })().catch(() => {});
     return () => {
       vivant = false;
     };
@@ -52,7 +52,7 @@ export function PageHebergementWebKidoPanel() {
               }}
             >
               <IcoHebergement size={26} />
-            </span>
+            </span>{" "}
             Hébergement web
           </h1>
           <p className="kp-page-sous-titre">

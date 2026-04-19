@@ -41,9 +41,9 @@ async function sonderPostgresql(prisma: PrismaClient): Promise<{
   try {
     await prisma.$queryRaw`SELECT 1`;
     return { joignable: true, latenceMs: Date.now() - debut };
-  } catch (e) {
+  } catch (error_) {
     const message =
-      e instanceof Error ? e.message : "Requête de sonde impossible.";
+      error_ instanceof Error ? error_.message : "Requête de sonde impossible.";
     return { joignable: false, message };
   }
 }
@@ -67,9 +67,9 @@ async function sonderMoteurDocker(identifiantRequete: string): Promise<{
       };
     }
     return { joignable: true };
-  } catch (e) {
+  } catch (error_) {
     const message =
-      e instanceof Error ? e.message : "Appel vers le moteur impossible.";
+      error_ instanceof Error ? error_.message : "Appel vers le moteur impossible.";
     return { joignable: false, message };
   }
 }

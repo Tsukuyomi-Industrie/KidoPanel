@@ -10,6 +10,10 @@ import type { DepotWebInstance } from "../repositories/depot-web-instance.reposi
 import type { ProxyManagerService } from "../services/proxy-manager.service.js";
 import type { ClientMoteurWebHttp } from "../services/client-moteur-web.service.js";
 import { ErreurMetierWebInstance } from "../erreurs/erreurs-metier-web-instance.js";
+import {
+  obtenirRoleInternePourProxy,
+  obtenirUtilisateurIdInternePourProxy,
+} from "./proxy-identite.middleware.utils.js";
 
 /**
  * Routes `/proxy` : domaines exposés et rechargement du proxy partagé.
@@ -26,11 +30,11 @@ export function monterRoutesProxyManager(params: {
   routes.get("/domaines", async (c) => {
     try {
       const liste = await params.depotDomaine.listerParUtilisateur(
-        c.get("utilisateurIdInterne")!,
+        obtenirUtilisateurIdInternePourProxy(c),
       );
       return c.json({ domaines: liste });
-    } catch (erreur) {
-      return repondreErreurProxy(c, erreur);
+    } catch (error_) {
+      return repondreErreurProxy(c, error_);
     }
   });
 
@@ -40,8 +44,8 @@ export function monterRoutesProxyManager(params: {
     async (c) => {
       try {
         const corps = c.req.valid("json");
-        const uid = c.get("utilisateurIdInterne")!;
-        const role = c.get("roleUtilisateurInterne")!;
+        const uid = obtenirUtilisateurIdInternePourProxy(c);
+        const role = obtenirRoleInternePourProxy(c);
         if (role === "VIEWER") {
           throw new ErreurMetierWebInstance(
             "ROLE_LECTURE_SEULE_MUTATION_INTERDITE",
@@ -86,16 +90,16 @@ export function monterRoutesProxyManager(params: {
         });
         await params.proxyManager.rechargerConfigurationProxy(undefined, c.get("requestId"));
         return c.json(cree, 201);
-      } catch (erreur) {
-        return repondreErreurProxy(c, erreur);
+      } catch (error_) {
+        return repondreErreurProxy(c, error_);
       }
     },
   );
 
   routes.delete("/domaines/:id", async (c) => {
     try {
-      const uid = c.get("utilisateurIdInterne")!;
-      const role = c.get("roleUtilisateurInterne")!;
+      const uid = obtenirUtilisateurIdInternePourProxy(c);
+      const role = obtenirRoleInternePourProxy(c);
       if (role === "VIEWER") {
         throw new ErreurMetierWebInstance(
           "ROLE_LECTURE_SEULE_MUTATION_INTERDITE",
@@ -117,8 +121,8 @@ export function monterRoutesProxyManager(params: {
       await params.depotDomaine.supprimer(ligne.id);
       await params.proxyManager.rechargerConfigurationProxy(undefined, c.get("requestId"));
       return c.body(null, 204);
-    } catch (erreur) {
-      return repondreErreurProxy(c, erreur);
+    } catch (error_) {
+      return repondreErreurProxy(c, error_);
     }
   });
 
@@ -126,26 +130,26 @@ export function monterRoutesProxyManager(params: {
     try {
       await params.proxyManager.rechargerConfigurationProxy(undefined, c.get("requestId"));
       return c.body(null, 204);
-    } catch (erreur) {
-      return repondreErreurProxy(c, erreur);
+    } catch (error_) {
+      return repondreErreurProxy(c, error_);
     }
   });
 
   return routes;
 }
 
-function repondreErreurProxy(c: Pick<Context, "json">, erreur: unknown) {
-  if (erreur instanceof ErreurMetierWebInstance) {
+function repondreErreurProxy(c: Pick<Context, "json">, error_: unknown) {
+  if (error_ instanceof ErreurMetierWebInstance) {
     return c.json(
       {
         error: {
-          code: erreur.codeMetier,
-          message: erreur.message,
-          details: erreur.details,
+          code: error_.codeMetier,
+          message: error_.message,
+          details: error_.details,
         },
       },
-      erreur.statutHttp as never,
+      error_.statutHttp as never,
     );
   }
-  throw erreur;
+  throw error_;
 }

@@ -76,14 +76,14 @@ export function resoudreInvocationFirewallCmd(): {
   };
 }
 
-/** Détaille une erreur execFile (stderr Docker / firewalld souvent utile). */
-export function formaterErreurExecFirewalld(erreur: unknown): string {
-  if (!(erreur instanceof Error)) {
-    return String(erreur);
+/** Détaille une error_ execFile (stderr Docker / firewalld souvent utile). */
+export function formaterErreurExecFirewalld(error_: unknown): string {
+  if (!(error_ instanceof Error)) {
+    return String(error_);
   }
-  const avecStderr = erreur as Error & { stderr?: Buffer };
+  const avecStderr = error_ as Error & { stderr?: Buffer };
   const errStd = avecStderr.stderr?.toString?.()?.trim();
-  const base = erreur.message;
+  const base = error_.message;
   return errStd !== undefined && errStd.length > 0 ? `${base} | ${errStd}` : base;
 }
 
@@ -122,10 +122,10 @@ export async function ouvrirPortFirewalldHote(
     await executerFichier(executable, argsPermanent, { timeout: 60_000 });
     await executerFichier(executable, argsRuntime, { timeout: 60_000 });
     return { ok: true };
-  } catch (erreur) {
+  } catch (error_) {
     return {
       ok: false,
-      messageErreur: formaterErreurExecFirewalld(erreur),
+      messageErreur: formaterErreurExecFirewalld(error_),
     };
   }
 }
@@ -150,10 +150,10 @@ export async function fermerPortFirewalldHote(
     await executerFichier(executable, argsPermanent, { timeout: 60_000 });
     await executerFichier(executable, argsRuntime, { timeout: 60_000 });
     return { ok: true };
-  } catch (erreur) {
+  } catch (error_) {
     return {
       ok: false,
-      messageErreur: formaterErreurExecFirewalld(erreur),
+      messageErreur: formaterErreurExecFirewalld(error_),
     };
   }
 }

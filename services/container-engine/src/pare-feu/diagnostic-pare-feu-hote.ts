@@ -50,10 +50,10 @@ async function teterSudoNopasswdPour(binaireAbsolu: string): Promise<{
       timeout: 4000,
     });
     return { ok: true };
-  } catch (erreur) {
+  } catch (error_) {
     const stderr =
-      erreur instanceof Error
-        ? ((erreur as Error & { stderr?: Buffer }).stderr?.toString().trim() ??
+      error_ instanceof Error
+        ? ((error_ as Error & { stderr?: Buffer }).stderr?.toString().trim() ??
             "")
         : "";
     if (stderr.length > 0) {

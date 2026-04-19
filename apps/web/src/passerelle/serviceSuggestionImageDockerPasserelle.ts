@@ -2,13 +2,13 @@ import { formaterErreurReseauFetch } from "../lab/passerelleErreursAffichageLab.
 import { lireJetonPasserelle } from "./jetonPasserelleStockage.js";
 import { urlBasePasserelle } from "./url-base-passerelle.js";
 
-/** Extrait un message lisible depuis une erreur JSON API (moteur, validation Zod, etc.). */
+/** Extrait un message lisible depuis une error_ JSON API (moteur, validation Zod, etc.). */
 function extraireMessageErreurCorpsHttp(corps: unknown, statutHttp: number): string {
   if (typeof corps === "object" && corps !== null) {
     const o = corps as Record<string, unknown>;
-    const erreur = o.error;
-    if (typeof erreur === "object" && erreur !== null) {
-      const msg = (erreur as { message?: unknown }).message;
+    const error_ = o.error;
+    if (typeof error_ === "object" && error_ !== null) {
+      const msg = (error_ as { message?: unknown }).message;
       if (typeof msg === "string" && msg.trim().length > 0) {
         return msg.trim();
       }
@@ -77,7 +77,7 @@ export async function chargerSuggestionConfigurationImageDocker(
       throw new Error(extraireMessageErreurCorpsHttp(json, reponse.status));
     }
     return json as SuggestionImageDockerPasserelle;
-  } catch (erreur) {
-    throw new Error(formaterErreurReseauFetch(url, erreur));
+  } catch (error_) {
+    throw new Error(formaterErreurReseauFetch(url, error_));
   }
 }

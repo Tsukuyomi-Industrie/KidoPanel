@@ -44,8 +44,8 @@ async function appelerAuthentifie(
         ...init.headers,
       },
     });
-  } catch (erreur) {
-    throw new Error(formaterErreurReseauFetch(url, erreur));
+  } catch (error_) {
+    throw new Error(formaterErreurReseauFetch(url, error_));
   }
 }
 

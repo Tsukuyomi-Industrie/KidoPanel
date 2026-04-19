@@ -213,6 +213,14 @@
   grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
   gap: 0.55rem;
   margin-top: 0.65rem;
+  list-style: none;
+  padding: 0;
+}
+
+.kp-creation-catalogue-grille__cellule {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
 }
 
 .kp-creation-catalogue-fiche {
@@ -351,9 +359,24 @@
   display: inline-flex;
   gap: 0;
   margin-bottom: 1rem;
+  margin-inline: 0;
+  padding: 0;
   border-radius: 10px;
   border: 1px solid var(--border);
   overflow: hidden;
+  min-inline-size: 0;
+}
+
+.kp-toggle-mode-creation__legende {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .kp-toggle-mode-creation button {

@@ -32,7 +32,7 @@ export function PageCreationConteneurKidoPanel() {
     async (corps: Record<string, unknown>) => {
       const ok = await g.surPosterCreationConteneurJson(corps);
       if (ok) {
-        void navigate("/coeur-docker");
+        navigate("/coeur-docker");
       }
       return ok;
     },
@@ -44,9 +44,9 @@ export function PageCreationConteneurKidoPanel() {
     let corps: Record<string, unknown>;
     try {
       corps = traduireFormulaireExpertVersCorpsApi(etatExpert);
-    } catch (e) {
+    } catch (error_) {
       setErreurTraductionExpert(
-        e instanceof Error ? e.message : "Configuration invalide.",
+        error_ instanceof Error ? error_.message : "Configuration invalide.",
       );
       return;
     }
@@ -54,7 +54,7 @@ export function PageCreationConteneurKidoPanel() {
     try {
       const ok = await g.surPosterCreationConteneurJson(corps);
       if (ok) {
-        void navigate("/coeur-docker");
+        navigate("/coeur-docker");
       }
     } finally {
       setEnCoursExpert(false);
@@ -93,7 +93,8 @@ export function PageCreationConteneurKidoPanel() {
         refUrlContexteErreur={g.refUrlContexteErreur}
       />
 
-      <div className="kp-toggle-mode-creation" role="group" aria-label="Mode de création">
+      <fieldset className="kp-toggle-mode-creation">
+        <legend className="kp-toggle-mode-creation__legende">Mode de création</legend>
         <button
           type="button"
           className={mode === "rapide" ? "kp-toggle-mode-creation--actif" : undefined}
@@ -108,7 +109,7 @@ export function PageCreationConteneurKidoPanel() {
         >
           Configuration experte
         </button>
-      </div>
+      </fieldset>
 
       <div className="kp-creation-racine">
         {mode === "rapide" ? (
@@ -124,7 +125,7 @@ export function PageCreationConteneurKidoPanel() {
             libelleSoumission="Créer le conteneur"
             enCours={enCoursExpert}
             messageErreur={erreurTraductionExpert}
-            surSoumettre={() => void soumettreExpert()}
+            surSoumettre={() => soumettreExpert()}
           />
         )}
       </div>

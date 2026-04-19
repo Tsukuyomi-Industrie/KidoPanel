@@ -55,12 +55,10 @@ export async function forwardRequestToContainerEngine(
     }
   }
   const cheminForce = options?.cheminRelaisForceSurMoteur?.trim();
-  const pathnameRelais =
-    cheminForce !== undefined && cheminForce.length > 0
-      ? cheminForce.startsWith("/")
-        ? cheminForce
-        : `/${cheminForce}`
-      : entrant.pathname;
+  let pathnameRelais = entrant.pathname;
+  if (cheminForce !== undefined && cheminForce.length > 0) {
+    pathnameRelais = cheminForce.startsWith("/") ? cheminForce : `/${cheminForce}`;
+  }
   const cible = new URL(pathnameRelais + entrant.search, `${base}/`);
 
   const enTetes = new Headers();
@@ -100,19 +98,19 @@ export async function forwardRequestToContainerEngine(
       body: corps,
       ...(signalAnnulation ? { signal: signalAnnulation } : {}),
     });
-  } catch (erreur) {
+  } catch (error_) {
     if (
-      erreur instanceof Error &&
-      (erreur.name === "AbortError" ||
+      error_ instanceof Error &&
+      (error_.name === "AbortError" ||
         (typeof DOMException !== "undefined" &&
-          erreur instanceof DOMException &&
-          erreur.name === "AbortError"))
+          error_ instanceof DOMException &&
+          error_.name === "AbortError"))
     ) {
       return new Response(null, { status: 204 });
     }
     journaliserErreurPasserelle(
       "proxy_container_engine_indisponible",
-      erreur,
+      error_,
       idCorrelation,
     );
     return new Response(

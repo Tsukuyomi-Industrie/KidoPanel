@@ -36,7 +36,7 @@ export type CorpsErreurPasserelle = {
   jsonParse?: unknown;
 };
 
-/** Construit une représentation lisible d’une réponse HTTP en erreur. */
+/** Construit une représentation lisible d’une réponse HTTP en error_. */
 export async function corpsErreurDepuisReponse(
   reponse: Response,
 ): Promise<CorpsErreurPasserelle> {
@@ -50,13 +50,13 @@ export async function corpsErreurDepuisReponse(
   const libelleStatut = reponse.statusText.trim();
   return {
     statutHttp: reponse.status,
-    ...(libelleStatut !== "" ? { libelleStatut } : {}),
+    ...(libelleStatut === "" ? {} : { libelleStatut }),
     texteBrut,
     jsonParse,
   };
 }
 
-/** Formate une erreur HTTP pour affichage dans l’interface de test. */
+/** Formate une error_ HTTP pour affichage dans l’interface de test. */
 export function formaterErreurAffichage(corps: CorpsErreurPasserelle): string {
   const enteteStatut =
     corps.libelleStatut !== undefined && corps.libelleStatut !== ""
@@ -71,7 +71,7 @@ export function formaterErreurAffichage(corps: CorpsErreurPasserelle): string {
   return lignes.join("\n");
 }
 
-/** Assemble l’URL absolue d’un chemin sur la passerelle (diagnostic d’erreur). */
+/** Assemble l’URL absolue d’un chemin sur la passerelle (diagnostic d’error_). */
 export function composerUrlPasserelle(cheminRelatif: string): string {
   const base = urlBasePasserelle();
   const chemin = cheminRelatif.startsWith("/")
@@ -111,7 +111,7 @@ export async function appelerPasserelle(
       mode: "cors",
       cache: "no-store",
     });
-  } catch (erreur) {
-    throw new Error(formaterErreurReseauFetch(url, erreur));
+  } catch (error_) {
+    throw new Error(formaterErreurReseauFetch(url, error_));
   }
 }

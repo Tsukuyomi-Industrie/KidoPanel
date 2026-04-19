@@ -19,7 +19,7 @@ function urlDepuisVariableEnv(): string | null {
  * pas du serveur — d’où « Failed to fetch » alors que la passerelle écoute sur le VPS.
  */
 function envLoopbackIncompatibleAvecPage(urlAbsolue: string): boolean {
-  if (typeof window === "undefined") {
+  if (typeof globalThis.window === "undefined") {
     return false;
   }
   try {
@@ -27,7 +27,7 @@ function envLoopbackIncompatibleAvecPage(urlAbsolue: string): boolean {
     if (!hoteEstLoopback(u.hostname)) {
       return false;
     }
-    return !hoteEstLoopback(window.location.hostname);
+    return !hoteEstLoopback(globalThis.window.location.hostname);
   } catch {
     return false;
   }
@@ -40,12 +40,12 @@ function envLoopbackIncompatibleAvecPage(urlAbsolue: string): boolean {
  * Une API sur un autre hôte ou un port ≠ 3000 reste prise en compte.
  */
 function envDevMemeHotePortPasserelleStandard(urlAbsolue: string): boolean {
-  if (typeof window === "undefined") {
+  if (typeof globalThis.window === "undefined") {
     return false;
   }
   try {
     const u = new URL(urlAbsolue);
-    const pageH = window.location.hostname;
+    const pageH = globalThis.window.location.hostname;
     if (pageH === "" || u.hostname !== pageH) {
       return false;
     }
@@ -60,14 +60,14 @@ function envDevMemeHotePortPasserelleStandard(urlAbsolue: string): boolean {
 }
 
 function urlPasserelleHorsEnvSurMemeHoteQueLaPage(): string {
-  if (typeof window === "undefined") {
+  if (typeof globalThis.window === "undefined") {
     return "http://127.0.0.1:3000";
   }
-  const h = window.location.hostname;
+  const h = globalThis.window.location.hostname;
   if (h === "" || hoteEstLoopback(h)) {
     return "http://127.0.0.1:3000";
   }
-  const scheme = window.location.protocol === "https:" ? "https" : "http";
+  const scheme = globalThis.window.location.protocol === "https:" ? "https" : "http";
   return `${scheme}://${h}:3000`;
 }
 
@@ -82,7 +82,7 @@ function devPasserelleUtiliseProxyVite(): boolean {
   if (v === "0" || v === "false" || v === "no" || v === "off") {
     return false;
   }
-  if (!import.meta.env.DEV || typeof window === "undefined") {
+  if (!import.meta.env.DEV || typeof globalThis.window === "undefined") {
     return false;
   }
   return true;
@@ -106,11 +106,11 @@ function urlEstPasserelleLoopbackPort3000(urlAbsolue: string): boolean {
  * sinon URL directe loopback vers le port 3000.
  */
 function urlPasserelleDevSansVariableExplicite(): string {
-  if (typeof window === "undefined") {
+  if (typeof globalThis.window === "undefined") {
     return "http://127.0.0.1:3000";
   }
   if (devPasserelleUtiliseProxyVite()) {
-    return `${window.location.origin}${CHEMIN_PROXY_PASSERELLE_DEV}`;
+    return `${globalThis.window.location.origin}${CHEMIN_PROXY_PASSERELLE_DEV}`;
   }
   return urlPasserelleHorsEnvSurMemeHoteQueLaPage();
 }
@@ -122,8 +122,8 @@ function urlPasserelleDevSansVariableExplicite(): string {
  * En **preview / prod**, ou si `VITE_GATEWAY_DEV_USE_PROXY=0`, l’API suit `VITE_GATEWAY_BASE_URL` ou `http(s)://<hôte>:3000`.
  */
 export function urlBasePasserelle(): string {
-  if (typeof window !== "undefined") {
-    const h = window.location.hostname;
+  if (typeof globalThis.window !== "undefined") {
+    const h = globalThis.window.location.hostname;
     if (h !== "" && !hoteEstLoopback(h)) {
       let depuisEnvHorsLocal = urlDepuisVariableEnv();
       if (
@@ -144,9 +144,9 @@ export function urlBasePasserelle(): string {
         return depuisEnvHorsLocal;
       }
       if (import.meta.env.DEV && devPasserelleUtiliseProxyVite()) {
-        return `${window.location.origin}${CHEMIN_PROXY_PASSERELLE_DEV}`;
+        return `${globalThis.window.location.origin}${CHEMIN_PROXY_PASSERELLE_DEV}`;
       }
-      const scheme = window.location.protocol === "https:" ? "https" : "http";
+      const scheme = globalThis.window.location.protocol === "https:" ? "https" : "http";
       return `${scheme}://${h}:3000`;
     }
   }
@@ -156,7 +156,7 @@ export function urlBasePasserelle(): string {
     depuisEnv = null;
   }
 
-  if (import.meta.env.DEV && typeof window !== "undefined") {
+  if (import.meta.env.DEV && typeof globalThis.window !== "undefined") {
     if (depuisEnv === null) {
       return urlPasserelleDevSansVariableExplicite();
     }
@@ -164,7 +164,7 @@ export function urlBasePasserelle(): string {
       devPasserelleUtiliseProxyVite() &&
       urlEstPasserelleLoopbackPort3000(depuisEnv)
     ) {
-      return `${window.location.origin}${CHEMIN_PROXY_PASSERELLE_DEV}`;
+      return `${globalThis.window.location.origin}${CHEMIN_PROXY_PASSERELLE_DEV}`;
     }
     return depuisEnv;
   }

@@ -24,7 +24,7 @@ export function ShellAuthentifieKidoPanel() {
           roleSession={roleSession}
           surDeconnexion={() => {
             effacerToutJetonPasserelle();
-            void navigate("/connexion", { replace: true });
+            navigate("/connexion", { replace: true });
           }}
         />
         <div className="kp-colonne-travail">

@@ -7,9 +7,9 @@ export function resoudreInvocationSudoPourBinaireSysteme(params: {
   cleEnvChemin?: string;
 }): { executable: string; prefixeArguments: string[] } {
   const depuisEnv =
-    params.cleEnvChemin !== undefined
-      ? process.env[params.cleEnvChemin]?.trim()
-      : undefined;
+    params.cleEnvChemin === undefined
+      ? undefined
+      : process.env[params.cleEnvChemin]?.trim();
   const binaire =
     depuisEnv !== undefined && depuisEnv.length > 0
       ? depuisEnv

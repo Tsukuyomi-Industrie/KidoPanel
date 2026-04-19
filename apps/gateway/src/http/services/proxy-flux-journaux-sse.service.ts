@@ -54,7 +54,7 @@ export async function proxyFluxJournauxSseAvecPropriete(
 
   let pompageActif = true;
   const verification = setInterval(() => {
-    void (async () => {
+    (async () => {
       if (!pompageActif) {
         return;
       }
@@ -71,10 +71,10 @@ export async function proxyFluxJournauxSseAvecPropriete(
         clearInterval(verification);
         await lecteurAmont.cancel();
       }
-    })();
+    })().catch(() => {});
   }, INTERVALLE_VERIF_PROPRIETE_MS);
 
-  void (async () => {
+  (async () => {
     try {
       for (;;) {
         const { value, done } = await lecteurAmont.read();
@@ -99,7 +99,7 @@ export async function proxyFluxJournauxSseAvecPropriete(
       });
       await redacteur.close().catch(() => {});
     }
-  })();
+  })().catch(() => {});
 
   return new Response(readable, {
     status: amont.status,

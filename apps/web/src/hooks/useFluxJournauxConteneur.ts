@@ -100,7 +100,7 @@ export function useFluxJournauxConteneur(
       const attente = delaiReconnexionMs(refTentatives.current);
       idTemporisation = setTimeout(() => {
         idTemporisation = undefined;
-        void etablirFlux();
+        etablirFlux().catch(() => {});
       }, attente);
     };
 
@@ -113,12 +113,12 @@ export function useFluxJournauxConteneur(
 
       const base = urlBasePasserelle.replace(/\/$/, "");
 
-      const cheminFlux =
-        varianteFlux === "instanceServeurJeu"
-          ? `${base}/serveurs-jeux/instances/${encodeURIComponent(idConteneur)}/logs/stream`
-          : varianteFlux === "instanceWeb"
-            ? `${base}/web-instances/${encodeURIComponent(idConteneur)}/logs/stream`
-            : `${base}/containers/${encodeURIComponent(idConteneur)}/logs/stream`;
+      let cheminFlux = `${base}/containers/${encodeURIComponent(idConteneur)}/logs/stream`;
+      if (varianteFlux === "instanceServeurJeu") {
+        cheminFlux = `${base}/serveurs-jeux/instances/${encodeURIComponent(idConteneur)}/logs/stream`;
+      } else if (varianteFlux === "instanceWeb") {
+        cheminFlux = `${base}/web-instances/${encodeURIComponent(idConteneur)}/logs/stream`;
+      }
       const url = new URL(cheminFlux);
       if (tailEntrees !== undefined) {
         url.searchParams.set("tail", String(tailEntrees));
@@ -217,8 +217,9 @@ export function useFluxJournauxConteneur(
             try {
               const parse = JSON.parse(ev.donnees) as { line?: string };
               if (typeof parse.line === "string") {
+                const ligneAjout = parse.line;
                 setLignes((precedent) => {
-                  const suite = [...precedent, parse.line as string];
+                  const suite = [...precedent, ligneAjout];
                   if (suite.length > lignesMaxAffichage) {
                     return suite.slice(-lignesMaxAffichage);
                   }
@@ -243,22 +244,22 @@ export function useFluxJournauxConteneur(
           setEtatConnexion("inactif");
           refSurFinFluxNaturelle.current?.();
         }
-      } catch (err) {
+      } catch (error_) {
         if (executionAnnulee) {
           return;
         }
         if (
-          err instanceof Error &&
-          (err.name === "AbortError" ||
+          error_ instanceof Error &&
+          (error_.name === "AbortError" ||
             (typeof DOMException !== "undefined" &&
-              err instanceof DOMException &&
-              err.name === "AbortError"))
+              error_ instanceof DOMException &&
+              error_.name === "AbortError"))
         ) {
           return;
         }
         setDernierMessageErreur(
           formaterErreurPourAffichagePanel(
-            err,
+            error_,
             url.toString(),
             "flux SSE journaux conteneur",
           ),
@@ -267,7 +268,7 @@ export function useFluxJournauxConteneur(
       }
     };
 
-    void etablirFlux();
+    etablirFlux().catch(() => {});
 
     return () => {
       executionAnnulee = true;

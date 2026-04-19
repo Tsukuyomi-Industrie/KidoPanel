@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   listerDomainesProxyPasserelle,
@@ -17,7 +17,7 @@ export function PageProxyManager() {
 
   useEffect(() => {
     let vivant = true;
-    void (async () => {
+    (async () => {
       try {
         const [d, inst] = await Promise.all([
           listerDomainesProxyPasserelle(),
@@ -32,13 +32,13 @@ export function PageProxyManager() {
           setNomsInstances(mapNoms);
           setErreur(null);
         }
-      } catch (e) {
+      } catch (error_) {
         if (vivant) {
-          setErreur(e instanceof Error ? e.message : "Erreur.");
+          setErreur(error_ instanceof Error ? error_.message : "Erreur.");
           setDomaines([]);
         }
       }
-    })();
+    })().catch(() => {});
     return () => {
       vivant = false;
     };
@@ -49,10 +49,63 @@ export function PageProxyManager() {
       await supprimerDomaineProxyPasserelle(id);
       setDomaines((prev) => (prev === null ? prev : prev.filter((x) => x.id !== id)));
       pousserToast("Domaine supprimé.", "succes");
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Suppression impossible.", "erreur");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Suppression impossible.", "erreur");
     }
   };
+
+  let corpsTableauDomaines: ReactNode;
+  if (domaines === null) {
+    corpsTableauDomaines = <p className="kp-texte-muted">Chargement…</p>;
+  } else if (domaines.length === 0) {
+    corpsTableauDomaines = <p className="kp-texte-muted">Aucun domaine configuré.</p>;
+  } else {
+    corpsTableauDomaines = (
+      <div style={{ overflowX: "auto" }} className="kp-marges-haut-sm">
+        <table className="kidopanel-tableau">
+          <thead>
+            <tr>
+              <th>Domaine</th>
+              <th>Container</th>
+              <th>Port</th>
+              <th>SSL</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {domaines.map((d) => (
+              <tr key={d.id}>
+                <td>
+                  <a href={`https://${d.domaine}`} target="_blank" rel="noreferrer">
+                    {d.domaine}
+                  </a>
+                </td>
+                <td>
+                  {d.webInstanceId !== null ? (
+                    <Link
+                      to={`/hebergement/containers/${encodeURIComponent(d.webInstanceId)}`}
+                      className="kp-lien-inline"
+                    >
+                      {nomsInstances[d.webInstanceId] ?? d.webInstanceId.slice(0, 8)}
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+                <td>{String(d.portCible)}</td>
+                <td>{d.sslActif === true ? "Actif" : "Non configuré"}</td>
+                <td>
+                  <button type="button" className="kp-btn kp-btn--ghost kp-btn--sm" onClick={() => retirer(d.id).catch(() => {})}>
+                    Supprimer
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -75,55 +128,7 @@ export function PageProxyManager() {
           {erreur}
         </pre>
       ) : null}
-      {domaines === null ? (
-        <p className="kp-texte-muted">Chargement…</p>
-      ) : domaines.length === 0 ? (
-        <p className="kp-texte-muted">Aucun domaine configuré.</p>
-      ) : (
-        <div style={{ overflowX: "auto" }} className="kp-marges-haut-sm">
-          <table className="kidopanel-tableau">
-            <thead>
-              <tr>
-                <th>Domaine</th>
-                <th>Container</th>
-                <th>Port</th>
-                <th>SSL</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {domaines.map((d) => (
-                <tr key={d.id}>
-                  <td>
-                    <a href={`https://${d.domaine}`} target="_blank" rel="noreferrer">
-                      {d.domaine}
-                    </a>
-                  </td>
-                  <td>
-                    {d.webInstanceId !== null ? (
-                      <Link
-                        to={`/hebergement/containers/${encodeURIComponent(d.webInstanceId)}`}
-                        className="kp-lien-inline"
-                      >
-                        {nomsInstances[d.webInstanceId] ?? d.webInstanceId.slice(0, 8)}
-                      </Link>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td>{String(d.portCible)}</td>
-                  <td>{d.sslActif ? "Actif" : "Non configuré"}</td>
-                  <td>
-                    <button type="button" className="kp-btn kp-btn--ghost kp-btn--sm" onClick={() => void retirer(d.id)}>
-                      Supprimer
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {corpsTableauDomaines}
     </>
   );
 }

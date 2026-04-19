@@ -264,10 +264,17 @@ describe.skipIf(!integrationPostgresDisponible())(
         headers: { Authorization: `Bearer ${a.jeton}` },
       });
       expect(reponse.status).toBe(200);
-      const lecteur = reponse.body!.getReader();
-      const { value, done } = await lecteur.read();
-      expect(done).toBe(false);
-      expect(new TextDecoder().decode(value!)).toContain("ping-mock");
+      const fluxCorps = reponse.body;
+      if (fluxCorps === null) {
+        throw new Error("Réponse SSE sans corps de flux.");
+      }
+      const lecteur = fluxCorps.getReader();
+      const premierChunk = await lecteur.read();
+      expect(premierChunk.done).toBe(false);
+      if (premierChunk.value === undefined) {
+        throw new Error("Premier fragment SSE vide.");
+      }
+      expect(new TextDecoder().decode(premierChunk.value)).toContain("ping-mock");
       const fin = await lecteur.read();
       expect(fin.done).toBe(true);
       expect(etatMoteur.fluxSseOuverts).toBe(0);

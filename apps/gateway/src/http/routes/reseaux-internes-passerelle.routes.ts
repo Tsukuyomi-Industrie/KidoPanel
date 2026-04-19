@@ -152,17 +152,17 @@ export function monterRoutesReseauxInternesPasserelle(
           sansRouteVersInternetExterne: corps.sansRouteVersInternetExterne ?? false,
         });
         return c.json({ reseauInterne: ligne }, 201);
-      } catch (erreur: unknown) {
+      } catch (error_: unknown) {
         journaliserPasserelle({
           niveau: "error",
           message: "reseau_interne_echec_persistance_apres_docker",
           requestId: c.get("requestId"),
-          metadata: { nomDocker, code: String(erreur) },
+          metadata: { nomDocker, code: String(error_) },
         });
         await supprimerPontSurMoteurHttp(nomDocker, c.get("requestId"));
         if (
-          erreur instanceof PrismaClientKnownRequestError &&
-          erreur.code === "P2002"
+          error_ instanceof PrismaClientKnownRequestError &&
+          error_.code === "P2002"
         ) {
           return c.json(
             {
@@ -175,7 +175,7 @@ export function monterRoutesReseauxInternesPasserelle(
             409,
           );
         }
-        throw erreur;
+        throw error_;
       }
     },
   );
@@ -221,12 +221,12 @@ export function monterRoutesReseauxInternesPasserelle(
         method: "DELETE",
         headers: { [EN_TETE_ID_REQUETE_INTERNE]: c.get("requestId") },
       });
-    } catch (erreur) {
+    } catch (error_) {
       journaliserPasserelle({
         niveau: "error",
         message: "reseau_interne_suppression_moteur_indisponible",
         requestId: c.get("requestId"),
-        metadata: { code: String(erreur) },
+        metadata: { code: String(error_) },
       });
       return c.json(
         {

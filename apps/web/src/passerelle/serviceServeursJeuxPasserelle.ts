@@ -23,7 +23,7 @@ function assemblerUrl(cheminRelatif: string): string {
   return `${base}${chemin}`;
 }
 
-/** Construit le message d’erreur affiché (inclut details.causeConnexion si la passerelle l’expose, ex. ECONNREFUSED). */
+/** Construit le message d’error_ affiché (inclut details.causeConnexion si la passerelle l’expose, ex. ECONNREFUSED). */
 function messageErreurPasserelleDepuisJson(
   json: unknown,
   statutHttp: number,
@@ -70,8 +70,8 @@ async function appelerJsonAuthentifie(
         ...init.headers,
       },
     });
-  } catch (erreur) {
-    throw new Error(formaterErreurReseauFetch(url, erreur));
+  } catch (error_) {
+    throw new Error(formaterErreurReseauFetch(url, error_));
   }
 }
 

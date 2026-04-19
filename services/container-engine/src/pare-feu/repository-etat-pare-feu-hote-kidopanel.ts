@@ -80,7 +80,11 @@ export class RepositoryEtatPareFeuHoteKidopanel {
     if (index < 0) {
       return null;
     }
-    return { index, entree: etat.entrees[index]! };
+    const entreeResolue = etat.entrees[index];
+    if (entreeResolue === undefined) {
+      return null;
+    }
+    return { index, entree: entreeResolue };
   }
 
   /**

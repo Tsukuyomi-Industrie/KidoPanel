@@ -9,8 +9,8 @@ import {
 import { TexteAideChampCreationConteneurLab } from "./TexteAideChampCreationConteneurLab.js";
 
 type Props = {
-  etat: EtatCreationConteneurLab;
-  majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
+  readonly etat: EtatCreationConteneurLab;
+  readonly majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
 };
 
 /**
@@ -140,7 +140,7 @@ export function BlocHoteRuntimeEtMemoireCreationConteneurLab({
             type="checkbox"
             checked={etat.oomKillDesactive}
             onChange={(e) => majEtat({ oomKillDesactive: e.target.checked })}
-          />
+          />{" "}
           Ne pas tuer le processus en surconsommation mémoire
         </label>
       </div>

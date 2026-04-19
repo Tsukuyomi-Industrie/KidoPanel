@@ -6,7 +6,11 @@ export function extraireEmailDepuisJetonClient(jeton: string): string | null {
   if (segments.length < 2) {
     return null;
   }
-  let base64 = segments[1]!.replace(/-/g, "+").replace(/_/g, "/");
+  const payloadBrut = segments[1];
+  if (payloadBrut === undefined || payloadBrut.length === 0) {
+    return null;
+  }
+  let base64 = payloadBrut.replaceAll("-", "+").replaceAll("_", "/");
   const reste = base64.length % 4;
   if (reste === 2) {
     base64 += "==";

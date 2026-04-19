@@ -4,8 +4,8 @@ import {
 } from "../lab/passerelleErreursAffichageLab.js";
 
 type PropsBandeauErreurPasserelleKidoPanel = {
-  messageErreur: string | null;
-  refUrlContexteErreur: { current: string };
+  readonly messageErreur: string | null;
+  readonly refUrlContexteErreur: { readonly current: string };
 };
 
 /**

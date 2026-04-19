@@ -19,13 +19,13 @@ type EntreeToast = {
 /**
  * Fournisseur léger : file de toasts empilés avec retrait automatique après quelques secondes.
  */
-export function FournisseurToastKidoPanel({ children }: { children: ReactNode }) {
+export function FournisseurToastKidoPanel({ children }: { readonly children: ReactNode }) {
   const [file, setFile] = useState<EntreeToast[]>([]);
 
   const pousserToast = useCallback((message: string, variante: VarianteToastKidoPanel) => {
     const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
     setFile((courant) => [...courant, { id, message, variante }]);
-    window.setTimeout(() => {
+    globalThis.setTimeout(() => {
       setFile((courant) => courant.filter((t) => t.id !== id));
     }, 5200);
   }, []);

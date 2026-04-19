@@ -1,6 +1,6 @@
 type PropsIcoServeurs = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône serveurs de jeu pour le rail de navigation. */

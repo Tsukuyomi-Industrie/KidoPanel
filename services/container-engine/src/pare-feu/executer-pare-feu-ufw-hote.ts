@@ -5,13 +5,13 @@ import type { PublicationHotePareFeu } from "./types-publication-hote-pare-feu.j
 
 const executerFichier = promisify(execFile);
 
-export function formaterErreurExecUfw(erreur: unknown): string {
-  if (!(erreur instanceof Error)) {
-    return String(erreur);
+export function formaterErreurExecUfw(error_: unknown): string {
+  if (!(error_ instanceof Error)) {
+    return String(error_);
   }
-  const avecStderr = erreur as Error & { stderr?: Buffer };
+  const avecStderr = error_ as Error & { stderr?: Buffer };
   const errStd = avecStderr.stderr?.toString?.()?.trim();
-  const base = erreur.message;
+  const base = error_.message;
   return errStd !== undefined && errStd.length > 0 ? `${base} | ${errStd}` : base;
 }
 
@@ -59,10 +59,10 @@ export async function ouvrirPortUfwHote(
       },
     );
     return { ok: true };
-  } catch (erreur) {
+  } catch (error_) {
     return {
       ok: false,
-      messageErreur: formaterErreurExecUfw(erreur),
+      messageErreur: formaterErreurExecUfw(error_),
     };
   }
 }
@@ -87,10 +87,10 @@ export async function fermerPortUfwHote(
       },
     );
     return { ok: true };
-  } catch (erreur) {
+  } catch (error_) {
     return {
       ok: false,
-      messageErreur: formaterErreurExecUfw(erreur),
+      messageErreur: formaterErreurExecUfw(error_),
     };
   }
 }

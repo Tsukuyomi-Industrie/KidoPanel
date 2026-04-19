@@ -1,5 +1,12 @@
 import type { ConfigurationCreationConteneurSauvegardee } from "./typesConfigurationCreationConteneurLab.js";
 
+/** Indique si la valeur peut servir de corps JSON métier pour une configuration persistée. */
+function estCorpsConfigurationObjetMetier(
+  valeur: unknown,
+): valeur is Record<string, unknown> {
+  return typeof valeur === "object" && valeur !== null && !Array.isArray(valeur);
+}
+
 const CLE_STOCKAGE_NAVIGATEUR =
   "kidopanel_lab_configurations_creation_conteneur_v1";
 
@@ -41,10 +48,13 @@ export function lireConfigurationsCreationConteneurLab(): ConfigurationCreationC
         continue;
       }
       const { id, nom, corps } = entree as ConfigurationCreationConteneurSauvegardee;
+      if (!estCorpsConfigurationObjetMetier(corps)) {
+        continue;
+      }
       sortie.push({
         id,
         nom: String(nom).trim() || "Sans nom",
-        corps: corps as Record<string, unknown>,
+        corps,
       });
     }
     return sortie;

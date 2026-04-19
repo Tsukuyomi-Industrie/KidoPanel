@@ -40,10 +40,10 @@ export function monterRoutesDiagnosticPareFeuPasserelle(
         status: 200,
         headers: { "Content-Type": "application/json; charset=utf-8" },
       });
-    } catch (erreur) {
+    } catch (error_) {
       journaliserErreurPasserelle(
         "diagnostic_pare_feu_moteur_indisponible",
-        erreur,
+        error_,
         c.get("requestId"),
       );
       return c.json(

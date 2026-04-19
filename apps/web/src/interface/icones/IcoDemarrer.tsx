@@ -1,6 +1,6 @@
 type PropsIcoDemarrer = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône lecture / démarrage pour les actions rapides d’une carte serveur. */

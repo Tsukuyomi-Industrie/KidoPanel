@@ -43,14 +43,16 @@ export function creerFetchMockMoteurConteneurs(
   fetchReel: typeof fetch,
 ): typeof fetch {
   return async (entree, init) => {
-    const href =
-      typeof entree === "string"
-        ? entree
-        : entree instanceof URL
-          ? entree.href
-          : entree.url;
+    let href: string;
+    if (typeof entree === "string") {
+      href = entree;
+    } else if (entree instanceof URL) {
+      href = entree.href;
+    } else {
+      href = entree.url;
+    }
     if (!href.startsWith(etat.urlBase)) {
-      return fetchReel(entree as RequestInfo | URL, init);
+      return fetchReel(entree, init);
     }
 
     const url = new URL(href);

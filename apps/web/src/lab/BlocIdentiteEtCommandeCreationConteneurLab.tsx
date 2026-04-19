@@ -23,10 +23,10 @@ import {
 import { TexteAideChampCreationConteneurLab } from "./TexteAideChampCreationConteneurLab.js";
 
 type Props = {
-  etat: EtatCreationConteneurLab;
-  majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
+  readonly etat: EtatCreationConteneurLab;
+  readonly majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
   /** Jeton JWT courant : sans jeton, le catalogue `GET /images` n’est pas chargé. */
-  jetonSession: string;
+  readonly jetonSession: string;
 };
 
 /** Identité catalogue, nom du conteneur, commande, entrypoint et identité processus. */
@@ -53,7 +53,7 @@ export function BlocIdentiteEtCommandeCreationConteneurLab({
     }
     setChargementCatalogue(true);
     setErreurCatalogue(null);
-    void (async () => {
+    (async () => {
       const reponse = await appelerPasserelle("/images", {
         method: "GET",
         jetonBearer: jetonSession,
@@ -82,7 +82,7 @@ export function BlocIdentiteEtCommandeCreationConteneurLab({
           setChargementCatalogue(false);
         }
       }
-    })();
+    })().catch(() => {});
     return () => {
       annule = true;
     };

@@ -30,6 +30,6 @@ export function formaterLigneEvenementMoteur(
   meta?: Record<string, unknown>,
 ): string {
   const horodatage = new Date().toISOString();
-  const suffixe = meta !== undefined ? ` ${JSON.stringify(meta)}` : "";
+  const suffixe = meta === undefined ? "" : ` ${JSON.stringify(meta)}`;
   return `[${horodatage}] [moteur] ${libelleEvenement}${suffixe}\n`;
 }

@@ -48,8 +48,8 @@ export function monterRoutesCycleWebInstances(
         status: amont.status,
         headers: new Headers(amont.headers),
       });
-    } catch (erreur) {
-      return repondreErreurWeb(c, erreur);
+    } catch (error_) {
+      return repondreErreurWeb(c, error_);
     }
   });
 
@@ -60,8 +60,8 @@ export function monterRoutesCycleWebInstances(
         role: c.get("roleUtilisateurInterne")!,
       });
       return c.json({ instances: lignes });
-    } catch (erreur) {
-      return repondreErreurWeb(c, erreur);
+    } catch (error_) {
+      return repondreErreurWeb(c, error_);
     }
   });
 
@@ -86,8 +86,8 @@ export function monterRoutesCycleWebInstances(
           identifiantRequeteHttp: c.get("requestId"),
         });
         return c.json(cree, 201);
-      } catch (erreur) {
-        return repondreErreurWeb(c, erreur);
+      } catch (error_) {
+        return repondreErreurWeb(c, error_);
       }
     },
   );
@@ -100,8 +100,8 @@ export function monterRoutesCycleWebInstances(
         instanceId: c.req.param("id"),
       });
       return c.json(detail);
-    } catch (erreur) {
-      return repondreErreurWeb(c, erreur);
+    } catch (error_) {
+      return repondreErreurWeb(c, error_);
     }
   });
 
@@ -114,8 +114,8 @@ export function monterRoutesCycleWebInstances(
         identifiantRequeteHttp: c.get("requestId"),
       });
       return c.json(ligne);
-    } catch (erreur) {
-      return repondreErreurWeb(c, erreur);
+    } catch (error_) {
+      return repondreErreurWeb(c, error_);
     }
   });
 
@@ -128,8 +128,8 @@ export function monterRoutesCycleWebInstances(
         identifiantRequeteHttp: c.get("requestId"),
       });
       return c.json(ligne);
-    } catch (erreur) {
-      return repondreErreurWeb(c, erreur);
+    } catch (error_) {
+      return repondreErreurWeb(c, error_);
     }
   });
 
@@ -142,8 +142,8 @@ export function monterRoutesCycleWebInstances(
         identifiantRequeteHttp: c.get("requestId"),
       });
       return c.json(ligne);
-    } catch (erreur) {
-      return repondreErreurWeb(c, erreur);
+    } catch (error_) {
+      return repondreErreurWeb(c, error_);
     }
   });
 
@@ -156,8 +156,8 @@ export function monterRoutesCycleWebInstances(
         identifiantRequeteHttp: c.get("requestId"),
       });
       return c.body(null, 204);
-    } catch (erreur) {
-      return repondreErreurWeb(c, erreur);
+    } catch (error_) {
+      return repondreErreurWeb(c, error_);
     }
   });
 

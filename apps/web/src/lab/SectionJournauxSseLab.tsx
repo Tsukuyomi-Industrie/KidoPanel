@@ -14,10 +14,10 @@ import {
 const VALEURS_TAIL: readonly number[] = [100, 200, 500, 1000, 5000];
 
 type PropsSectionJournauxSseLab = {
-  idSelectionne: string;
-  jeton: string;
-  fluxJournauxActif: boolean;
-  setFluxJournauxActif: (actif: boolean) => void;
+  readonly idSelectionne: string;
+  readonly jeton: string;
+  readonly fluxJournauxActif: boolean;
+  readonly setFluxJournauxActif: (actif: boolean) => void;
 };
 
 function resumeIdentifiant(id: string): string {
@@ -133,7 +133,7 @@ export function SectionJournauxSseLab({
 
           <div className="kp-journaux__barre">
             <label>
-              Lignes (tail)
+              Lignes (tail){" "}
               <select
                 className="kp-journaux__select"
                 value={tailEntrees}
@@ -157,7 +157,7 @@ export function SectionJournauxSseLab({
                 onChange={(e) => {
                   setHorodatagesDocker(e.target.checked);
                 }}
-              />
+              />{" "}
               Horodatages Docker
             </label>
             <label>
@@ -167,7 +167,7 @@ export function SectionJournauxSseLab({
                 onChange={(e) => {
                   setRetourALaLigne(e.target.checked);
                 }}
-              />
+              />{" "}
               Retour à la ligne
             </label>
             <label>
@@ -177,7 +177,7 @@ export function SectionJournauxSseLab({
                 onChange={(e) => {
                   setDefilementAuto(e.target.checked);
                 }}
-              />
+              />{" "}
               Défilement auto
             </label>
           </div>
@@ -225,7 +225,7 @@ export function SectionJournauxSseLab({
               className="kp-journaux__btn"
               disabled={lignesFiltrees.length === 0}
               onClick={() => {
-                void copierPressePapiers();
+                copierPressePapiers().catch(() => {});
               }}
             >
               Copier
@@ -248,16 +248,18 @@ export function SectionJournauxSseLab({
           </p>
 
           {dernierMessageErreur ? (
-            <pre className="kp-journaux__erreur" role="status">
-              {enrichirTexteErreurPourAffichage(
-                dernierMessageErreur,
-                idSelectionne.trim() === ""
-                  ? `${urlBasePasserelle()}/containers/…/logs/stream`
-                  : composerUrlPasserelle(
-                      `/containers/${encodeURIComponent(idSelectionne.trim())}/logs/stream`,
-                    ),
-              )}
-            </pre>
+            <output className="kp-journaux__erreur" style={{ display: "block" }}>
+              <pre className="kp-journaux__erreur-pre">
+                {enrichirTexteErreurPourAffichage(
+                  dernierMessageErreur,
+                  idSelectionne.trim() === ""
+                    ? `${urlBasePasserelle()}/containers/…/logs/stream`
+                    : composerUrlPasserelle(
+                        `/containers/${encodeURIComponent(idSelectionne.trim())}/logs/stream`,
+                      ),
+                )}
+              </pre>
+            </output>
           ) : null}
 
           <pre

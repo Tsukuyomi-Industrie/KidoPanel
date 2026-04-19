@@ -36,12 +36,12 @@ export function createEngineHttpApp(engine: ContainerEngine): Hono<{
     try {
       await engine.ping();
       return c.json({ status: "ok", docker: true });
-    } catch (err) {
-      const response = tryRespondWithEngineError(c, err);
+    } catch (error_) {
+      const response = tryRespondWithEngineError(c, error_);
       if (response) return response;
       journaliserErreurMoteur(
         "sante_docker_echec_inattendu",
-        err,
+        error_,
         c.get("requestId"),
       );
       return c.json({ status: "error", docker: false }, 500);

@@ -17,8 +17,8 @@ import {
 import { TexteAideChampCreationConteneurLab } from "./TexteAideChampCreationConteneurLab.js";
 
 type Props = {
-  etat: EtatCreationConteneurLab;
-  majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
+  readonly etat: EtatCreationConteneurLab;
+  readonly majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
 };
 
 /** Champs de la ressource de création Docker hors `hostConfig` (plateforme, délais, attachements flux). */
@@ -57,7 +57,7 @@ export function BlocOptionsMoteurDockerCreationConteneurLab({
             type="checkbox"
             checked={etat.desactiverReseauConteneur}
             onChange={(e) => majEtat({ desactiverReseauConteneur: e.target.checked })}
-          />
+          />{" "}
           Désactiver la pile réseau du conteneur
         </label>
       </div>
@@ -69,7 +69,7 @@ export function BlocOptionsMoteurDockerCreationConteneurLab({
             type="checkbox"
             checked={etat.attacherStdin}
             onChange={(e) => majEtat({ attacherStdin: e.target.checked })}
-          />
+          />{" "}
           Attacher le flux stdin
         </label>
       </div>
@@ -80,7 +80,7 @@ export function BlocOptionsMoteurDockerCreationConteneurLab({
             type="checkbox"
             checked={etat.attacherStdout}
             onChange={(e) => majEtat({ attacherStdout: e.target.checked })}
-          />
+          />{" "}
           Attacher le flux stdout
         </label>
       </div>
@@ -91,7 +91,7 @@ export function BlocOptionsMoteurDockerCreationConteneurLab({
             type="checkbox"
             checked={etat.attacherStderr}
             onChange={(e) => majEtat({ attacherStderr: e.target.checked })}
-          />
+          />{" "}
           Attacher le flux stderr
         </label>
       </div>
@@ -102,7 +102,7 @@ export function BlocOptionsMoteurDockerCreationConteneurLab({
             type="checkbox"
             checked={etat.stdinUneFois}
             onChange={(e) => majEtat({ stdinUneFois: e.target.checked })}
-          />
+          />{" "}
           Fermer stdin après une attache unique
         </label>
       </div>

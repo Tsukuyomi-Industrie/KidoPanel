@@ -1,10 +1,10 @@
 import type { EnregistrementReseauInternePasserelle } from "../../passerelle/serviceReseauxInternesPasserelle.js";
 
 type PropsCarteReseau = {
-  reseau: EnregistrementReseauInternePasserelle;
-  nombreInstancesLiees: number;
-  surSupprimer: (id: string) => void;
-  peutSupprimer: boolean;
+  readonly reseau: EnregistrementReseauInternePasserelle;
+  readonly nombreInstancesLiees: number;
+  readonly surSupprimer: (id: string) => void;
+  readonly peutSupprimer: boolean;
 };
 
 /** Résumé d’un pont réseau utilisateur avec état d’isolement Internet. */

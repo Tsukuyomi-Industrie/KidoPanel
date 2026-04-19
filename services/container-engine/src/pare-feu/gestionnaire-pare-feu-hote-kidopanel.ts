@@ -75,7 +75,7 @@ export class GestionnairePareFeuHoteKidopanel {
     docker: DockerClient,
     options?: { requestId?: string },
   ): Promise<void> {
-    if (!pareFeuAutomatiqueActiveDepuisEnv()) {
+    if (pareFeuAutomatiqueActiveDepuisEnv() === false) {
       return;
     }
     await this.journaliserBackendPareFeuUneFois(options?.requestId);
@@ -126,12 +126,12 @@ export class GestionnairePareFeuHoteKidopanel {
     let firewalldModifie = false;
 
     for (const ancienne of anciennesList) {
-      if (!cleNouv.has(clePublication(ancienne))) {
+      if (cleNouv.has(clePublication(ancienne)) === false) {
         const res = await fermerPortPareFeuHoteUnifie(ancienne);
         if (res.ok && res.backend === "firewalld") {
           firewalldModifie = true;
         }
-        if (!res.ok) {
+        if (res.ok === false) {
           journaliserMoteur({
             niveau: "warn",
             message: "pare_feu_hote_fermeture_port_echec",
@@ -148,12 +148,12 @@ export class GestionnairePareFeuHoteKidopanel {
     }
 
     for (const pub of publications) {
-      if (!cleAnc.has(clePublication(pub))) {
+      if (cleAnc.has(clePublication(pub)) === false) {
         const res = await ouvrirPortPareFeuHoteUnifie(pub);
         if (res.ok && res.backend === "firewalld") {
           firewalldModifie = true;
         }
-        if (!res.ok) {
+        if (res.ok === false) {
           journaliserMoteur({
             niveau: "warn",
             message: "pare_feu_hote_ouverture_port_echec",
@@ -201,7 +201,7 @@ export class GestionnairePareFeuHoteKidopanel {
     idConteneur: string,
     options?: { requestId?: string },
   ): Promise<void> {
-    if (!pareFeuAutomatiqueActiveDepuisEnv()) {
+    if (pareFeuAutomatiqueActiveDepuisEnv() === false) {
       return;
     }
 
@@ -238,7 +238,7 @@ export class GestionnairePareFeuHoteKidopanel {
 export function creerGestionnairePareFeuHoteKidopanelDepuisEnv():
   | GestionnairePareFeuHoteKidopanel
   | undefined {
-  if (!pareFeuAutomatiqueActiveDepuisEnv()) {
+  if (pareFeuAutomatiqueActiveDepuisEnv() === false) {
     return undefined;
   }
   return GestionnairePareFeuHoteKidopanel.creerDepuisEnv();

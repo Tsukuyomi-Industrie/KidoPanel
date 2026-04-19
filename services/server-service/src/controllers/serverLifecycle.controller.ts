@@ -54,8 +54,8 @@ export function monterRoutesCycleInstanceServeurJeux(
         status: amont.status,
         headers: entetes,
       });
-    } catch (erreur) {
-      return repondreErreurMetierInstanceJeux(c, erreur);
+    } catch (error_) {
+      return repondreErreurMetierInstanceJeux(c, error_);
     }
   });
 
@@ -66,8 +66,8 @@ export function monterRoutesCycleInstanceServeurJeux(
         role: c.get("roleUtilisateurInterne")!,
       });
       return c.json({ instances: lignes });
-    } catch (erreur) {
-      return repondreErreurMetierInstanceJeux(c, erreur);
+    } catch (error_) {
+      return repondreErreurMetierInstanceJeux(c, error_);
     }
   });
 
@@ -92,8 +92,8 @@ export function monterRoutesCycleInstanceServeurJeux(
           reseauPrimaireKidopanel: corps.reseauPrimaireKidopanel,
         });
         return c.json(cree, 201);
-      } catch (erreur) {
-        return repondreErreurMetierInstanceJeux(c, erreur);
+      } catch (error_) {
+        return repondreErreurMetierInstanceJeux(c, error_);
       }
     },
   );
@@ -106,8 +106,8 @@ export function monterRoutesCycleInstanceServeurJeux(
         instanceId: c.req.param("idInstance"),
       });
       return c.json(detail);
-    } catch (erreur) {
-      return repondreErreurMetierInstanceJeux(c, erreur);
+    } catch (error_) {
+      return repondreErreurMetierInstanceJeux(c, error_);
     }
   });
 
@@ -120,8 +120,8 @@ export function monterRoutesCycleInstanceServeurJeux(
         identifiantRequeteHttp: c.get("requestId"),
       });
       return c.json(ligne);
-    } catch (erreur) {
-      return repondreErreurMetierInstanceJeux(c, erreur);
+    } catch (error_) {
+      return repondreErreurMetierInstanceJeux(c, error_);
     }
   });
 
@@ -134,8 +134,8 @@ export function monterRoutesCycleInstanceServeurJeux(
         identifiantRequeteHttp: c.get("requestId"),
       });
       return c.json(ligne);
-    } catch (erreur) {
-      return repondreErreurMetierInstanceJeux(c, erreur);
+    } catch (error_) {
+      return repondreErreurMetierInstanceJeux(c, error_);
     }
   });
 
@@ -148,8 +148,8 @@ export function monterRoutesCycleInstanceServeurJeux(
         identifiantRequeteHttp: c.get("requestId"),
       });
       return c.json(ligne);
-    } catch (erreur) {
-      return repondreErreurMetierInstanceJeux(c, erreur);
+    } catch (error_) {
+      return repondreErreurMetierInstanceJeux(c, error_);
     }
   });
 
@@ -162,8 +162,8 @@ export function monterRoutesCycleInstanceServeurJeux(
         identifiantRequeteHttp: c.get("requestId"),
       });
       return c.body(null, 204);
-    } catch (erreur) {
-      return repondreErreurMetierInstanceJeux(c, erreur);
+    } catch (error_) {
+      return repondreErreurMetierInstanceJeux(c, error_);
     }
   });
 

@@ -72,20 +72,20 @@ export class ServiceJournauxFichierConteneur {
       await this.ecrireEvenement(idComplet, "conteneur_cree", {
         idConteneur: idComplet,
         referenceDockerEffective: meta.referenceDockerEffective,
-        ...(meta.idCatalogueImage !== undefined
-          ? { idCatalogueImage: meta.idCatalogueImage }
-          : {}),
+        ...(meta.idCatalogueImage === undefined
+          ? {}
+          : { idCatalogueImage: meta.idCatalogueImage }),
         nomConteneur: meta.nomConteneur,
         hostname: meta.hostname,
         idRequete: meta.idRequete,
       });
-    } catch (erreur) {
+    } catch (error_) {
       journaliserMoteur({
         niveau: "warn",
         message: "journal_fichier_conteneur_echec_creation",
         metadata: {
           idReference,
-          erreur: erreur instanceof Error ? erreur.message : String(erreur),
+          erreur: error_ instanceof Error ? error_.message : String(error_),
         },
       });
     }
@@ -99,11 +99,11 @@ export class ServiceJournauxFichierConteneur {
     depuisEpochSecondes: number,
     meta?: { idRequete?: string },
   ): void {
-    void this.notifierDemarrageEtDemarrerSuiviSortieAsync(
+    this.notifierDemarrageEtDemarrerSuiviSortieAsync(
       idReference,
       depuisEpochSecondes,
       meta,
-    );
+    ).catch(() => {});
   }
 
   private async notifierDemarrageEtDemarrerSuiviSortieAsync(
@@ -114,13 +114,13 @@ export class ServiceJournauxFichierConteneur {
     let idComplet: string;
     try {
       idComplet = await resoudreIdCompletConteneur(this.docker, idReference);
-    } catch (erreur) {
+    } catch (error_) {
       journaliserMoteur({
         niveau: "warn",
         message: "journal_fichier_conteneur_echec_resolution_id_demarrage",
         metadata: {
           idReference,
-          erreur: erreur instanceof Error ? erreur.message : String(erreur),
+          erreur: error_ instanceof Error ? error_.message : String(error_),
         },
       });
       return;
@@ -132,13 +132,13 @@ export class ServiceJournauxFichierConteneur {
         depuisEpochSecondes,
         idRequete: meta?.idRequete,
       });
-    } catch (erreur) {
+    } catch (error_) {
       journaliserMoteur({
         niveau: "warn",
         message: "journal_fichier_conteneur_echec_ecriture_demarrage",
         metadata: {
           idConteneur: idComplet,
-          erreur: erreur instanceof Error ? erreur.message : String(erreur),
+          erreur: error_ instanceof Error ? error_.message : String(error_),
         },
       });
     }
@@ -167,13 +167,13 @@ export class ServiceJournauxFichierConteneur {
         idConteneur: idComplet,
         delaiSeconde: meta?.delaiSeconde,
       });
-    } catch (erreur) {
+    } catch (error_) {
       journaliserMoteur({
         niveau: "warn",
         message: "journal_fichier_conteneur_echec_ecriture_arret",
         metadata: {
           idReference,
-          erreur: erreur instanceof Error ? erreur.message : String(erreur),
+          erreur: error_ instanceof Error ? error_.message : String(error_),
         },
       });
     }
@@ -191,13 +191,13 @@ export class ServiceJournauxFichierConteneur {
         idConteneur: idComplet,
         force: meta?.force ?? false,
       });
-    } catch (erreur) {
+    } catch (error_) {
       journaliserMoteur({
         niveau: "warn",
         message: "journal_fichier_conteneur_echec_ecriture_suppression",
         metadata: {
           idConteneur: idComplet,
-          erreur: erreur instanceof Error ? erreur.message : String(erreur),
+          erreur: error_ instanceof Error ? error_.message : String(error_),
         },
       });
     }

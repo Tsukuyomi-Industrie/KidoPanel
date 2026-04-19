@@ -105,24 +105,45 @@ a.kp-carte-serveur:hover {
   color: var(--kp-text-muted);
 }
 
-.kp-barre-ressource__piste {
+.kp-barre-ressource__avancement {
+  appearance: none;
+  width: 100%;
   height: 4px;
-  background: var(--kp-bg-overlay);
+  vertical-align: middle;
+  border: none;
   border-radius: 999px;
   overflow: hidden;
+  background: var(--kp-bg-overlay);
 }
 
-.kp-barre-ressource__remplissage {
-  height: 100%;
+.kp-barre-ressource__avancement::-webkit-progress-bar {
+  background: var(--kp-bg-overlay);
+  border-radius: 999px;
+}
+
+.kp-barre-ressource__avancement::-webkit-progress-value {
   border-radius: 999px;
   transition: width 0.28s ease;
 }
 
-.kp-barre-ressource__remplissage--ram {
+.kp-barre-ressource__avancement::-moz-progress-bar {
+  border-radius: 999px;
+  transition: width 0.28s ease;
+}
+
+.kp-barre-ressource__avancement--ram::-webkit-progress-value {
   background: var(--kp-cyan);
 }
 
-.kp-barre-ressource__remplissage--cpu {
+.kp-barre-ressource__avancement--ram::-moz-progress-bar {
+  background: var(--kp-cyan);
+}
+
+.kp-barre-ressource__avancement--cpu::-webkit-progress-value {
+  background: var(--kp-amber);
+}
+
+.kp-barre-ressource__avancement--cpu::-moz-progress-bar {
   background: var(--kp-amber);
 }
 

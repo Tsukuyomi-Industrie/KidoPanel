@@ -54,7 +54,7 @@ export function InterfaceTestPasserelle() {
 
   useEffect(() => {
     let annule = false;
-    void (async () => {
+    (async () => {
       setEtatSondePasserelle("en_cours");
       const resultat = await sondageSantePasserelle();
       if (annule) {
@@ -62,7 +62,7 @@ export function InterfaceTestPasserelle() {
       }
       setEtatSondePasserelle(resultat.joignable ? "ok" : "echec");
       setTexteSondePasserelle(resultat.message);
-    })();
+    })().catch(() => {});
     return () => {
       annule = true;
     };
@@ -98,10 +98,10 @@ export function InterfaceTestPasserelle() {
         containers?: ResumeConteneurLab[];
       };
       setConteneurs(Array.isArray(donnees.containers) ? donnees.containers : []);
-    } catch (e) {
+    } catch (error_) {
       setMessageErreur(
         formaterErreurPourAffichagePanel(
-          e,
+          error_,
           composerUrlPasserelle("/containers"),
           "liste des conteneurs",
         ),
@@ -131,10 +131,10 @@ export function InterfaceTestPasserelle() {
         setJeton(donnees.token);
         enregistrerJetonStockage(donnees.token);
       }
-    } catch (e) {
+    } catch (error_) {
       setMessageErreur(
         formaterErreurPourAffichagePanel(
-          e,
+          error_,
           composerUrlPasserelle("/auth/register"),
           "inscription",
         ),
@@ -162,10 +162,10 @@ export function InterfaceTestPasserelle() {
         setJeton(donnees.token);
         enregistrerJetonStockage(donnees.token);
       }
-    } catch (e) {
+    } catch (error_) {
       setMessageErreur(
         formaterErreurPourAffichagePanel(
-          e,
+          error_,
           composerUrlPasserelle("/auth/login"),
           "connexion",
         ),
@@ -178,10 +178,10 @@ export function InterfaceTestPasserelle() {
     let corps: Record<string, unknown>;
     try {
       corps = construireCorpsCreationConteneurDepuisEtat(etatCreation);
-    } catch (e) {
+    } catch (error_) {
       setMessageErreur(
         formaterErreurPourAffichagePanel(
-          e,
+          error_,
           composerUrlPasserelle("/containers"),
           "préparation du corps de création",
         ),
@@ -198,10 +198,10 @@ export function InterfaceTestPasserelle() {
         return;
       }
       await rafraichirListe();
-    } catch (e) {
+    } catch (error_) {
       setMessageErreur(
         formaterErreurPourAffichagePanel(
-          e,
+          error_,
           composerUrlPasserelle("/containers"),
           "création de conteneur",
         ),
@@ -227,10 +227,10 @@ export function InterfaceTestPasserelle() {
         return;
       }
       await rafraichirListe();
-    } catch (e) {
+    } catch (error_) {
       setMessageErreur(
         formaterErreurPourAffichagePanel(
-          e,
+          error_,
           composerUrlPasserelle(
             `/containers/${encodeURIComponent(id)}${cheminSuffixe}`,
           ),

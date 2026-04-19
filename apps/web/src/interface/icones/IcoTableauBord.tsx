@@ -1,6 +1,6 @@
 type PropsIcoTableauBord = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône grille / tableau de bord pour le rail de navigation. */

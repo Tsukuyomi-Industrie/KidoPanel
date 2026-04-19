@@ -1,7 +1,7 @@
 import { styleAideChampCreation } from "./stylesFormulaireCreationConteneurLab.js";
 
 type Props = {
-  texte: string;
+  readonly texte: string;
 };
 
 /** Paragraphe d’aide rattaché à un champ du formulaire de création (laboratoire). */

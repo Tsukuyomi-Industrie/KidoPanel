@@ -28,6 +28,123 @@ function libelleStatutPilotage(statut: string): string {
   }
 }
 
+type PropsPanneauDetailServeurInstance = {
+  readonly instance: InstanceServeurJeuxPasserelle;
+  readonly onglet: OngletDetailServeur;
+  readonly definirOnglet: (o: OngletDetailServeur) => void;
+  readonly patient: boolean;
+  readonly hotePublicPourJeux: string | null;
+  readonly prefererHoteNavigateur: boolean;
+  readonly executerAction: (
+    libelleSucces: string,
+    fn: () => Promise<void>,
+  ) => Promise<void>;
+  readonly ouvrirSuppression: () => void;
+};
+
+/** Bloc onglets résumé / console une fois l’instance chargée (réduit la complexité du composant page). */
+function PanneauDetailServeurInstanceJeux({
+  instance,
+  onglet,
+  definirOnglet,
+  patient,
+  hotePublicPourJeux,
+  prefererHoteNavigateur,
+  executerAction,
+  ouvrirSuppression,
+}: PropsPanneauDetailServeurInstance) {
+  const statut = instance.status;
+  const transition =
+    statut === "STARTING" || statut === "STOPPING" || statut === "INSTALLING";
+
+  return (
+    <>
+      <div className="kp-marges-haut-sm" role="tablist" aria-label="Sections détail serveur">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={onglet === "resume"}
+          className={`kp-btn kp-btn--sm${onglet === "resume" ? " kp-btn--primaire" : ""}`}
+          onClick={() => definirOnglet("resume")}
+        >
+          Vue d’ensemble
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={onglet === "console"}
+          className={`kp-btn kp-btn--sm${onglet === "console" ? " kp-btn--primaire" : ""}`}
+          onClick={() => definirOnglet("console")}
+        >
+          Console
+        </button>
+      </div>
+
+      {onglet === "console" ? (
+        <ConsoleServeur idInstanceJeux={instance.id} actif={true} />
+      ) : (
+        <>
+          <section className="kp-panel-corps kp-marges-haut-sm">
+            <div className="kp-marges-haut-sm">
+              <BarrePilotageDetailServeur
+                instance={instance}
+                statut={statut}
+                transition={transition}
+                patient={patient}
+                libelleStatutPilotage={libelleStatutPilotage}
+                executerAction={executerAction}
+                ouvrirSuppression={ouvrirSuppression}
+              />
+            </div>
+            <h2 className="kp-section-label">Résumé</h2>
+            <dl className="kidopanel-liste-definitions">
+              <div>
+                <dt>Statut</dt>
+                <dd>
+                  <BadgeStatut statut={statutBadgeDepuisChaineApi(instance.status)} />
+                </dd>
+              </div>
+              <div>
+                <dt>Jeu</dt>
+                <dd>{instance.gameType}</dd>
+              </div>
+              <div>
+                <dt>Conteneur Docker</dt>
+                <dd className="kp-cellule-mono">{instance.containerId ?? "—"}</dd>
+              </div>
+              <div>
+                <dt>Port connexion (hôte)</dt>
+                <dd className="kp-cellule-mono">
+                  {typeof instance.port === "number" ? String(instance.port) : "—"}
+                </dd>
+              </div>
+              {instance.status === "RUNNING" && typeof instance.port === "number" ? (
+                <div>
+                  <dt>Adresse pour les joueurs</dt>
+                  <dd className="kp-cellule-mono">
+                    {construireAdresseConnexionJeux({
+                      port: instance.port,
+                      hotePublicConfigurePasserelle: hotePublicPourJeux,
+                      forcerHotePageNavigateur: prefererHoteNavigateur,
+                    })}
+                  </dd>
+                </div>
+              ) : null}
+              <div>
+                <dt>Ressources</dt>
+                <dd>
+                  {instance.memoryMb} Mo RAM · {instance.cpuCores} CPU · {instance.diskGb} Go disque
+                </dd>
+              </div>
+            </dl>
+            <BasculeAffichageHotePublicConnexion />
+          </section>
+        </>
+      )}
+    </>
+  );
+}
+
 /**
  * Détail instance jeu avec onglets Résumé / Console et actions pilotage (démarrage, arrêt, suppression).
  */
@@ -55,15 +172,15 @@ export function PageDetailServeur() {
       return;
     }
     let annule = false;
-    void (async () => {
+    (async () => {
       try {
         await charger();
-      } catch (e) {
+      } catch (error_) {
         if (!annule) {
-          setErreur(e instanceof Error ? e.message : "Chargement impossible.");
+          setErreur(error_ instanceof Error ? error_.message : "Chargement impossible.");
         }
       }
-    })();
+    })().catch(() => {});
     return () => {
       annule = true;
     };
@@ -73,10 +190,10 @@ export function PageDetailServeur() {
     if (identifiantManquant || !idInstance || onglet !== "resume") {
       return;
     }
-    const idIntervalle = window.setInterval(() => {
-      void charger().catch(() => {});
+    const idIntervalle = globalThis.setInterval(() => {
+      charger().catch(() => {});
     }, 10_000);
-    return () => window.clearInterval(idIntervalle);
+    return () => globalThis.clearInterval(idIntervalle);
   }, [charger, idInstance, identifiantManquant, onglet]);
 
   const executerAction = async (
@@ -89,8 +206,8 @@ export function PageDetailServeur() {
       await fn();
       await charger();
       pousserToast(libelleSucces, "succes");
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Action impossible.", "erreur");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Action impossible.", "erreur");
     } finally {
       setPatient(false);
     }
@@ -107,9 +224,9 @@ export function PageDetailServeur() {
     try {
       await supprimerInstanceServeur(idInstance);
       pousserToast("Instance supprimée.", "succes");
-      window.location.assign("/serveurs");
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Suppression impossible.", "erreur");
+      globalThis.window.location.assign("/serveurs");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Suppression impossible.", "erreur");
     } finally {
       setPatient(false);
     }
@@ -122,10 +239,6 @@ export function PageDetailServeur() {
       </pre>
     );
   }
-
-  const statut = instance?.status ?? "";
-  const transition =
-    statut === "STARTING" || statut === "STOPPING" || statut === "INSTALLING";
 
   return (
     <>
@@ -144,91 +257,16 @@ export function PageDetailServeur() {
       ) : null}
 
       {instance !== null ? (
-        <>
-          <div className="kp-marges-haut-sm" role="tablist" aria-label="Sections détail serveur">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={onglet === "resume"}
-              className={`kp-btn kp-btn--sm${onglet === "resume" ? " kp-btn--primaire" : ""}`}
-              onClick={() => setOnglet("resume")}
-            >
-              Vue d’ensemble
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={onglet === "console"}
-              className={`kp-btn kp-btn--sm${onglet === "console" ? " kp-btn--primaire" : ""}`}
-              onClick={() => setOnglet("console")}
-            >
-              Console
-            </button>
-          </div>
-
-          {onglet === "resume" ? (
-            <>
-              <section className="kp-panel-corps kp-marges-haut-sm">
-                <div className="kp-marges-haut-sm">
-                  <BarrePilotageDetailServeur
-                    instance={instance}
-                    statut={statut}
-                    transition={transition}
-                    patient={patient}
-                    libelleStatutPilotage={libelleStatutPilotage}
-                    executerAction={executerAction}
-                    ouvrirSuppression={ouvrirSuppression}
-                  />
-                </div>
-                <h2 className="kp-section-label">Résumé</h2>
-                <dl className="kidopanel-liste-definitions">
-                  <div>
-                    <dt>Statut</dt>
-                    <dd>
-                      <BadgeStatut statut={statutBadgeDepuisChaineApi(instance.status)} />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Jeu</dt>
-                    <dd>{instance.gameType}</dd>
-                  </div>
-                  <div>
-                    <dt>Conteneur Docker</dt>
-                    <dd className="kp-cellule-mono">{instance.containerId ?? "—"}</dd>
-                  </div>
-                  <div>
-                    <dt>Port connexion (hôte)</dt>
-                    <dd className="kp-cellule-mono">
-                      {typeof instance.port === "number" ? String(instance.port) : "—"}
-                    </dd>
-                  </div>
-                  {instance.status === "RUNNING" && typeof instance.port === "number" ? (
-                    <div>
-                      <dt>Adresse pour les joueurs</dt>
-                      <dd className="kp-cellule-mono">
-                        {construireAdresseConnexionJeux({
-                          port: instance.port,
-                          hotePublicConfigurePasserelle: hotePublicPourJeux,
-                          forcerHotePageNavigateur: prefererHoteNavigateur,
-                        })}
-                      </dd>
-                    </div>
-                  ) : null}
-                  <div>
-                    <dt>Ressources</dt>
-                    <dd>
-                      {instance.memoryMb} Mo RAM · {instance.cpuCores} CPU · {instance.diskGb}{" "}
-                      Go disque
-                    </dd>
-                  </div>
-                </dl>
-                <BasculeAffichageHotePublicConnexion />
-              </section>
-            </>
-          ) : (
-            <ConsoleServeur idInstanceJeux={instance.id} actif={onglet === "console"} />
-          )}
-        </>
+        <PanneauDetailServeurInstanceJeux
+          instance={instance}
+          onglet={onglet}
+          definirOnglet={setOnglet}
+          patient={patient}
+          hotePublicPourJeux={hotePublicPourJeux}
+          prefererHoteNavigateur={prefererHoteNavigateur}
+          executerAction={executerAction}
+          ouvrirSuppression={ouvrirSuppression}
+        />
       ) : null}
 
       <DialogueSuppressionInstanceServeur

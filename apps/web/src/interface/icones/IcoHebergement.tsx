@@ -1,6 +1,6 @@
 type PropsIcoHebergement = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône hébergement web pour le rail de navigation. */

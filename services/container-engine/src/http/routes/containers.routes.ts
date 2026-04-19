@@ -29,10 +29,10 @@ export function mountContainerRoutes(
       try {
         const containers = await engine.listContainers(all);
         return c.json({ containers });
-      } catch (err) {
-        const response = tryRespondWithEngineError(c, err);
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
         if (response) return response;
-        throw err;
+        throw error_;
       }
     },
   );
@@ -64,10 +64,10 @@ export function mountContainerRoutes(
           },
         });
         return c.json(result, 201);
-      } catch (err) {
-        const response = tryRespondWithEngineError(c, err);
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
         if (response) return response;
-        throw err;
+        throw error_;
       }
     },
   );
@@ -86,10 +86,10 @@ export function mountContainerRoutes(
           metadata: { idConteneur: id },
         });
         return new Response(null, { status: 204 });
-      } catch (err) {
-        const response = tryRespondWithEngineError(c, err);
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
         if (response) return response;
-        throw err;
+        throw error_;
       }
     },
   );
@@ -150,10 +150,10 @@ export function mountContainerRoutes(
         metadata: { idConteneur: id, timeoutSeconds },
       });
       return new Response(null, { status: 204 });
-    } catch (err) {
-      const response = tryRespondWithEngineError(c, err);
+    } catch (error_) {
+      const response = tryRespondWithEngineError(c, error_);
       if (response) return response;
-      throw err;
+      throw error_;
     }
   });
 
@@ -173,10 +173,10 @@ export function mountContainerRoutes(
           metadata: { idConteneur: id, force: force ?? false },
         });
         return new Response(null, { status: 204 });
-      } catch (err) {
-        const response = tryRespondWithEngineError(c, err);
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
         if (response) return response;
-        throw err;
+        throw error_;
       }
     },
   );
@@ -194,10 +194,10 @@ export function mountContainerRoutes(
           timestamps: query.timestamps,
         });
         return c.json({ logs });
-      } catch (err) {
-        const response = tryRespondWithEngineError(c, err);
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
         if (response) return response;
-        throw err;
+        throw error_;
       }
     },
   );
@@ -225,10 +225,10 @@ export function mountContainerRoutes(
           },
         });
         return c.json(resultat);
-      } catch (err) {
-        const response = tryRespondWithEngineError(c, err);
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
         if (response) return response;
-        throw err;
+        throw error_;
       }
     },
   );

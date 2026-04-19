@@ -1,6 +1,6 @@
 type PropsIcoAudit = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône journal d’audit pour la section administration. */

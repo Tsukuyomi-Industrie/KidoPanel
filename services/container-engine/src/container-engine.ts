@@ -100,8 +100,8 @@ export class ContainerEngine {
     try {
       await this.docker.ping();
       return true;
-    } catch (e) {
-      wrapDockerError(e);
+    } catch (error_) {
+      wrapDockerError(error_);
     }
   }
 
@@ -109,8 +109,8 @@ export class ContainerEngine {
     try {
       const list = await this.docker.listContainers({ all });
       return list.map(mapEntreeListeDockerVersResume);
-    } catch (e) {
-      wrapDockerError(e);
+    } catch (error_) {
+      wrapDockerError(error_);
     }
   }
 
@@ -118,8 +118,8 @@ export class ContainerEngine {
     try {
       const container = this.docker.getContainer(id);
       return await container.inspect();
-    } catch (e) {
-      wrapDockerError(e);
+    } catch (error_) {
+      wrapDockerError(error_);
     }
   }
 
@@ -138,8 +138,8 @@ export class ContainerEngine {
         cmd,
         stdinUtf8,
       );
-    } catch (e) {
-      wrapDockerError(e);
+    } catch (error_) {
+      wrapDockerError(error_);
     }
   }
 
@@ -189,8 +189,8 @@ export class ContainerEngine {
         resolu.referenceDocker,
         inspection,
       );
-    } catch (e) {
-      wrapDockerError(e);
+    } catch (error_) {
+      wrapDockerError(error_);
     }
   }
 
@@ -217,8 +217,8 @@ export class ContainerEngine {
     try {
       const container = this.docker.getContainer(id);
       await container.start();
-    } catch (e) {
-      wrapDockerError(e);
+    } catch (error_) {
+      wrapDockerError(error_);
     }
     await this.pareFeuHote?.apresDemarrageConteneur(id, this.docker);
     this.journauxFichierConteneur?.notifierDemarrageEtDemarrerSuiviSortie(
@@ -231,18 +231,18 @@ export class ContainerEngine {
     try {
       const container = this.docker.getContainer(id);
       await container.stop({ t: timeoutSeconds });
-    } catch (e) {
-      if (estErreurArretConteneurDejaArrete(e)) {
-        void this.journauxFichierConteneur?.arreterSuiviSortie(id);
-        void this.journauxFichierConteneur
+    } catch (error_) {
+      if (estErreurArretConteneurDejaArrete(error_)) {
+        this.journauxFichierConteneur?.arreterSuiviSortie(id)?.catch(() => {});
+        this.journauxFichierConteneur
           ?.notifierArret(id, { delaiSeconde: timeoutSeconds })
           .catch(() => {});
         return;
       }
-      wrapDockerError(e);
+      wrapDockerError(error_);
     }
-    void this.journauxFichierConteneur?.arreterSuiviSortie(id);
-    void this.journauxFichierConteneur
+    this.journauxFichierConteneur?.arreterSuiviSortie(id)?.catch(() => {});
+    this.journauxFichierConteneur
       ?.notifierArret(id, { delaiSeconde: timeoutSeconds })
       .catch(() => {});
   }
@@ -254,11 +254,11 @@ export class ContainerEngine {
     try {
       const container = this.docker.getContainer(id);
       await container.remove({ force: options?.force });
-    } catch (e) {
-      wrapDockerError(e);
+    } catch (error_) {
+      wrapDockerError(error_);
     }
     if (idComplet !== undefined) {
-      void this.journauxFichierConteneur
+      this.journauxFichierConteneur
         ?.notifierSuppressionApresDocker(idComplet, { force: options?.force })
         .catch(() => {});
     }
@@ -296,7 +296,7 @@ export class ContainerEngine {
     });
     try {
       await executerTirageImageDocker(this.docker, ref);
-    } catch (err) {
+    } catch (error_) {
       journaliserMoteur({
         niveau: "error",
         message: "image_pull_failed",
@@ -306,17 +306,17 @@ export class ContainerEngine {
             ? {
                 idCatalogue: resolu.idCatalogue,
                 referenceDocker: ref,
-                codeErreur: isContainerEngineError(err) ? err.code : "inconnu",
+                codeErreur: isContainerEngineError(error_) ? error_.code : "inconnu",
                 mode: "pull_force",
               }
             : {
                 referenceDocker: ref,
-                codeErreur: isContainerEngineError(err) ? err.code : "inconnu",
+                codeErreur: isContainerEngineError(error_) ? error_.code : "inconnu",
                 mode: "pull_force",
                 modeImageReferenceLibre: true,
               },
       });
-      throw err;
+      throw error_;
     }
     journaliserMoteur({
       niveau: "info",
@@ -345,7 +345,7 @@ export class ContainerEngine {
     options?: { tail?: number; timestamps?: boolean },
   ): Promise<string> {
     const texte = await lireJournauxConteneur(this.docker, id, options);
-    void this.journauxFichierConteneur
+    this.journauxFichierConteneur
       ?.notifierLectureJournauxJson(id, {
         nombreLignes: options?.tail,
         horodatages: options?.timestamps ?? false,

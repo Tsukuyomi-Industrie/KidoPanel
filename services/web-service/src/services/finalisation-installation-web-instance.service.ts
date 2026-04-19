@@ -68,9 +68,9 @@ export async function finaliserInstallationConteneurWeb(params: {
     if (typeof parse.ipReseauInterne === "string" && parse.ipReseauInterne.length > 0) {
       ipReseauInterne = parse.ipReseauInterne;
     }
-  } catch (erreur) {
-    if (erreur instanceof ErreurMetierWebInstance) {
-      throw erreur;
+  } catch (error_) {
+    if (error_ instanceof ErreurMetierWebInstance) {
+      throw error_;
     }
     await depot.mettreAJour(ligne.id, { status: "ERROR" });
     throw new ErreurMetierWebInstance(

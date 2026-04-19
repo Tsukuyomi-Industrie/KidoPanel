@@ -31,6 +31,7 @@ NOM_CONTENEUR_POSTGRES_PANEL="kydopanel-postgres"
 
 echo_err() {
   echo "$*" >&2
+  return 0
 }
 
 MODE_VERIFIER_SEULEMENT=0
@@ -152,6 +153,7 @@ ecrire_env_panel_pour_nvm() {
     printf '%s\n' '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'
     printf '%s\n' "nvm use ${VERSION_NODE_INSTALLER_BINAIRE} >/dev/null 2>&1"
   } >"$CHEMIN_ENV_NODE_PANEL"
+  return 0
 }
 
 # Installe ou réutilise nvm puis la version Node VERSION_NODE_INSTALLER_BINAIRE (sans droits root).
@@ -192,6 +194,7 @@ demarrer_service_docker_si_possible() {
     executer_avec_privileges systemctl enable docker 2>/dev/null || true
     executer_avec_privileges systemctl start docker 2>/dev/null || true
   fi
+  return 0
 }
 
 # Installe Docker Engine et le plugin Compose v2 via les dépôts (priorité Debian et Fedora).
@@ -398,16 +401,16 @@ architecture_compose_github() {
     armv7l) echo "armv7" ;;
     *) echo "" ;;
   esac
+  return 0
 }
 
 installer_compose_via_paquets() {
   [[ "${PANEL_INSTALLER_SANS_AUTO:-}" == "1" ]] && return 1
   echo "Tentative d’installation du plugin Docker Compose v2 via le gestionnaire de paquets…"
-  if command -v apt-get >/dev/null 2>&1; then
-    if executer_avec_privileges env DEBIAN_FRONTEND=noninteractive apt-get update -qq &&
-      executer_avec_privileges env DEBIAN_FRONTEND=noninteractive apt-get install -y docker-compose-plugin; then
-      compose_plugin_docker_est_version_majeure_2 && return 0
-    fi
+  if command -v apt-get >/dev/null 2>&1 &&
+    executer_avec_privileges env DEBIAN_FRONTEND=noninteractive apt-get update -qq &&
+    executer_avec_privileges env DEBIAN_FRONTEND=noninteractive apt-get install -y docker-compose-plugin; then
+    compose_plugin_docker_est_version_majeure_2 && return 0
   fi
   if command -v dnf >/dev/null 2>&1; then
     executer_avec_privileges dnf install -y docker-compose-plugin 2>/dev/null &&
@@ -526,8 +529,7 @@ activer_pnpm() {
 
 # Valeur factice du dépôt : doit être remplacée par un secret aléatoire pour que la passerelle démarre.
 PLACEHOLDER_GATEWAY_JWT_SECRET="remplacer-par-une-chaine-longue-et-aleatoire"
-# Aligné sur docker-compose.yml (service postgres).
-DATABASE_URL_POSTGRES_DOCKER_DEFAUT="postgresql://kydopanel:kydopanel@127.0.0.1:5432/kydopanel"
+# Aligné sur docker-compose.yml : le mot de passe provient de POSTGRES_PASSWORD dans le fichier .env racine (aucun littéral dans ce script).
 
 generer_secret_jwt_hex() {
   if command -v openssl >/dev/null 2>&1; then
@@ -535,6 +537,7 @@ generer_secret_jwt_hex() {
   else
     head -c 48 /dev/urandom | base64 | tr -d '\n'
   fi
+  return 0
 }
 
 # Réécrit GATEWAY_JWT_SECRET sans passer par sed (car base64 peut contenir des caractères réservés pour sed).
@@ -545,6 +548,7 @@ ecrire_ligne_gateway_jwt_secret_env() {
   grep -v '^GATEWAY_JWT_SECRET=' "$RACINE_DEPOT/.env" >"$tmp"
   mv "$tmp" "$RACINE_DEPOT/.env"
   printf '%s\n' "GATEWAY_JWT_SECRET=${secret}" >>"$RACINE_DEPOT/.env"
+  return 0
 }
 
 # Garantit un jeton JWT fort si la ligne est absente, vide ou encore au placeholder du dépôt.
@@ -565,20 +569,31 @@ assurer_gateway_jwt_secret_env_racine() {
 
 # En mode PostgreSQL via docker-compose : impose DATABASE_URL si absent ou vide (sinon migrations Prisma échouent).
 assurer_database_url_si_postgres_docker() {
-  local val
+  local val tmp mot_de_passe database_url_defaut
   [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] || return 0
+  mot_de_passe=""
+  if [[ -f "$RACINE_DEPOT/.env" ]] && grep -q '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env"; then
+    mot_de_passe="$(grep '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env" | head -n1 | cut -d= -f2- | tr -d '\r')"
+  fi
+  if [[ -z "${mot_de_passe// /}" ]]; then
+    mot_de_passe="${POSTGRES_PASSWORD:-}"
+  fi
+  if [[ -z "${mot_de_passe// /}" ]]; then
+    echo_err "POSTGRES_PASSWORD absent ou vide : renseignez-le dans .env (docker-compose et DATABASE_URL)."
+    return 1
+  fi
+  database_url_defaut="postgresql://kydopanel:${mot_de_passe}@127.0.0.1:5432/kydopanel"
   if grep -q '^DATABASE_URL=' "$RACINE_DEPOT/.env"; then
     val="$(grep '^DATABASE_URL=' "$RACINE_DEPOT/.env" | head -n1 | cut -d= -f2- | tr -d '\r')"
     if [[ -n "${val// /}" ]]; then
       echo "DATABASE_URL déjà renseigné (non écrasé)."
       return 0
     fi
-    local tmp
     tmp="$(mktemp)"
     grep -v '^DATABASE_URL=' "$RACINE_DEPOT/.env" >"$tmp"
     mv "$tmp" "$RACINE_DEPOT/.env"
   fi
-  printf '%s\n' "DATABASE_URL=${DATABASE_URL_POSTGRES_DOCKER_DEFAUT}" >>"$RACINE_DEPOT/.env"
+  printf '%s\n' "DATABASE_URL=${database_url_defaut}" >>"$RACINE_DEPOT/.env"
   echo "DATABASE_URL défini pour le conteneur PostgreSQL du compose (kydopanel@127.0.0.1:5432)."
 }
 
@@ -671,6 +686,7 @@ preparer_fichier_env_racine() {
   assurer_gateway_jwt_secret_env_racine
   assurer_database_url_si_postgres_docker
   detecter_et_ecrire_ip_publique_gateway
+  return 0
 }
 
 preparer_env_web() {
@@ -688,6 +704,7 @@ preparer_env_web() {
       >"$RACINE_DEPOT/apps/web/.env"
     echo "Créé apps/web/.env minimal (dev distant : proxy Vite par défaut si variable absente)."
   fi
+  return 0
 }
 
 # Évite l’erreur « container name already in use » : arrêt du projet puis retrait du conteneur nommé réservé au panel.
@@ -697,6 +714,7 @@ preparer_stack_postgres_avant_montee() {
     echo "Suppression du conteneur « ${NOM_CONTENEUR_POSTGRES_PANEL} » orphelin ou obsolète (nom réservé au compose du panel)…"
     docker rm -f "${NOM_CONTENEUR_POSTGRES_PANEL}" 2>/dev/null || true
   fi
+  return 0
 }
 
 demarrer_postgres_et_attendre() {
@@ -724,6 +742,7 @@ charger_env_pour_prisma() {
   # shellcheck source=/dev/null
   source "$RACINE_DEPOT/.env"
   set +a
+  return 0
 }
 
 etapes_dependances_build() {
@@ -739,6 +758,7 @@ etapes_dependances_build() {
   pnpm --filter @kidopanel/database run db:migrate
   echo "Build turbo…"
   pnpm run build
+  return 0
 }
 
 arreter_processus_pidfichier() {
@@ -767,6 +787,7 @@ liberer_port_tcp() {
       kill -9 "$p" 2>/dev/null || true
     done
   fi
+  return 0
 }
 
 # Arrêt des PIDs enregistrés puis libération des ports (évite EADDRINUSE si un vieux node écoute encore).
@@ -786,6 +807,7 @@ reinitialiser_processus_panel() {
   liberer_port_tcp 8790
   liberer_port_tcp 8787
   sleep 1
+  return 0
 }
 
 arreter_panel() {
@@ -839,6 +861,7 @@ attendre_passerelle_proxy() {
     i=$((i + 1))
   done
   echo_err "Passerelle injoignable sur http://127.0.0.1:3000 après ${max}s — consulter ${LOG_DIR}/passerelle.log ; le web démarre quand même."
+  return 1
 }
 
 demarrer_panel() {
@@ -876,6 +899,7 @@ demarrer_panel() {
 
   sleep 3
   echo "Processus lancés : moteur $(cat "$PID_MOTEUR"), instances jeu $(cat "$PID_SERVER_JEUX"), web métier $(cat "$PID_SERVICE_WEB_METIER"), passerelle $(cat "$PID_PASSERELLE"), web $(cat "$PID_WEB")."
+  return 0
 }
 
 afficher_acces_panel() {
@@ -890,11 +914,13 @@ afficher_acces_panel() {
   echo "Journaux : tail -f \"${LOG_DIR}/moteur.log\" … server-jeux.log … service-web-metier.log … passerelle.log … web.log"
   echo "Arrêt / mise à jour : relancez ce script pour le menu."
   echo ""
+  return 0
 }
 
 panel_marque_comme_pret() {
   mkdir -p "$DIR_RUN"
   touch "$FICHIER_MARQUEUR"
+  return 0
 }
 
 installation_premiere_fois() {
@@ -960,12 +986,10 @@ menu_desinstaller() {
   }
   arreter_panel
   read -r -p "Fermer dans firewalld les ports TCP/UDP enregistrés pour les conteneurs (fichier donnees/pare-feu-hote-kidopanel.json) ? [o/N] " c_fw
-  if [[ "$c_fw" == "o" || "$c_fw" == "O" ]]; then
-    if [[ -f "${RACINE_DEPOT}/infra/fermer-pare-feu-kidopanel.sh" ]]; then
-      bash "${RACINE_DEPOT}/infra/fermer-pare-feu-kidopanel.sh" "$RACINE_DEPOT" || echo_err "Fermeture pare-feu : consulter les messages ci-dessus."
-    else
-      echo_err "Script infra/fermer-pare-feu-kidopanel.sh introuvable."
-    fi
+  if [[ "$c_fw" == "o" || "$c_fw" == "O" ]] && [[ -f "${RACINE_DEPOT}/infra/fermer-pare-feu-kidopanel.sh" ]]; then
+    bash "${RACINE_DEPOT}/infra/fermer-pare-feu-kidopanel.sh" "$RACINE_DEPOT" || echo_err "Fermeture pare-feu : consulter les messages ci-dessus."
+  elif [[ "$c_fw" == "o" || "$c_fw" == "O" ]]; then
+    echo_err "Script infra/fermer-pare-feu-kidopanel.sh introuvable."
   fi
   read -r -p "Supprimer node_modules à la racine du dépôt ? [o/N] " c2
   if [[ "$c2" == "o" || "$c2" == "O" ]]; then

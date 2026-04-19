@@ -12,9 +12,9 @@ import { IcoArret } from "../../interface/icones/IcoArret.js";
 import { IcoDemarrer } from "../../interface/icones/IcoDemarrer.js";
 
 type PropsCarteWebInstance = {
-  instance: WebInstancePasserelle;
-  surMiseAJourListe: () => void;
-  surMiseAJourPartielle?: (instance: WebInstancePasserelle) => void;
+  readonly instance: WebInstancePasserelle;
+  readonly surMiseAJourListe: () => void;
+  readonly surMiseAJourPartielle?: (instance: WebInstancePasserelle) => void;
 };
 
 /** Résumé d’une instance web avec actions rapides et domaines associés. */
@@ -30,10 +30,10 @@ export function CarteWebInstance({
   const domainesLie = instance.domaines ?? [];
 
   const apresPilotage = (maj: WebInstancePasserelle) => {
-    if (surMiseAJourPartielle !== undefined) {
-      surMiseAJourPartielle(maj);
-    } else {
+    if (surMiseAJourPartielle === undefined) {
       surMiseAJourListe();
+    } else {
+      surMiseAJourPartielle(maj);
     }
   };
 
@@ -45,8 +45,8 @@ export function CarteWebInstance({
       const maj = await demarrerWebInstancePasserelle(instance.id);
       apresPilotage(maj);
       pousserToast("Ordre de démarrage envoyé.", "succes");
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Démarrage impossible.", "erreur");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Démarrage impossible.", "erreur");
     } finally {
       setPatient(false);
     }
@@ -60,8 +60,8 @@ export function CarteWebInstance({
       const maj = await arreterWebInstancePasserelle(instance.id);
       apresPilotage(maj);
       pousserToast("Ordre d’arrêt envoyé.", "succes");
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Arrêt impossible.", "erreur");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Arrêt impossible.", "erreur");
     } finally {
       setPatient(false);
     }

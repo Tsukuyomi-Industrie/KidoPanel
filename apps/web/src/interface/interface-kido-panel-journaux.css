@@ -179,6 +179,17 @@
   word-break: break-word;
 }
 
+.kp-journaux__erreur-pre {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  white-space: inherit;
+  word-break: inherit;
+}
+
 .kp-journaux__vue {
   margin: 0;
   min-height: min(42vh, 360px);

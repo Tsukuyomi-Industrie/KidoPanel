@@ -1,5 +1,5 @@
 type PropsSparklineActivite = {
-  serie: number[];
+  readonly serie: number[];
 };
 
 /**

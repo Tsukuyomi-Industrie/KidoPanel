@@ -34,8 +34,8 @@ export class DockerLogFrameDemuxStream extends Transform {
         this.tampon = this.tampon.subarray(ENTETE_OCTETS + taille);
       }
       suite();
-    } catch (err) {
-      suite(err as Error);
+    } catch (error_) {
+      suite(error_ as Error);
     }
   }
 }

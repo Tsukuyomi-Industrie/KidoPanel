@@ -3,12 +3,12 @@ import { FormulaireExpertSectionsDynamiquesConteneur } from "./FormulaireExpertS
 import { SectionReseauEtSuggestionFormulaireExpert } from "./SectionReseauEtSuggestionFormulaireExpert.js";
 
 type PropsFormulaireExpertCreationConteneur = {
-  etat: EtatFormulaireExpertConteneur;
-  surChangement: (suivant: EtatFormulaireExpertConteneur) => void;
-  libelleSoumission: string;
-  enCours: boolean;
-  messageErreur: string | null;
-  surSoumettre: () => void;
+  readonly etat: EtatFormulaireExpertConteneur;
+  readonly surChangement: (suivant: EtatFormulaireExpertConteneur) => void;
+  readonly libelleSoumission: string;
+  readonly enCours: boolean;
+  readonly messageErreur: string | null;
+  readonly surSoumettre: () => void;
 };
 
 /**

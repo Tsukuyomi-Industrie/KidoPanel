@@ -45,9 +45,15 @@ export function PageCoeurDockerKidoPanel() {
         surSelection={g.setIdSelectionne}
         chargementListe={g.chargementListe}
         surRafraichir={g.rafraichirListe}
-        surDemarrer={(id) => void g.actionConteneur(id, "POST", "/start")}
-        surArreter={(id) => void g.actionConteneur(id, "POST", "/stop")}
-        surSupprimer={(id) => void g.actionConteneur(id, "DELETE", "")}
+        surDemarrer={(id) => {
+          g.actionConteneur(id, "POST", "/start").catch(() => {});
+        }}
+        surArreter={(id) => {
+          g.actionConteneur(id, "POST", "/stop").catch(() => {});
+        }}
+        surSupprimer={(id) => {
+          g.actionConteneur(id, "DELETE", "").catch(() => {});
+        }}
       />
 
       <SectionJournauxSseLab

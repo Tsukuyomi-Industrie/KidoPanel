@@ -54,11 +54,9 @@ for proto, num in sorted(vu):
     [[ -n "${proto:-}" ]] || continue
     [[ -n "${num:-}" ]] || continue
     echo "Retrait pare-feu : ${num}/${proto}"
-    if command -v firewall-cmd >/dev/null 2>&1; then
-      if executer_avec_privileges firewall-cmd --state >/dev/null 2>&1; then
-        executer_avec_privileges firewall-cmd --permanent "--remove-port=${num}/${proto}" >/dev/null 2>&1 || true
-        executer_avec_privileges firewall-cmd "--remove-port=${num}/${proto}" >/dev/null 2>&1 || true
-      fi
+    if command -v firewall-cmd >/dev/null 2>&1 && executer_avec_privileges firewall-cmd --state >/dev/null 2>&1; then
+      executer_avec_privileges firewall-cmd --permanent "--remove-port=${num}/${proto}" >/dev/null 2>&1 || true
+      executer_avec_privileges firewall-cmd "--remove-port=${num}/${proto}" >/dev/null 2>&1 || true
     fi
     if command -v ufw >/dev/null 2>&1; then
       executer_avec_privileges ufw delete allow "${num}/${proto}" >/dev/null 2>&1 || true

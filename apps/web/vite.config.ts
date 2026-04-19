@@ -45,12 +45,12 @@ export default defineConfig(({ mode }) => {
       }) => {
         proxy.on("proxyReq", (proxyReq, req) => {
           const client = req.headers.host;
-          const brut =
-            typeof client === "string"
-              ? client
-              : Array.isArray(client)
-                ? client[0]
-                : "";
+          let brut = "";
+          if (typeof client === "string") {
+            brut = client;
+          } else if (Array.isArray(client)) {
+            brut = client[0] ?? "";
+          }
           if (
             brut.trim().length > 0 &&
             proxyReq.getHeader("x-forwarded-host") === undefined

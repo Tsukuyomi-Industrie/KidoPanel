@@ -24,11 +24,11 @@ import {
 import type { ConfigurationCreationConteneurSauvegardee } from "./typesConfigurationCreationConteneurLab.js";
 
 type Props = {
-  etatFormulaire: EtatCreationConteneurLab;
-  surRemplirFormulaire: (nouvelEtat: EtatCreationConteneurLab) => void;
-  surErreur: (message: string) => void;
+  readonly etatFormulaire: EtatCreationConteneurLab;
+  readonly surRemplirFormulaire: (nouvelEtat: EtatCreationConteneurLab) => void;
+  readonly surErreur: (message: string) => void;
   /** Style carte du panel : sans encadré sombre du lab. */
-  presentationPanel?: boolean;
+  readonly presentationPanel?: boolean;
 };
 
 type ModeModal = "ferme" | "creation" | "edition";
@@ -65,10 +65,10 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
       setJsonEdition(JSON.stringify(corps, null, 2));
       setIdEditee(null);
       setModal("creation");
-    } catch (e) {
+    } catch (error_) {
       surErreur(
-        e instanceof Error
-          ? e.message
+        error_ instanceof Error
+          ? error_.message
           : "Impossible de préremplir le JSON à partir du formulaire actuel.",
       );
     }
@@ -104,10 +104,10 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
       try {
         ecrireConfigurationsCreationConteneurLab(nouvelle);
         setListe(nouvelle);
-      } catch (e) {
+      } catch (error_) {
         surErreur(
-          e instanceof Error
-            ? e.message
+          error_ instanceof Error
+            ? error_.message
             : "Échec de l’écriture dans le stockage local du navigateur.",
         );
       }
@@ -187,10 +187,10 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
     try {
       const nouvelEtat = etatDepuisCorpsCreationConteneurLab(trouvee.corps);
       surRemplirFormulaire(nouvelEtat);
-    } catch (e) {
+    } catch (error_) {
       surErreur(
-        e instanceof Error
-          ? e.message
+        error_ instanceof Error
+          ? error_.message
           : "Impossible d’appliquer cette configuration au formulaire.",
       );
     }
@@ -228,7 +228,7 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
         Sélectionnez une entrée puis appliquez-la au formulaire avant de créer le conteneur, ou modifiez
         le JSON puis enregistrez.
       </p>
-      {!stockageOk ? (
+      {stockageOk === false ? (
         <p style={{ fontSize: "0.88rem", color: "#c66" }}>
           Le stockage local n’est pas disponible : impossible d’enregistrer des configurations dans
           cet environnement.
@@ -241,7 +241,7 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
           value={idSelection}
           onChange={(e) => setIdSelection(e.target.value)}
           style={styleChampTexteCreation}
-          disabled={!stockageOk}
+          disabled={stockageOk === false}
         >
           <option value="">— Aucune sélection —</option>
           {liste.map((cfg) => (
@@ -258,50 +258,56 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
       ) : null}
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
-        <button type="button" disabled={!stockageOk} onClick={() => void ouvrirCreation()}>
+        <button type="button" disabled={stockageOk === false} onClick={() => ouvrirCreation()}>
           Créer une configuration
         </button>
         <button
           type="button"
-          disabled={!stockageOk || idSelection.length === 0}
-          onClick={() => void ouvrirEdition()}
+          disabled={stockageOk === false || idSelection.length === 0}
+          onClick={() => ouvrirEdition()}
         >
           Modifier la configuration sélectionnée
         </button>
         <button
           type="button"
-          disabled={!stockageOk || idSelection.length === 0}
-          onClick={() => void appliquerSelection()}
+          disabled={stockageOk === false || idSelection.length === 0}
+          onClick={() => appliquerSelection()}
         >
           Appliquer au formulaire
         </button>
         <button
           type="button"
-          disabled={!stockageOk || idSelection.length === 0}
-          onClick={() => void supprimerSelection()}
+          disabled={stockageOk === false || idSelection.length === 0}
+          onClick={() => supprimerSelection()}
         >
           Supprimer la sélection
         </button>
       </div>
 
-      {modal !== "ferme" ? (
-        <div
+      {modal === "ferme" ? null : (
+        <dialog
+          open
+          aria-labelledby="kp-modal-config-json-titre"
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.55)",
             zIndex: 50,
+            width: "100%",
+            maxWidth: "100%",
+            height: "100%",
+            maxHeight: "100%",
+            margin: 0,
+            padding: 16,
+            border: "none",
+            background: "rgba(0,0,0,0.55)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: 16,
+            boxSizing: "border-box",
           }}
-          role="presentation"
           onClick={fermerModal}
         >
           <div
-            role="dialog"
-            aria-modal="true"
             style={{
               background: "#1a1a1a",
               color: "#eee",
@@ -316,7 +322,7 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
           >
-            <h3 style={{ marginTop: 0, fontSize: "1rem" }}>
+            <h3 id="kp-modal-config-json-titre" style={{ marginTop: 0, fontSize: "1rem" }}>
               {modal === "creation"
                 ? "Nouvelle configuration"
                 : "Modifier la configuration"}
@@ -341,7 +347,7 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
               />
             </label>
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button type="button" onClick={() => void sauvegarderModal()}>
+              <button type="button" onClick={() => sauvegarderModal()}>
                 Enregistrer
               </button>
               <button type="button" onClick={fermerModal}>
@@ -349,8 +355,8 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
               </button>
             </div>
           </div>
-        </div>
-      ) : null}
+        </dialog>
+      )}
     </section>
   );
 }

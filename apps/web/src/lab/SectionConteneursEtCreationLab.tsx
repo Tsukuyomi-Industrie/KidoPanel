@@ -2,12 +2,12 @@ import type { ResumeConteneurLab } from "./typesConteneurLab.js";
 import { styleBlocLab } from "./stylesCommunsLab.js";
 
 type PropsSectionConteneursLab = {
-  conteneurs: ResumeConteneurLab[];
-  idSelectionne: string;
-  setIdSelectionne: (id: string) => void;
-  rafraichirListe: () => void;
-  chargementListe: boolean;
-  actionConteneur: (
+  readonly conteneurs: ResumeConteneurLab[];
+  readonly idSelectionne: string;
+  readonly setIdSelectionne: (id: string) => void;
+  readonly rafraichirListe: () => void;
+  readonly chargementListe: boolean;
+  readonly actionConteneur: (
     id: string,
     methode: "POST" | "DELETE",
     cheminSuffixe: string,
@@ -29,7 +29,7 @@ export function SectionListeConteneursLab({
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
         <button
           type="button"
-          onClick={() => void rafraichirListe()}
+          onClick={() => rafraichirListe()}
           disabled={chargementListe}
         >
           {chargementListe ? "Chargement…" : "Rafraîchir la liste"}
@@ -74,19 +74,19 @@ export function SectionListeConteneursLab({
               <div style={{ marginTop: 6, display: "flex", gap: 6 }}>
                 <button
                   type="button"
-                  onClick={() => void actionConteneur(c.id, "POST", "/start")}
+                  onClick={() => actionConteneur(c.id, "POST", "/start")}
                 >
                   Démarrer
                 </button>
                 <button
                   type="button"
-                  onClick={() => void actionConteneur(c.id, "POST", "/stop")}
+                  onClick={() => actionConteneur(c.id, "POST", "/stop")}
                 >
                   Arrêter
                 </button>
                 <button
                   type="button"
-                  onClick={() => void actionConteneur(c.id, "DELETE", "")}
+                  onClick={() => actionConteneur(c.id, "DELETE", "")}
                 >
                   Supprimer
                 </button>

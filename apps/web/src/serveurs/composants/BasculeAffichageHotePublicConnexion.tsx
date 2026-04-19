@@ -2,10 +2,10 @@ import { useMemo } from "react";
 import { useHotePublicConnexionJeux } from "../../interface/FournisseurHotePublicConnexionJeux.js";
 
 function hostnameNavigateurLisible(): string {
-  if (typeof window === "undefined") {
+  if (typeof globalThis.window === "undefined") {
     return "";
   }
-  const h = window.location.hostname;
+  const h = globalThis.window.location.hostname;
   if (h === "localhost" || h === "127.0.0.1" || h === "[::1]") {
     return "127.0.0.1";
   }
@@ -67,12 +67,17 @@ export function BasculeAffichageHotePublicConnexion() {
           checked={prefererHoteNavigateur}
           onChange={(e) => definirPrefererHoteNavigateur(e.target.checked)}
         />
+        {" "}
         <span>
-          Utiliser plutôt l’hôte du navigateur (
-          <span className="kp-cellule-mono">{hoteNavigateur}</span>) — pratique
-          en LAN si la passerelle a détecté l’IP publique de votre FAI (
-          <span className="kp-cellule-mono">{hotePublicPourJeux}</span>) alors
-          que vous testez depuis un autre poste du même réseau local.
+          Utiliser plutôt l’hôte du navigateur ({" "}
+          <span className="kp-cellule-mono">{hoteNavigateur}</span>
+          {")"}
+          {" "}
+          — pratique en LAN si la passerelle a détecté l’IP publique de votre FAI ({" "}
+          <span className="kp-cellule-mono">{hotePublicPourJeux}</span>
+          {")"}
+          {" "}
+          alors que vous testez depuis un autre poste du même réseau local.
         </span>
       </label>
       <span className="kp-texte-muted">

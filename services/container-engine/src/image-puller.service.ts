@@ -45,9 +45,9 @@ async function garantirUneReferenceSurHote(
   try {
     await docker.getImage(referenceDocker).inspect();
     return;
-  } catch (err) {
-    if (!estErreurDocker404(err)) {
-      wrapDockerError(err);
+  } catch (error_) {
+    if (!estErreurDocker404(error_)) {
+      wrapDockerError(error_);
     }
   }
 
@@ -69,7 +69,7 @@ async function garantirUneReferenceSurHote(
 
   try {
     await executerTirageImageDocker(docker, referenceDocker);
-  } catch (err) {
+  } catch (error_) {
     journaliserMoteur({
       niveau: "error",
       message: "image_pull_failed",
@@ -79,15 +79,15 @@ async function garantirUneReferenceSurHote(
           ? {
               idCatalogue: meta.idCatalogue,
               referenceDocker,
-              codeErreur: isContainerEngineError(err) ? err.code : "inconnu",
+              codeErreur: isContainerEngineError(error_) ? error_.code : "inconnu",
             }
           : {
               referenceDocker,
               modeImageReferenceLibre: true,
-              codeErreur: isContainerEngineError(err) ? err.code : "inconnu",
+              codeErreur: isContainerEngineError(error_) ? error_.code : "inconnu",
             },
     });
-    throw err;
+    throw error_;
   }
 
   journaliserMoteur({

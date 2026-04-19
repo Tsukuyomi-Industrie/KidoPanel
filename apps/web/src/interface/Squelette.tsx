@@ -1,8 +1,8 @@
 import type { CSSProperties } from "react";
 
 type PropsSquelette = {
-  className?: string;
-  style?: CSSProperties;
+  readonly className?: string;
+  readonly style?: CSSProperties;
 };
 
 /** Zone animée pour signaler un chargement sans inventer de contenu métier. */

@@ -61,10 +61,10 @@ export function monterRoutesServeursJeuSiConfigure(
         suffixeChemin + urlEntrante.search,
         `${urlBaseServeurJeux.replace(/\/+$/, "")}/`,
       );
-    } catch (erreur) {
+    } catch (error_) {
       journaliserErreurPasserelle(
         "relais_serveurs_jeu_url_invalide",
-        erreur,
+        error_,
         c.get("requestId"),
       );
       return c.json(
@@ -117,14 +117,14 @@ export function monterRoutesServeursJeuSiConfigure(
         body:
           corps !== undefined && corps.byteLength > 0 ? corps : undefined,
       });
-    } catch (erreur) {
+    } catch (error_) {
       journaliserErreurPasserelle(
         "relais_serveurs_jeu_fetch_echoue",
-        erreur,
+        error_,
         c.get("requestId"),
       );
       const causeTechnique =
-        erreur instanceof Error ? erreur.message : String(erreur);
+        error_ instanceof Error ? error_.message : String(error_);
       return c.json(
         {
           error: {

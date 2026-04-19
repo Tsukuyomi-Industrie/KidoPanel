@@ -1,7 +1,6 @@
 import { createWriteStream } from "node:fs";
 import { appendFile } from "node:fs/promises";
 import { pipeline } from "node:stream/promises";
-import type { Readable } from "node:stream";
 import type { DockerClient } from "../docker-connection.js";
 import { ouvrirFluxSuiviJournaux } from "../container-engine-logs.js";
 import { journaliserMoteur } from "../observabilite/journal-json.js";
@@ -46,19 +45,19 @@ export class SuiviSortieJournauxVersFichier {
         since: depuisEpochSecondes,
         timestamps: true,
       });
-    } catch (erreur) {
+    } catch (error_) {
       journaliserMoteur({
         niveau: "warn",
         message: "journal_fichier_conteneur_echec_ouverture_flux_sortie",
         metadata: {
           idConteneur: idComplet,
-          erreur: erreur instanceof Error ? erreur.message : String(erreur),
+          erreur: error_ instanceof Error ? error_.message : String(error_),
         },
       });
       try {
         await ecrireEvenementSurDisque(idComplet, "copie_sortie_docker_impossible", {
           idConteneur: idComplet,
-          erreur: erreur instanceof Error ? erreur.message : String(erreur),
+          erreur: error_ instanceof Error ? error_.message : String(error_),
         });
       } catch {
         /* déjà journalisé côté moteur JSON */
@@ -83,17 +82,16 @@ export class SuiviSortieJournauxVersFichier {
     });
     fluxEcriture.write(banniere, "utf8");
 
-    const lecture = flux.readable as Readable;
-    void pipeline(lecture, fluxEcriture)
-      .catch((erreur: unknown) => {
+    pipeline(flux.readable, fluxEcriture)
+      .catch((error_: unknown) => {
         const message =
-          erreur instanceof Error ? erreur.message : String(erreur);
+          error_ instanceof Error ? error_.message : String(error_);
         journaliserMoteur({
           niveau: "warn",
           message: "journal_fichier_conteneur_pipeline_sortie_terminee_erreur",
           metadata: { idConteneur: idComplet, erreur: message },
         });
-        void appendFile(
+        appendFile(
           cheminLog,
           formaterLigneEvenementMoteur("copie_sortie_docker_interrompue", {
             idConteneur: idComplet,

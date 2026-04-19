@@ -25,7 +25,7 @@ function tableauChainesNonVide(v: unknown): v is string[] {
 
 function parserEnvDocker(envBrut: string[] | null | undefined): Record<string, string> {
   const sortie: Record<string, string> = {};
-  if (!Array.isArray(envBrut)) {
+  if (Array.isArray(envBrut) === false) {
     return sortie;
   }
   for (const ligne of envBrut) {
@@ -43,7 +43,7 @@ function portsExposesDepuisInspect(
   if (exposed === null || exposed === undefined || typeof exposed !== "object") {
     return undefined;
   }
-  const cles = Object.keys(exposed as Record<string, unknown>);
+  const cles = Object.keys(exposed);
   return cles.length > 0 ? cles : undefined;
 }
 
@@ -65,21 +65,21 @@ export function construireSuggestionConfigurationDepuisInspectionImage(
   let cmdSuggere: string[] | undefined;
   let entrySuggere: string[] | undefined;
 
-  if (epPresent) {
-    entrySuggere = [...(epBrut as string[])];
+  if (epPresent && epBrut !== undefined) {
+    entrySuggere = [...epBrut];
   }
-  if (cmdPresent) {
-    cmdSuggere = [...(cmdBrut as string[])];
+  if (cmdPresent && cmdBrut !== undefined) {
+    cmdSuggere = [...cmdBrut];
   }
 
-  if (!cmdPresent && !epPresent) {
+  if (cmdPresent === false && epPresent === false) {
     cmdSuggere = ["sleep", "infinity"];
     avertissements.push(
       "L’image ne définit ni commande ni entrypoint : proposition « sleep infinity » pour garder le conteneur actif.",
     );
   } else if (
     cmdPresent &&
-    !epPresent &&
+    epPresent === false &&
     cmdSuggere !== undefined &&
     cmdSuggere.length === 1
   ) {
@@ -103,11 +103,11 @@ export function construireSuggestionConfigurationDepuisInspectionImage(
 
   return {
     referenceDocker,
-    ...(cmdSuggere !== undefined ? { cmd: cmdSuggere } : {}),
-    ...(entrySuggere !== undefined ? { entrypoint: entrySuggere } : {}),
-    ...(wd !== undefined && wd.length > 0 ? { workingDir: wd } : {}),
+    ...(cmdSuggere === undefined ? {} : { cmd: cmdSuggere }),
+    ...(entrySuggere === undefined ? {} : { entrypoint: entrySuggere }),
+    ...(wd === undefined || wd.length === 0 ? {} : { workingDir: wd }),
     ...(Object.keys(env).length > 0 ? { env } : {}),
-    ...(exposedPorts !== undefined ? { exposedPorts } : {}),
+    ...(exposedPorts === undefined ? {} : { exposedPorts }),
     avertissements,
   };
 }

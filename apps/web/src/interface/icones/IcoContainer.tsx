@@ -1,6 +1,6 @@
 type PropsIcoContainer = {
-  className?: string;
-  size?: number;
+  readonly className?: string;
+  readonly size?: number;
 };
 
 /** Icône container applicatif pour le rail de navigation. */

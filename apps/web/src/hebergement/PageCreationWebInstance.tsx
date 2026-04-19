@@ -133,8 +133,8 @@ export function PageCreationWebInstance() {
       });
       pousserToast("Instance web créée.", "succes");
       navigate(`/hebergement/containers/${encodeURIComponent(cree.id)}`);
-    } catch (e) {
-      pousserToast(e instanceof Error ? e.message : "Création impossible.", "erreur");
+    } catch (error_) {
+      pousserToast(error_ instanceof Error ? error_.message : "Création impossible.", "erreur");
     } finally {
       setCreationEnCours(false);
     }
@@ -218,7 +218,7 @@ export function PageCreationWebInstance() {
             libelleAction="Créer le container"
             enCours={creationEnCours}
             messageErreur={null}
-            onSubmit={(v) => void gererSoumissionFormulaire(v)}
+            onSubmit={(v) => gererSoumissionFormulaire(v).catch(() => {})}
           />
           <button
             type="button"

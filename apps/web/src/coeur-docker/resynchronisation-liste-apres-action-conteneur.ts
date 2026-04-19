@@ -39,12 +39,12 @@ export async function bouclerResynchronisationListeApresLifecycle(options: {
   const delaiMs = options.delaiMs ?? 300;
   /* Sans délai initial, le premier GET /containers peut encore refléter l’état d’avant l’action et annuler la ligne optimiste. */
   await new Promise<void>((resolve) => {
-    window.setTimeout(resolve, 380);
+    globalThis.setTimeout(resolve, 380);
   });
   for (let essai = 0; essai < essaisMax; essai++) {
     if (essai > 0) {
       await new Promise<void>((resolve) => {
-        window.setTimeout(resolve, delaiMs);
+        globalThis.setTimeout(resolve, delaiMs);
       });
     }
     const liste = await options.telechargerListe();

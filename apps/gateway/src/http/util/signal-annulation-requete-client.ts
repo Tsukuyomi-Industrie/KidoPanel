@@ -10,7 +10,7 @@ export function obtenirSignalAnnulationPourFetchAmont(
   if (typeof AbortController === "undefined") {
     return undefined;
   }
-  const brut = c.req.raw as Request | IncomingMessage;
+  const brut: unknown = c.req.raw;
   if (
     brut &&
     typeof brut === "object" &&
@@ -20,6 +20,9 @@ export function obtenirSignalAnnulationPourFetchAmont(
     return brut.signal;
   }
   const ac = new AbortController();
+  if (brut === null || typeof brut !== "object" || !("on" in brut)) {
+    return ac.signal;
+  }
   const entrant = brut as IncomingMessage;
   const annuler = (): void => {
     ac.abort();

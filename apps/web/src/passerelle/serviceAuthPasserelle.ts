@@ -60,8 +60,8 @@ export async function inscrireViaPasserelle(
       mode: "cors",
       cache: "no-store",
     });
-  } catch (erreur) {
-    throw new Error(formaterErreurReseauFetch(url, erreur));
+  } catch (error_) {
+    throw new Error(formaterErreurReseauFetch(url, error_));
   }
   const json = await lireCorpsJson(reponse);
   if (!reponse.ok) {
@@ -107,8 +107,8 @@ export async function connecterViaPasserelle(
       mode: "cors",
       cache: "no-store",
     });
-  } catch (erreur) {
-    throw new Error(formaterErreurReseauFetch(url, erreur));
+  } catch (error_) {
+    throw new Error(formaterErreurReseauFetch(url, error_));
   }
   const json = await lireCorpsJson(reponse);
   if (!reponse.ok) {

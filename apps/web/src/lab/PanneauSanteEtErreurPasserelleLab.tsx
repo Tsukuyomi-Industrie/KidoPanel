@@ -4,12 +4,21 @@ import {
 import { composerUrlPasserelle } from "./passerelleClient.js";
 import { styleBlocLab, stylePreLab } from "./stylesCommunsLab.js";
 
+/** Couleur de bordure du bandeau de sonde selon l’état HTTP observé. */
+function couleurBordureCarteSonde(
+  etatSondePasserelle: "en_cours" | "ok" | "echec",
+): string {
+  if (etatSondePasserelle === "ok") return "#2a5a2a";
+  if (etatSondePasserelle === "echec") return "#a33";
+  return "#555";
+}
+
 type Props = {
-  etatSondePasserelle: "en_cours" | "ok" | "echec";
-  texteSondePasserelle: string;
-  surReverifierPasserelle: () => void;
-  messageErreur: string | null;
-  refUrlContexteErreur: { current: string };
+  readonly etatSondePasserelle: "en_cours" | "ok" | "echec";
+  readonly texteSondePasserelle: string;
+  readonly surReverifierPasserelle: () => void;
+  readonly messageErreur: string | null;
+  readonly refUrlContexteErreur: { readonly current: string };
 };
 
 /** Affiche la sonde `/health` et le bandeau d’erreur contextualisé du laboratoire passerelle. */
@@ -26,12 +35,7 @@ export function PanneauSanteEtErreurPasserelleLab({
         style={{
           ...styleBlocLab,
           marginBottom: "0.75rem",
-          borderColor:
-            etatSondePasserelle === "ok"
-              ? "#2a5a2a"
-              : etatSondePasserelle === "echec"
-                ? "#a33"
-                : "#555",
+          borderColor: couleurBordureCarteSonde(etatSondePasserelle),
         }}
       >
         <strong>Sonde GET /health</strong>
@@ -49,7 +53,7 @@ export function PanneauSanteEtErreurPasserelleLab({
         )}
         <button
           type="button"
-          onClick={() => void surReverifierPasserelle()}
+          onClick={() => surReverifierPasserelle()}
           disabled={etatSondePasserelle === "en_cours"}
           style={{ marginTop: "0.5rem" }}
         >

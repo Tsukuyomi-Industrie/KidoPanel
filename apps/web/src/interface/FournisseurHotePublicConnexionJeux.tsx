@@ -29,11 +29,11 @@ type ContexteHotePublicConnexionJeux = {
 const Contexte = createContext<ContexteHotePublicConnexionJeux | null>(null);
 
 function lireValeurPersistantePrefererNavigateur(): boolean {
-  if (typeof window === "undefined") {
+  if (typeof globalThis.window === "undefined") {
     return false;
   }
   try {
-    const v = window.localStorage.getItem(CLE_STOCKAGE_PREFERER_NAVIGATEUR);
+    const v = globalThis.window.localStorage.getItem(CLE_STOCKAGE_PREFERER_NAVIGATEUR);
     return v === "1" || v === "true";
   } catch {
     return false;
@@ -41,14 +41,14 @@ function lireValeurPersistantePrefererNavigateur(): boolean {
 }
 
 function ecrireValeurPersistantePrefererNavigateur(valeur: boolean): void {
-  if (typeof window === "undefined") {
+  if (typeof globalThis.window === "undefined") {
     return;
   }
   try {
     if (valeur) {
-      window.localStorage.setItem(CLE_STOCKAGE_PREFERER_NAVIGATEUR, "1");
+      globalThis.window.localStorage.setItem(CLE_STOCKAGE_PREFERER_NAVIGATEUR, "1");
     } else {
-      window.localStorage.removeItem(CLE_STOCKAGE_PREFERER_NAVIGATEUR);
+      globalThis.window.localStorage.removeItem(CLE_STOCKAGE_PREFERER_NAVIGATEUR);
     }
   } catch {
     /* ignorer (mode privé / quota dépassé) */
@@ -63,7 +63,7 @@ function ecrireValeurPersistantePrefererNavigateur(valeur: boolean): void {
 export function FournisseurHotePublicConnexionJeux({
   children,
 }: {
-  children: ReactNode;
+  readonly children: ReactNode;
 }) {
   const [hotePublicPourJeux, setHotePublicPourJeux] = useState<string | null>(
     null,
@@ -73,7 +73,7 @@ export function FournisseurHotePublicConnexionJeux({
 
   useEffect(() => {
     let annule = false;
-    void (async () => {
+    (async () => {
       try {
         const lu = await chargerHotePublicConnexionJeuxPasserelle();
         if (!annule) {
@@ -84,14 +84,14 @@ export function FournisseurHotePublicConnexionJeux({
           setHotePublicPourJeux(null);
         }
       }
-    })();
+    })().catch(() => {});
     return () => {
       annule = true;
     };
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
+    if (typeof globalThis.window === "undefined") {
       return;
     }
     const surChangementStockage = (ev: StorageEvent) => {
@@ -100,8 +100,8 @@ export function FournisseurHotePublicConnexionJeux({
       }
       setPrefererHoteNavigateurEtat(lireValeurPersistantePrefererNavigateur());
     };
-    window.addEventListener("storage", surChangementStockage);
-    return () => window.removeEventListener("storage", surChangementStockage);
+    globalThis.window.addEventListener("storage", surChangementStockage);
+    return () => globalThis.window.removeEventListener("storage", surChangementStockage);
   }, []);
 
   const definirPrefererHoteNavigateur = useCallback((valeur: boolean) => {

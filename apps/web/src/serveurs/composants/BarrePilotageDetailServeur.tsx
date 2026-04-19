@@ -6,13 +6,13 @@ import {
 } from "../passerelle/actionsInstanceServeurPasserelle.js";
 
 type PropsBarrePilotageDetailServeur = {
-  instance: InstanceServeurJeuxPasserelle;
-  statut: string;
-  transition: boolean;
-  patient: boolean;
-  libelleStatutPilotage: (s: string) => string;
-  executerAction: (libelleSucces: string, fn: () => Promise<void>) => Promise<void>;
-  ouvrirSuppression: () => void;
+  readonly instance: InstanceServeurJeuxPasserelle;
+  readonly statut: string;
+  readonly transition: boolean;
+  readonly patient: boolean;
+  readonly libelleStatutPilotage: (s: string) => string;
+  readonly executerAction: (libelleSucces: string, fn: () => Promise<void>) => Promise<void>;
+  readonly ouvrirSuppression: () => void;
 };
 
 /**
@@ -42,7 +42,7 @@ export function BarrePilotageDetailServeur({
             className="kp-btn kp-btn--primaire"
             disabled={patient}
             onClick={() =>
-              void executerAction("Démarrage demandé.", () => demarrerInstanceServeur(instance.id))
+              executerAction("Démarrage demandé.", () => demarrerInstanceServeur(instance.id)).catch(() => {})
             }
           >
             Démarrer
@@ -64,7 +64,7 @@ export function BarrePilotageDetailServeur({
             className="kp-btn kp-btn--danger"
             disabled={patient}
             onClick={() =>
-              void executerAction("Arrêt demandé.", () => arreterInstanceServeur(instance.id))
+              executerAction("Arrêt demandé.", () => arreterInstanceServeur(instance.id)).catch(() => {})
             }
           >
             Arrêter
@@ -74,9 +74,9 @@ export function BarrePilotageDetailServeur({
             className="kp-btn kp-btn--secondaire"
             disabled={patient}
             onClick={() =>
-              void executerAction("Redémarrage demandé.", () =>
+              executerAction("Redémarrage demandé.", () =>
                 redemarrerInstanceServeur(instance.id),
-              )
+              ).catch(() => {})
             }
           >
             Redémarrer
@@ -90,9 +90,9 @@ export function BarrePilotageDetailServeur({
             className="kp-btn kp-btn--secondaire"
             disabled={patient}
             onClick={() =>
-              void executerAction("Redémarrage demandé.", () =>
+              executerAction("Redémarrage demandé.", () =>
                 redemarrerInstanceServeur(instance.id),
-              )
+              ).catch(() => {})
             }
           >
             Redémarrer

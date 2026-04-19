@@ -41,6 +41,45 @@ const NOMS_POLITIQUE = new Set([
   "unless-stopped",
 ]);
 
+/** Sérialise `hostPort` Docker (nombre ou chaîne attendus) sans coercition ambiguë sur objet. */
+function publicationPortHoteVersChaine(port: unknown): string {
+  if (typeof port === "string") return port.trim();
+  if (typeof port === "number" && Number.isFinite(port)) return String(Math.trunc(port));
+  if (typeof port === "boolean") return port ? "1" : "0";
+  return "";
+}
+
+/** Sérialisation affichable d’une valeur de type libre pour lignes Env / Labels du formulaire. */
+function valeurCleValeurVersTexteFormulaire(valeur: unknown): string {
+  if (valeur === null || valeur === undefined) {
+    return "";
+  }
+  if (
+    typeof valeur === "string" ||
+    typeof valeur === "number" ||
+    typeof valeur === "boolean"
+  ) {
+    return String(valeur);
+  }
+  try {
+    return JSON.stringify(valeur);
+  } catch {
+    return "";
+  }
+}
+
+/** Sérialisation pour listes DNS ou dimensions console lorsque le JSON contient des scalaires mixtes. */
+function valeurScalaireDockerVersTexte(valeur: unknown): string {
+  if (typeof valeur === "string") return valeur;
+  if (typeof valeur === "number" && Number.isFinite(valeur)) return String(valeur);
+  if (typeof valeur === "boolean") return valeur ? "true" : "false";
+  try {
+    return JSON.stringify(valeur);
+  } catch {
+    return "";
+  }
+}
+
 /** Reconstruit les lignes de liaison de ports à partir de `portBindings` du corps API. */
 function liaisonsPortsTexteDepuisPortBindings(
   portBindings: Record<string, unknown>,
@@ -55,7 +94,7 @@ function liaisonsPortsTexteDepuisPortBindings(
         continue;
       }
       const l = liaison as { hostIp?: unknown; hostPort?: unknown };
-      const hostPort = String(l.hostPort ?? "").trim();
+      const hostPort = publicationPortHoteVersChaine(l.hostPort);
       if (hostPort.length === 0) {
         continue;
       }
@@ -78,7 +117,7 @@ function enregistrementVersLignesCleValeur(
     return "";
   }
   return Object.entries(enr)
-    .map(([cle, valeur]) => `${cle}=${String(valeur)}`)
+    .map(([cle, valeur]) => `${cle}=${valeurCleValeurVersTexteFormulaire(valeur)}`)
     .join("\n");
 }
 
@@ -125,7 +164,13 @@ function retirerNullProfond(valeur: unknown): unknown {
 export function etatDepuisCorpsCreationConteneurLab(
   brut: unknown,
 ): EtatCreationConteneurLab {
-  if (brut === null || typeof brut !== "object" || Array.isArray(brut)) {
+  if (brut === null) {
+    throw new Error("La configuration doit être un objet JSON.");
+  }
+  if (Array.isArray(brut)) {
+    throw new Error("La configuration doit être un objet JSON.");
+  }
+  if (typeof brut !== "object") {
     throw new Error("La configuration doit être un objet JSON.");
   }
   const nettoye = retirerNullProfond(brut);
@@ -302,7 +347,7 @@ export function etatDepuisCorpsCreationConteneurLab(
       delete h.networkMode;
     }
     if (Array.isArray(h.dns)) {
-      etat.dnsListe = (h.dns as unknown[]).map((x) => String(x)).join(", ");
+      etat.dnsListe = (h.dns as unknown[]).map((x) => valeurScalaireDockerVersTexte(x)).join(", ");
       delete h.dns;
     }
     if (Array.isArray(h.dnsSearch)) {
@@ -349,8 +394,13 @@ export function etatDepuisCorpsCreationConteneurLab(
     }
     if (typeof h.memorySwapBytes === "number") {
       const ms = h.memorySwapBytes;
-      etat.memoireSwapMegaOctets =
-        ms === -1 ? "-1" : ms > 0 ? octetsVersChaineMo(ms) : "";
+      let memoireSwapTexte = "";
+      if (ms === -1) {
+        memoireSwapTexte = "-1";
+      } else if (ms > 0) {
+        memoireSwapTexte = octetsVersChaineMo(ms);
+      }
+      etat.memoireSwapMegaOctets = memoireSwapTexte;
       delete h.memorySwapBytes;
     }
     if (typeof h.memorySwappiness === "number") {
@@ -389,8 +439,8 @@ export function etatDepuisCorpsCreationConteneurLab(
     }
     if (Array.isArray(h.consoleSize) && h.consoleSize.length >= 2) {
       const [a, b] = h.consoleSize as unknown[];
-      etat.consoleHauteur = String(a);
-      etat.consoleLargeur = String(b);
+      etat.consoleHauteur = valeurScalaireDockerVersTexte(a);
+      etat.consoleLargeur = valeurScalaireDockerVersTexte(b);
       delete h.consoleSize;
     }
     if (Array.isArray(h.capAdd)) {

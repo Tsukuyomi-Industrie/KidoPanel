@@ -31,10 +31,24 @@ function etiquetteCategorieVersLibelle(
   }
 }
 
+/** Repère visuel distinct par grande famille de gabarit sur la grille de sélection. */
+function pictogrammeCategorieGabaritRapide(categorie: GabaritDockerRapide["categorie"]): string {
+  switch (categorie) {
+    case "web":
+      return "🌐";
+    case "base-de-donnees":
+      return "🗄";
+    case "runtime":
+      return "⚙";
+    default:
+      return "⚡";
+  }
+}
+
 type PropsModeRapide = {
-  surCreerConteneur: (corps: Record<string, unknown>) => Promise<boolean>;
-  messageErreurExterne: string | null;
-  surErreurTraduction: (message: string | null) => void;
+  readonly surCreerConteneur: (corps: Record<string, unknown>) => Promise<boolean>;
+  readonly messageErreurExterne: string | null;
+  readonly surErreurTraduction: (message: string | null) => void;
 };
 
 /**
@@ -83,9 +97,9 @@ export function ModeGabaritRapideCreationConteneur({
           gabarit: gabaritChoisi,
           valeursChamps: valeurs,
         });
-      } catch (e) {
+      } catch (error_) {
         surErreurTraduction(
-          e instanceof Error ? e.message : "Préparation du corps de création invalide.",
+          error_ instanceof Error ? error_.message : "Préparation du corps de création invalide.",
         );
         return;
       }
@@ -105,13 +119,7 @@ export function ModeGabaritRapideCreationConteneur({
         {gabarits.map((g) => (
           <article key={g.id} className="kp-carte-selection-gabarit">
             <span className="kp-carte-selection-gabarit__icone" aria-hidden="true">
-              {g.categorie === "web"
-                ? "🌐"
-                : g.categorie === "base-de-donnees"
-                  ? "🗄"
-                  : g.categorie === "runtime"
-                    ? "⚙"
-                    : "⚡"}
+              {pictogrammeCategorieGabaritRapide(g.categorie)}
             </span>
             <span className="kp-carte-selection-gabarit__badge">
               {etiquetteCategorieVersLibelle(g.categorie)}
@@ -153,7 +161,7 @@ export function ModeGabaritRapideCreationConteneur({
         libelleAction="Créer le conteneur"
         enCours={enCours}
         messageErreur={messageErreurExterne}
-        onSubmit={(v) => void gererSoumissionFormulaire(v)}
+        onSubmit={(v) => gererSoumissionFormulaire(v)}
       />
     </div>
   );

@@ -18,7 +18,7 @@ const LIBELLES_STATUT: Record<StatutInstanceBadge, string> = {
 };
 
 type PropsBadgeStatut = {
-  statut: StatutInstanceBadge;
+  readonly statut: StatutInstanceBadge;
 };
 
 /** Pastille d’état d’instance avec couleur et animation selon le cycle de vie. */

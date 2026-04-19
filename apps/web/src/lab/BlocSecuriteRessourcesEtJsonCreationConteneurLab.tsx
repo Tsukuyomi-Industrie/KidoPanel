@@ -24,8 +24,8 @@ import {
 import { TexteAideChampCreationConteneurLab } from "./TexteAideChampCreationConteneurLab.js";
 
 type Props = {
-  etat: EtatCreationConteneurLab;
-  majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
+  readonly etat: EtatCreationConteneurLab;
+  readonly majEtat: (partiel: Partial<EtatCreationConteneurLab>) => void;
 };
 
 /** Sécurité, ressources, TTY, stdin et blocs JSON avancés (healthcheck, réseau, host). */
@@ -47,7 +47,7 @@ export function BlocSecuriteRessourcesEtJsonCreationConteneurLab({
               type="checkbox"
               checked={etat.privileged}
               onChange={(e) => majEtat({ privileged: e.target.checked })}
-            />
+            />{" "}
             Accorder les privilèges étendus de l’hôte
           </label>
         </div>
@@ -59,7 +59,7 @@ export function BlocSecuriteRessourcesEtJsonCreationConteneurLab({
               type="checkbox"
               checked={etat.racineLectureSeule}
               onChange={(e) => majEtat({ racineLectureSeule: e.target.checked })}
-            />
+            />{" "}
             Interdire l’écriture sur la racine hors volumes
           </label>
         </div>
@@ -159,7 +159,7 @@ export function BlocSecuriteRessourcesEtJsonCreationConteneurLab({
               type="checkbox"
               checked={etat.tty}
               onChange={(e) => majEtat({ tty: e.target.checked })}
-            />
+            />{" "}
             Allouer un pseudo-terminal
           </label>
         </div>
@@ -171,7 +171,7 @@ export function BlocSecuriteRessourcesEtJsonCreationConteneurLab({
               type="checkbox"
               checked={etat.entreeStandardOuverte}
               onChange={(e) => majEtat({ entreeStandardOuverte: e.target.checked })}
-            />
+            />{" "}
             Garder stdin ouvert pour une session interactive
           </label>
         </div>

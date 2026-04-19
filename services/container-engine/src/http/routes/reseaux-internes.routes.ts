@@ -37,10 +37,10 @@ export function mountReseauxInternesRoutes(
           metadata: { nomDocker: corps.nomDocker },
         });
         return c.json(normalise, 201);
-      } catch (err) {
-        const response = tryRespondWithEngineError(c, err);
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
         if (response) return response;
-        throw err;
+        throw error_;
       }
     },
   );
@@ -55,10 +55,10 @@ export function mountReseauxInternesRoutes(
           requestId: c.get("requestId"),
         });
         return c.body(null, 204);
-      } catch (err) {
-        const response = tryRespondWithEngineError(c, err);
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
         if (response) return response;
-        throw err;
+        throw error_;
       }
     },
   );

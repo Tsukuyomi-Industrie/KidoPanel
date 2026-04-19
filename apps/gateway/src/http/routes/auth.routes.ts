@@ -41,10 +41,10 @@ export function monterRoutesAuth(
           },
           201,
         );
-      } catch (erreur) {
+      } catch (error_) {
         if (
-          erreur instanceof Error &&
-          erreur.message === "EMAIL_DEJA_UTILISE"
+          error_ instanceof Error &&
+          error_.message === "EMAIL_DEJA_UTILISE"
         ) {
           journaliserPasserelle({
             niveau: "warn",
@@ -61,7 +61,7 @@ export function monterRoutesAuth(
             409,
           );
         }
-        throw erreur;
+        throw error_;
       }
     },
   );
@@ -84,10 +84,10 @@ export function monterRoutesAuth(
           role: utilisateur.role,
         },
       });
-    } catch (erreur) {
+    } catch (error_) {
       if (
-        erreur instanceof Error &&
-        erreur.message === "IDENTIFIANTS_INVALIDES"
+        error_ instanceof Error &&
+        error_.message === "IDENTIFIANTS_INVALIDES"
       ) {
         journaliserPasserelle({
           niveau: "warn",
@@ -104,7 +104,7 @@ export function monterRoutesAuth(
           401,
         );
       }
-      throw erreur;
+      throw error_;
     }
   });
 
