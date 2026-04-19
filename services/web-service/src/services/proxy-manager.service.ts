@@ -111,9 +111,8 @@ export class ProxyManagerService {
     domaines?: LigneDomaineProxy[],
     identifiantRequeteHttp?: string,
   ): Promise<void> {
-    const liste =
-      domaines ??
-      (await this.depotDomaine.listerTousOrdreDomaine());
+    const liste: LigneDomaineProxy[] =
+      domaines ?? (await this.depotDomaine.listerTousOrdreDomaine());
     const corpsConf = [
       `# Fichier généré par KidoPanel — ne pas modifier à la main.`,
       ...liste.map((d) => this.genererBlocServeurNginx(d)),
