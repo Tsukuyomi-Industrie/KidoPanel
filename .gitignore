@@ -1,6 +1,7 @@
 #fichier de developement 
 
 .cursorrules
+.cline-rules.md
 Lore.md
 .env
 sonar-project.properties

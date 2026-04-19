@@ -77,7 +77,7 @@ export async function creerReseauPontUtilisateurDocker(
   try {
     listeExistante = await docker.listNetworks();
   } catch (err) {
-    wrapDockerError(err);
+    throw wrapDockerError(err);
   }
   const messageChevauchement = analyserChevauchementsAvecReseauxExistants(
     intervalle,
@@ -89,8 +89,8 @@ export async function creerReseauPontUtilisateurDocker(
   const optsCreation: Parameters<DockerClient["createNetwork"]>[0] = {
     Name: entree.nomDocker.trim(),
     Driver: "bridge",
-    CheckDuplicate: true,
     Internal: entree.sansRouteVersInternetExterne,
+    EnableIPv6: false,
     IPAM: {
       Driver: "default",
       Config: [
@@ -100,6 +100,11 @@ export async function creerReseauPontUtilisateurDocker(
         },
       ],
     },
+    Options: {
+      "com.docker.network.bridge.enable_icc": "true",
+      "com.docker.network.bridge.enable_ip_masquerade": "true",
+      "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0"
+    }
   };
   const pont = entree.pontBridgeDocker?.trim();
   if (pont !== undefined && pont.length > 0) {
@@ -120,7 +125,7 @@ export async function creerReseauPontUtilisateurDocker(
         );
       }
     }
-    wrapDockerError(err);
+    throw wrapDockerError(err);
   }
   journaliserMoteur({
     niveau: "info",
