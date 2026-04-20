@@ -209,19 +209,19 @@ export function etatDepuisCorpsCreationConteneurLab(
     };
   } else if (typeof imageLegacy === "string" && imageLegacy.trim().length > 0) {
     const depuisRef = trouverIdCatalogueDepuisReferenceDocker(imageLegacy);
-    if (depuisRef !== undefined) {
-      etat = {
-        ...base,
-        origineImage: "catalogue",
-        imageCatalogId: depuisRef,
-        referenceDockerRegistre: "",
-      };
-    } else {
+    if (depuisRef === undefined) {
       etat = {
         ...base,
         origineImage: "registre",
         referenceDockerRegistre: imageLegacy.trim(),
         imageCatalogId: base.imageCatalogId,
+      };
+    } else {
+      etat = {
+        ...base,
+        origineImage: "catalogue",
+        imageCatalogId: depuisRef,
+        referenceDockerRegistre: "",
       };
     }
   } else {

@@ -173,11 +173,11 @@ export function SectionReseauEtSuggestionFormulaireExpert({
         <p className="kp-champ__aide">
           Interroge le moteur après tirage éventuel de l’image : entrypoint, commande, répertoire de travail, ports déclarés et variables du manifeste (aucune garantie pour les images complexes : vérifiez les champs après application).
         </p>
-        {messageSuggestion !== null ? (
+        {messageSuggestion === null ? null : (
           <p className="kidopanel-texte-muted" style={{ marginTop: "0.35rem" }}>
             {messageSuggestion}
           </p>
-        ) : null}
+        )}
       </div>
 
       <div className="kp-champ">
@@ -219,11 +219,11 @@ export function SectionReseauEtSuggestionFormulaireExpert({
           </div>
           {etat.modeReseau === "bridge" ? (
             <>
-              {erreurPonts !== null ? (
+              {erreurPonts === null ? null : (
                 <p className="bandeau-erreur-auth" role="alert">
                   {erreurPonts}
                 </p>
-              ) : null}
+              )}
               <div className="kp-champ">
                 <span className="kp-champ__label">Ponts du panel</span>
                 <div

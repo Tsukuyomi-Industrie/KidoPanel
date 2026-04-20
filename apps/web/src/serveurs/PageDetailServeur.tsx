@@ -250,13 +250,13 @@ export function PageDetailServeur() {
       <div className="kp-page-entete">
         <h1 className="kp-page-titre">{instance?.name ?? "Instance jeu"}</h1>
       </div>
-      {erreur !== null ? (
+      {erreur === null ? null : (
         <pre className="kp-cellule-mono" role="alert">
           {erreur}
         </pre>
-      ) : null}
+      )}
 
-      {instance !== null ? (
+      {instance === null ? null : (
         <PanneauDetailServeurInstanceJeux
           instance={instance}
           onglet={onglet}
@@ -267,7 +267,7 @@ export function PageDetailServeur() {
           executerAction={executerAction}
           ouvrirSuppression={ouvrirSuppression}
         />
-      ) : null}
+      )}
 
       <DialogueSuppressionInstanceServeur
         refDialogue={refDialogSuppression}

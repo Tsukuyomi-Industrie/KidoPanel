@@ -150,7 +150,7 @@ export class CycleVieWebInstance {
       techStack: params.techStack,
       gabaritDockerRapideId: params.gabaritDockerRapideId,
       portPublicationHote: params.portHote,
-      ...(nomPontDocker !== undefined ? { reseauBridgeNom: nomPontDocker } : {}),
+      ...(nomPontDocker === undefined ? {} : { reseauBridgeNom: nomPontDocker }),
     });
 
     const { instance, ipReseauInterne } = await finaliserInstallationConteneurWeb({

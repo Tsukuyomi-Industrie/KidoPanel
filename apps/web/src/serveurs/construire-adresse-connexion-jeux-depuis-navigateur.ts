@@ -13,12 +13,12 @@ export function construireAdresseConnexionJeux(params: {
   forcerHotePageNavigateur?: boolean;
 }): string {
   let hoteNavigateur = "";
-  if (typeof globalThis.window !== "undefined") {
+  if (typeof globalThis.window === "undefined") {
+    hoteNavigateur = "";
+  } else {
     const h = globalThis.window.location.hostname;
     hoteNavigateur =
       h === "localhost" || h === "127.0.0.1" || h === "[::1]" ? "127.0.0.1" : h;
-  } else {
-    hoteNavigateur = "";
   }
   if (params.forcerHotePageNavigateur === true && hoteNavigateur.length > 0) {
     return `${hoteNavigateur}:${String(params.port)}`;

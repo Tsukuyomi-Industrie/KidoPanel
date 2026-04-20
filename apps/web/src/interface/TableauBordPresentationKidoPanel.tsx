@@ -97,7 +97,7 @@ export function TableauBordPresentationKidoPanel({
   let libelleLatencePostgresTableau = "—";
   if (donnees !== null && chargement === false) {
     libelleLatencePostgresTableau =
-      donnees.postgresql.latenceMs !== undefined
+      donnees.postgresql.latenceMs === undefined
         ? `${String(donnees.postgresql.latenceMs)} ms`
         : "N/D";
   }
@@ -132,7 +132,7 @@ export function TableauBordPresentationKidoPanel({
         </div>
       </div>
 
-      {erreur !== null ? <div className="bandeau-erreur-auth kp-dash-erreur">{erreur}</div> : null}
+      {erreur === null ? null : <div className="bandeau-erreur-auth kp-dash-erreur">{erreur}</div>}
 
       <GrilleMetriquesResumeTableau
         donnees={donnees}

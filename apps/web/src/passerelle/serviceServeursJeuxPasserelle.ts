@@ -183,7 +183,7 @@ export async function supprimerInstanceServeurJeuxPasserelle(idInstance: string)
       /* réponse vide ou non JSON */
     }
     throw new Error(
-      corpsJson !== null
+      corpsJson === null
         ? messageErreurPasserelleDepuisJson(corpsJson, reponse.status)
         : `Erreur HTTP ${String(reponse.status)}`,
     );

@@ -109,6 +109,6 @@ export async function finaliserInstallationConteneurWeb(params: {
   });
   return {
     instance: instanceFinale,
-    ...(ipReseauInterne !== undefined ? { ipReseauInterne } : {}),
+    ...(ipReseauInterne === undefined ? {} : { ipReseauInterne }),
   };
 }

@@ -60,17 +60,17 @@ export function PageHebergementWebKidoPanel() {
           </p>
         </div>
       </div>
-      {erreur !== null ? (
+      {erreur === null ? null : (
         <pre className="kp-cellule-mono kp-marges-haut-sm" role="alert">
           {erreur}
         </pre>
-      ) : null}
+      )}
 
       <div className="kp-dash-bento kp-marges-haut-sm">
         <section className="kp-dash-carte">
           <h2 className="kp-section-label">Containers applicatifs</h2>
           <p style={{ fontSize: "2rem", margin: "0.25rem 0", fontWeight: 700 }}>
-            {nbConteneurs !== null ? String(nbConteneurs) : "…"}{" "}
+            {nbConteneurs === null ? "…" : String(nbConteneurs)}{" "}
             <span style={{ fontSize: "1rem", fontWeight: 400 }}>actifs</span>
           </p>
           <p className="kp-texte-muted" style={{ marginBottom: "1rem" }}>
@@ -86,7 +86,7 @@ export function PageHebergementWebKidoPanel() {
         <section className="kp-dash-carte">
           <h2 className="kp-section-label">Proxy Manager</h2>
           <p style={{ fontSize: "2rem", margin: "0.25rem 0", fontWeight: 700 }}>
-            {nbDomaines !== null ? String(nbDomaines) : "…"}{" "}
+            {nbDomaines === null ? "…" : String(nbDomaines)}{" "}
             <span style={{ fontSize: "1rem", fontWeight: 400 }}>domaines</span>
           </p>
           <p className="kp-texte-muted" style={{ marginBottom: "1rem" }}>

@@ -96,11 +96,11 @@ export function PageListeServeurs() {
       </p>
       <BasculeAffichageHotePublicConnexion />
       <BandeauDiagnosticPareFeuHote lieuAffichage="Serveurs de jeu" />
-      {erreur !== null ? (
+      {erreur === null ? null : (
         <pre className="kp-cellule-mono kp-marges-haut-sm" role="alert">
           {erreur}
         </pre>
-      ) : null}
+      )}
       {corpsListeServeursJeux}
     </>
   );

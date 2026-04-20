@@ -43,6 +43,6 @@ export function mapEntreeListeDockerVersResume(c: ContainerInfo): ContainerSumma
     state: mapDockerStateVersStatut(c.State),
     labels: c.Labels ?? {},
     ports,
-    ...(ipv4ReseauKidopanel !== undefined ? { ipv4ReseauKidopanel } : {}),
+    ...(ipv4ReseauKidopanel === undefined ? {} : { ipv4ReseauKidopanel }),
   };
 }

@@ -145,7 +145,7 @@ export class CycleVieInstanceServeur {
       gabarit,
       fusionEnv,
       identifiantRequeteHttp: params.identifiantRequeteHttp,
-      ...(nomPontDocker !== undefined ? { reseauBridgeNom: nomPontDocker } : {}),
+      ...(nomPontDocker === undefined ? {} : { reseauBridgeNom: nomPontDocker }),
       ...(dualKidopanelEtPont ? { reseauDualAvecKidopanel: true } : {}),
       ...(dualKidopanelEtPont && params.reseauPrimaireKidopanel === false
         ? { reseauPrimaireKidopanel: false }

@@ -175,7 +175,7 @@ export function CarteServeur({
             <IcoArret size={14} />
           </button>
         ) : null}
-        {instance.status !== "INSTALLING" ? (
+        {instance.status === "INSTALLING" ? null : (
           <Link
             to={cheminDetail}
             className="kp-btn-ico"
@@ -184,7 +184,7 @@ export function CarteServeur({
           >
             <IcoConsoleJeux size={15} />
           </Link>
-        ) : null}
+        )}
       </div>
 
       {peutAfficherSuppressionListe ? (

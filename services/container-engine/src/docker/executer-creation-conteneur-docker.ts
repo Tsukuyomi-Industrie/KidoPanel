@@ -160,8 +160,8 @@ export async function executerCreationConteneurDocker(
     const resultat: CreateContainerResult = {
       id: container.id,
       warnings: [],
-      ...(ipReseauInterne !== undefined ? { ipReseauInterne } : {}),
-      ...(ipReseauAdjoint !== undefined ? { ipReseauAdjoint } : {}),
+      ...(ipReseauInterne === undefined ? {} : { ipReseauInterne }),
+      ...(ipReseauAdjoint === undefined ? {} : { ipReseauAdjoint }),
     };
     deps.journauxFichierConteneur
       ?.notifierCreation(resultat.id, {

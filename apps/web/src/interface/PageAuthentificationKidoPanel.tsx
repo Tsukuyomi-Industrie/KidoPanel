@@ -99,7 +99,7 @@ export function PageAuthentificationKidoPanel() {
           </button>
         </div>
 
-        {erreur !== null ? <div className="bandeau-erreur-auth">{erreur}</div> : null}
+        {erreur === null ? null : <div className="bandeau-erreur-auth">{erreur}</div>}
 
         {onglet === "connexion" ? (
           <form

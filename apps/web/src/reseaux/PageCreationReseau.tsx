@@ -87,7 +87,7 @@ export function PageCreationReseau() {
         <button type="submit" className="kp-btn kp-btn--primaire kp-marges-haut-sm" disabled={patient}>
           Créer le réseau
         </button>
-        {erreurDerniereTentative !== null ? (
+        {erreurDerniereTentative === null ? null : (
           <pre
             className="kp-cellule-mono kp-marges-haut-sm"
             role="alert"
@@ -102,7 +102,7 @@ export function PageCreationReseau() {
           >
             <strong>Création refusée :</strong> {erreurDerniereTentative}
           </pre>
-        ) : null}
+        )}
       </form>
     </>
   );

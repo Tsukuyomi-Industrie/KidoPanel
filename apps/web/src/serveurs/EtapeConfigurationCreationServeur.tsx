@@ -83,11 +83,11 @@ export function EtapeConfigurationCreationServeur({
 }: PropsEtapeConfiguration) {
   return (
     <section className="kidopanel-carte-principale" style={{ marginTop: "1rem" }}>
-      {messageErreur !== null ? (
+      {messageErreur === null ? null : (
         <div className="bandeau-erreur-auth" role="alert">
           {messageErreur}
         </div>
-      ) : null}
+      )}
       <h1 className="kidopanel-titre-page" style={{ marginTop: "0.75rem" }}>
         Configuration
       </h1>

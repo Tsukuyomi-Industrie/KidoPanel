@@ -65,7 +65,7 @@ export function normaliserLogConfigHostPourValidationZod(entree: unknown): unkno
       return undefined;
     }
     const configurationBrute =
-      enregistrement.config !== undefined ? enregistrement.config : enregistrement.Config;
+      enregistrement.config === undefined ? enregistrement.Config : enregistrement.config;
     const sortie: { type: string; config?: Record<string, string> } = {
       type: typeEffectif,
     };

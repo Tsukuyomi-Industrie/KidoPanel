@@ -149,13 +149,13 @@ export function PageListeReseaux() {
           Créer un réseau
         </Link>
       </div>
-      {erreur !== null ? (
+      {erreur === null ? null : (
         <pre className="kp-cellule-mono" role="alert">
           {erreur}
         </pre>
-      ) : null}
+      )}
       <BandeauDiagnosticPareFeuHote lieuAffichage="Réseaux privés" />
-      {avertissementComptage !== null ? (
+      {avertissementComptage === null ? null : (
         <output
           className="kp-bandeau-info kp-marges-haut-sm"
           style={{
@@ -173,7 +173,7 @@ export function PageListeReseaux() {
             <strong>Information (n’empêche pas la création)</strong> — {avertissementComptage}
           </span>
         </output>
-      ) : null}
+      )}
       {corpsListeReseaux}
     </>
   );

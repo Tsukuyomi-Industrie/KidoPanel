@@ -84,9 +84,9 @@ export function RailNavigationKidoPanel({
           <NavLink to="/serveurs" className={classeLienRail}>
             <IcoServeurs className="kp-sidebar__lien-icone" />
             Serveurs de jeu
-            {nombreServeursJeux !== undefined ? (
+            {nombreServeursJeux === undefined ? null : (
               <span className="kp-sidebar__badge">{String(nombreServeursJeux)}</span>
-            ) : null}
+            )}
           </NavLink>
           <NavLink to="/hebergement" className={classeLienRail}>
             <IcoHebergement className="kp-sidebar__lien-icone" />

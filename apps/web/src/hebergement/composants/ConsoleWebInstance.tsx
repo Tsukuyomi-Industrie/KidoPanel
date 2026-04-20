@@ -45,11 +45,11 @@ export function ConsoleWebInstance({ idInstanceWeb, actif }: PropsConsoleWebInst
           </button>
         </div>
         <div className="kp-console-logs" role="log">
-          {dernierMessageErreur !== null ? (
+          {dernierMessageErreur === null ? null : (
             <p className="kp-log-ligne kp-log-error" role="alert">
               {dernierMessageErreur}
             </p>
-          ) : null}
+          )}
           {lignes.length === 0 ? (
             <span className="kp-log-ligne kp-log-debug">— en attente de lignes —</span>
           ) : (

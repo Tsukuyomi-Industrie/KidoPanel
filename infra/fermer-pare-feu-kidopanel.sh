@@ -51,8 +51,7 @@ for proto, num in sorted(vu):
     return 0
   fi
   while read -r proto num; do
-    [[ -n "${proto:-}" ]] || continue
-    [[ -n "${num:-}" ]] || continue
+    [[ -n "${proto:-}" && -n "${num:-}" ]] || continue
     echo "Retrait pare-feu : ${num}/${proto}"
     if command -v firewall-cmd >/dev/null 2>&1 && executer_avec_privileges firewall-cmd --state >/dev/null 2>&1; then
       executer_avec_privileges firewall-cmd --permanent "--remove-port=${num}/${proto}" >/dev/null 2>&1 || true

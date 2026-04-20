@@ -97,11 +97,11 @@ export function EtapeConfirmationCreationServeur({
           {libelleDelaiInstallationRecapitulatif(modePersonnalise, gabaritChoisi)}
         </li>
       </ul>
-      {erreur !== null ? (
+      {erreur === null ? null : (
         <div className="bandeau-erreur-auth" role="alert">
           {erreur}
         </div>
-      ) : null}
+      )}
       {enCours ? (
         <output className="kidopanel-texte-muted" style={{ display: "block" }}>
           Installation en cours…

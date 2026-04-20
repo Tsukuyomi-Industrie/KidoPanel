@@ -71,11 +71,11 @@ export function PageListeWebInstances() {
           Nouveau container
         </Link>
       </div>
-      {erreur !== null ? (
+      {erreur === null ? null : (
         <pre className="kp-cellule-mono" role="alert">
           {erreur}
         </pre>
-      ) : null}
+      )}
       {corpsListeInstancesWeb}
     </>
   );

@@ -81,15 +81,15 @@ export function PageProxyManager() {
                   </a>
                 </td>
                 <td>
-                  {d.webInstanceId !== null ? (
+                  {d.webInstanceId === null ? (
+                    "—"
+                  ) : (
                     <Link
                       to={`/hebergement/containers/${encodeURIComponent(d.webInstanceId)}`}
                       className="kp-lien-inline"
                     >
                       {nomsInstances[d.webInstanceId] ?? d.webInstanceId.slice(0, 8)}
                     </Link>
-                  ) : (
-                    "—"
                   )}
                 </td>
                 <td>{String(d.portCible)}</td>
@@ -123,11 +123,11 @@ export function PageProxyManager() {
           Ajouter un domaine
         </Link>
       </div>
-      {erreur !== null ? (
+      {erreur === null ? null : (
         <pre className="kp-cellule-mono" role="alert">
           {erreur}
         </pre>
-      ) : null}
+      )}
       {corpsTableauDomaines}
     </>
   );

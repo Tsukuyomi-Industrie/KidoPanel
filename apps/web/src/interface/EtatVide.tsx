@@ -10,7 +10,7 @@ type PropsEtatVide = {
 export function EtatVide({ titre, detail, icone }: PropsEtatVide) {
   return (
     <div className="kp-etat-vide kp-panel-corps">
-      {icone !== undefined ? icone : null}
+      {icone === undefined ? null : icone}
       <h2 className="kp-etat-vide__titre">{titre}</h2>
       <p className="kp-etat-vide__detail">{detail}</p>
     </div>

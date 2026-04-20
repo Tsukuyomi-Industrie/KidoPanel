@@ -116,13 +116,13 @@ export function PageDetailWebInstance() {
       <div className="kp-page-entete">
         <h1 className="kp-page-titre">{instance?.name ?? "Container"}</h1>
       </div>
-      {erreur !== null ? (
+      {erreur === null ? null : (
         <pre role="alert" className="kp-cellule-mono">
           {erreur}
         </pre>
-      ) : null}
+      )}
 
-      {instance !== null ? (
+      {instance === null ? null : (
         <>
           <div className="kp-marges-haut-sm" role="tablist">
             {(["resume", "console", "domaines"] as const).map((o) => (
@@ -257,7 +257,7 @@ export function PageDetailWebInstance() {
             </section>
           ) : null}
         </>
-      ) : null}
+      )}
 
       <dialog ref={refSuppression} style={{ padding: "1rem", maxWidth: "26rem" }}>
         <p>Supprimer cette instance web et son conteneur ? Action irréversible.</p>

@@ -66,11 +66,11 @@ export function BlocChoixReseauCreationServeur({
       <p className="kp-champ__aide">
         Par défaut le conteneur utilise le réseau partagé du panel. Vous pouvez le placer uniquement sur un pont que vous avez créé, ou sur les deux à la fois.
       </p>
-      {erreurListe !== null ? (
+      {erreurListe === null ? null : (
         <p className="bandeau-erreur-auth" role="alert">
           {erreurListe}
         </p>
-      ) : null}
+      )}
       <div className="kp-champ">
         <span className="kp-champ__label">Stratégie</span>
         <div className="kp-champ kp-champ--horizontal" style={{ flexWrap: "wrap", gap: "0.75rem" }}>

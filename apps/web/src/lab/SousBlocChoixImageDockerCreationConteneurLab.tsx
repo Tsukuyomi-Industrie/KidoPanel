@@ -97,12 +97,12 @@ export function SousBlocChoixImageDockerCreationConteneurLab({
       >
         {contenuListeDeroulanteCatalogue}
       </select>
-      {erreurCatalogue !== null ? (
+      {erreurCatalogue === null ? null : (
         <p style={{ fontSize: "0.85rem", color: "#b00020", marginTop: 6 }}>
           {erreurCatalogue}
         </p>
-      ) : null}
-      {selection !== undefined ? (
+      )}
+      {selection === undefined ? null : (
         <div
           style={{
             marginTop: 8,
@@ -123,7 +123,7 @@ export function SousBlocChoixImageDockerCreationConteneurLab({
             <code>{selection.referenceDocker}</code>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

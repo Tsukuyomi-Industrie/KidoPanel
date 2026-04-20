@@ -60,9 +60,9 @@ export class GestionnairePareFeuHoteKidopanel {
           process.env.CONTAINER_ENGINE_PAREFEU_BACKEND ?? "(auto)",
         uidEffectif:
           typeof process.geteuid === "function" ? process.geteuid() : undefined,
-        ...(diagnosticSansBackendActif !== undefined
-          ? { diagnosticSansBackendActif }
-          : {}),
+        ...(diagnosticSansBackendActif === undefined
+          ? {}
+          : { diagnosticSansBackendActif }),
       },
     });
   }

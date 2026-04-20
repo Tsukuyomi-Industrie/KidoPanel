@@ -200,11 +200,11 @@ export function FormulaireExpertCreationConteneur({
         </div>
       </details>
 
-      {messageErreur !== null ? (
+      {messageErreur === null ? null : (
         <div className="bandeau-erreur-auth" role="alert">
           {messageErreur}
         </div>
-      ) : null}
+      )}
 
       <button type="submit" className="bouton-principal-kido" disabled={enCours}>
         {enCours ? "Création…" : libelleSoumission}

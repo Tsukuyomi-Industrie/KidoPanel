@@ -813,6 +813,7 @@ reinitialiser_processus_panel() {
 arreter_panel() {
   echo "Arrêt des processus du panel (si actifs)…"
   reinitialiser_processus_panel
+  return 0
 }
 
 # Compile les paquets nécessaires aux processus `pnpm … start` (dist/main.js pour chaque service Node).
@@ -827,6 +828,7 @@ compiler_passerelle_et_moteur_avant_demarrage() {
   pnpm --filter gateway run build
   pnpm --filter container-engine run build
   echo "Compilation services / passerelle / moteur terminée."
+  return 0
 }
 
 # Attente courte qu’un service HTTP réponde (health) après nohup.
@@ -941,6 +943,7 @@ installation_premiere_fois() {
   panel_marque_comme_pret
   demarrer_panel
   afficher_acces_panel
+  return 0
 }
 
 mettre_a_jour_et_redemarrer() {
@@ -958,6 +961,7 @@ mettre_a_jour_et_redemarrer() {
   etapes_dependances_build
   demarrer_panel
   afficher_acces_panel
+  return 0
 }
 
 redemarrer_seulement() {
@@ -974,6 +978,7 @@ redemarrer_seulement() {
   arreter_panel
   demarrer_panel
   afficher_acces_panel
+  return 0
 }
 
 menu_desinstaller() {
@@ -1002,23 +1007,20 @@ menu_desinstaller() {
     echo ".env supprimé."
   fi
   read -r -p "Exécuter « docker compose down » (arrêt Postgres du compose) ? [o/N] " c4
-  if [[ "$c4" == "o" || "$c4" == "O" ]]; then
-    if definir_commande_compose_si_disponible; then
-      "${DOCKER_COMPOSE[@]}" -f "$CHEMIN_COMPOSE_POSTGRES" down
-      echo "Compose arrêté."
-    else
-      echo_err "Docker Compose v2 indisponible : arrêt manuel du stack si besoin."
-    fi
+  if [[ "$c4" == "o" || "$c4" == "O" ]] && definir_commande_compose_si_disponible; then
+    "${DOCKER_COMPOSE[@]}" -f "$CHEMIN_COMPOSE_POSTGRES" down
+    echo "Compose arrêté."
+  elif [[ "$c4" == "o" || "$c4" == "O" ]]; then
+    echo_err "Docker Compose v2 indisponible : arrêt manuel du stack si besoin."
   fi
   read -r -p "Supprimer aussi le volume Postgres (docker compose down -v) ? [o/N] " c5
-  if [[ "$c5" == "o" || "$c5" == "O" ]]; then
-    if definir_commande_compose_si_disponible; then
-      "${DOCKER_COMPOSE[@]}" -f "$CHEMIN_COMPOSE_POSTGRES" down -v
-      echo "Volumes compose supprimés."
-    fi
+  if [[ "$c5" == "o" || "$c5" == "O" ]] && definir_commande_compose_si_disponible; then
+    "${DOCKER_COMPOSE[@]}" -f "$CHEMIN_COMPOSE_POSTGRES" down -v
+    echo "Volumes compose supprimés."
   fi
   rm -f "$FICHIER_MARQUEUR"
   echo "Marqueur d’installation retiré : une prochaine exécution refait une installation initiale."
+  return 0
 }
 
 menu_reexecution() {
@@ -1048,6 +1050,7 @@ menu_reexecution() {
     0) echo "Au revoir." ;;
     *) echo_err "Choix invalide." && exit 1 ;;
   esac
+  return 0
 }
 
 # --- Point d’entrée ---
