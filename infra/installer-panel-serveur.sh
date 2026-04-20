@@ -532,6 +532,8 @@ PLACEHOLDER_GATEWAY_JWT_SECRET="remplacer-par-une-chaine-longue-et-aleatoire"
 # Aligné sur docker-compose.yml : le mot de passe provient de POSTGRES_PASSWORD dans le fichier .env racine (aucun littéral dans ce script).
 KIDOPANEL_POSTGRES_IDENTIFIANTS_GENERES=0
 MOTIF_VARIABLE_POSTGRES_USER_ENV='^POSTGRES_USER='
+VALEUR_EXEMPLE_POSTGRES_USER="kp_utilisateur"
+VALEUR_EXEMPLE_POSTGRES_PASSWORD="remplacer-par-un-mot-de-passe-fort"
 
 generer_secret_jwt_hex() {
   if command -v openssl >/dev/null 2>&1; then
@@ -585,13 +587,13 @@ assurer_identifiants_postgres_env_racine() {
   [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] || return 0
   utilisateur_postgres="$(grep "$MOTIF_VARIABLE_POSTGRES_USER_ENV" "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
   mot_de_passe="$(grep '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
-  if [[ -z "${utilisateur_postgres// /}" ]]; then
+  if [[ -z "${utilisateur_postgres// /}" ]] || [[ "$utilisateur_postgres" == "$VALEUR_EXEMPLE_POSTGRES_USER" ]]; then
     utilisateur_postgres="$(generer_utilisateur_postgres_aleatoire)"
     ecrire_ligne_variable_env_racine "POSTGRES_USER" "$utilisateur_postgres"
     echo "POSTGRES_USER généré automatiquement."
     KIDOPANEL_POSTGRES_IDENTIFIANTS_GENERES=1
   fi
-  if [[ -z "${mot_de_passe// /}" ]]; then
+  if [[ -z "${mot_de_passe// /}" ]] || [[ "$mot_de_passe" == "$VALEUR_EXEMPLE_POSTGRES_PASSWORD" ]]; then
     mot_de_passe="$(generer_mot_de_passe_postgres_aleatoire)"
     ecrire_ligne_variable_env_racine "POSTGRES_PASSWORD" "$mot_de_passe"
     echo "POSTGRES_PASSWORD généré automatiquement."
@@ -803,6 +805,32 @@ demarrer_postgres_et_attendre() {
   return 1
 }
 
+# Vérifie que les identifiants PostgreSQL de .env permettent une connexion SQL réelle.
+verifier_auth_postgres_depuis_env() {
+  local utilisateur_postgres mot_de_passe
+  utilisateur_postgres="$(grep "$MOTIF_VARIABLE_POSTGRES_USER_ENV" "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
+  mot_de_passe="$(grep '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
+  [[ -n "${utilisateur_postgres// /}" ]] || return 1
+  [[ -n "${mot_de_passe// /}" ]] || return 1
+  "${DOCKER_COMPOSE[@]}" -f "$CHEMIN_COMPOSE_POSTGRES" exec -T postgres \
+    sh -lc "PGPASSWORD='$mot_de_passe' psql -h 127.0.0.1 -U '$utilisateur_postgres' -d kydopanel -c 'select 1' >/dev/null"
+}
+
+# Première installation : si un ancien volume PostgreSQL conserve d’anciens identifiants, on le régénère.
+reconcilier_auth_postgres_premiere_installation() {
+  [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] || return 0
+  verifier_auth_postgres_depuis_env && return 0
+  echo "PostgreSQL répond mais refuse les identifiants de .env : réinitialisation du volume pour aligner l’installation initiale…"
+  "${DOCKER_COMPOSE[@]}" -f "$CHEMIN_COMPOSE_POSTGRES" down -v --remove-orphans
+  demarrer_postgres_et_attendre || return 1
+  verifier_auth_postgres_depuis_env || {
+    echo_err "Échec d’authentification PostgreSQL après réinitialisation du volume. Vérifiez POSTGRES_USER/POSTGRES_PASSWORD dans .env."
+    return 1
+  }
+  echo "Authentification PostgreSQL validée avec les identifiants du .env."
+  return 0
+}
+
 charger_env_pour_prisma() {
   set -a
   # shellcheck source=/dev/null
@@ -998,6 +1026,7 @@ installation_premiere_fois() {
   preparer_fichier_env_racine || return 1
   if [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]]; then
     demarrer_postgres_et_attendre
+    reconcilier_auth_postgres_premiere_installation || return 1
   else
     echo "Sans postgres docker : vérifiez DATABASE_URL ; Docker reste requis pour le moteur de conteneurs."
     assurer_docker_moteur
