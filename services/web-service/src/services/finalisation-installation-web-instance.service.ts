@@ -9,6 +9,33 @@ export type ResultatFinalisationInstallationWeb = {
   ipReseauInterne?: string;
 };
 
+function statutHttpMoteurOu502(statut: number): number {
+  return statut >= 400 && statut < 600 ? statut : 502;
+}
+
+function extraireCreationConteneurDepuisTexte(texteCreation: string): {
+  idDocker: string;
+  ipReseauInterne?: string;
+} {
+  const parse = JSON.parse(texteCreation) as {
+    id?: unknown;
+    ipReseauInterne?: unknown;
+  };
+  if (typeof parse.id !== "string" || parse.id.length === 0) {
+    throw new ErreurMetierWebInstance(
+      "MOTEUR_CONTENEURS_ERREUR",
+      "Réponse moteur sans identifiant conteneur.",
+      502,
+    );
+  }
+  return {
+    idDocker: parse.id,
+    ...(typeof parse.ipReseauInterne === "string" && parse.ipReseauInterne.length > 0
+      ? { ipReseauInterne: parse.ipReseauInterne }
+      : {}),
+  };
+}
+
 /**
  * Crée le conteneur applicatif et démarre l’instance après une ligne Prisma en statut INSTALLING.
  */
@@ -43,9 +70,7 @@ export async function finaliserInstallationConteneurWeb(params: {
     throw new ErreurMetierWebInstance(
       "MOTEUR_CONTENEURS_ERREUR",
       "Création du conteneur refusée par le moteur.",
-      reponseCreation.status >= 400 && reponseCreation.status < 600
-        ? reponseCreation.status
-        : 502,
+      statutHttpMoteurOu502(reponseCreation.status),
       { corpsAmont: texteCreation.slice(0, 2000) },
     );
   }
@@ -53,21 +78,9 @@ export async function finaliserInstallationConteneurWeb(params: {
   let idDocker: string;
   let ipReseauInterne: string | undefined;
   try {
-    const parse = JSON.parse(texteCreation) as {
-      id?: unknown;
-      ipReseauInterne?: unknown;
-    };
-    if (typeof parse.id !== "string" || parse.id.length === 0) {
-      throw new ErreurMetierWebInstance(
-        "MOTEUR_CONTENEURS_ERREUR",
-        "Réponse moteur sans identifiant conteneur.",
-        502,
-      );
-    }
-    idDocker = parse.id;
-    if (typeof parse.ipReseauInterne === "string" && parse.ipReseauInterne.length > 0) {
-      ipReseauInterne = parse.ipReseauInterne;
-    }
+    const resultatCreation = extraireCreationConteneurDepuisTexte(texteCreation);
+    idDocker = resultatCreation.idDocker;
+    ipReseauInterne = resultatCreation.ipReseauInterne;
   } catch (error_) {
     if (error_ instanceof ErreurMetierWebInstance) {
       throw error_;
@@ -97,9 +110,7 @@ export async function finaliserInstallationConteneurWeb(params: {
     throw new ErreurMetierWebInstance(
       "MOTEUR_CONTENEURS_ERREUR",
       "Le conteneur a été créé mais le démarrage a échoué.",
-      reponseDemarrage.status >= 400 && reponseDemarrage.status < 600
-        ? reponseDemarrage.status
-        : 502,
+      statutHttpMoteurOu502(reponseDemarrage.status),
       { corpsAmont: texteDemarrage.slice(0, 1000) },
     );
   }

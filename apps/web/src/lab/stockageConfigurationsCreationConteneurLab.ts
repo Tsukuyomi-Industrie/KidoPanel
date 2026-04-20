@@ -13,7 +13,7 @@ const CLE_STOCKAGE_NAVIGATEUR =
 /** Indique si le stockage local du navigateur est utilisable. */
 export function stockageLocalDisponible(): boolean {
   try {
-    return typeof globalThis.localStorage !== "undefined";
+    return globalThis.localStorage !== undefined;
   } catch {
     return false;
   }

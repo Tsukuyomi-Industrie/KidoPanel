@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useConsoleServeur } from "../hooks/useConsoleServeur.js";
 import { urlBasePasserelle } from "../../passerelle/url-base-passerelle.js";
 import { lireJetonStockage } from "../../lab/passerelleClient.js";
@@ -27,6 +27,14 @@ export function ConsoleServeur({ idInstanceJeux, actif }: PropsConsoleServeur) {
   useEffect(() => {
     refFinLogs.current?.scrollIntoView({ behavior: "smooth" });
   }, [lignes]);
+  const lignesAvecCle = useMemo(() => {
+    const compteParLigne = new Map<string, number>();
+    return lignes.map((ligne) => {
+      const compteActuel = (compteParLigne.get(ligne) ?? 0) + 1;
+      compteParLigne.set(ligne, compteActuel);
+      return { cle: `${ligne}__${String(compteActuel)}`, ligne };
+    });
+  }, [lignes]);
 
   return (
     <section className="kp-console-section">
@@ -54,9 +62,9 @@ export function ConsoleServeur({ idInstanceJeux, actif }: PropsConsoleServeur) {
           {lignes.length === 0 ? (
             <span className="kp-log-ligne kp-log-debug">— en attente de lignes —</span>
           ) : (
-            lignes.map((ligne, index) => (
-              <div key={String(index)} className="kp-log-ligne kp-log-info">
-                {ligne}
+            lignesAvecCle.map((entree) => (
+              <div key={entree.cle} className="kp-log-ligne kp-log-info">
+                {entree.ligne}
               </div>
             ))
           )}

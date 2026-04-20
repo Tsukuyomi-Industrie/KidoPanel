@@ -68,6 +68,38 @@ function journaliserRefusAccesConteneur(
   });
 }
 
+function reponseCorpsCreationInvalide(
+  code: "CORPS_JSON_INVALIDE" | string,
+  message: string,
+): Response {
+  return reponseJsonErreur(code, message, 400);
+}
+
+function encoderCorpsCreationTransformePourMoteur(
+  parse: unknown,
+  c: Context<{ Variables: VariablesGateway }>,
+  utilisateur: UtilisateurPublic,
+): Uint8Array | Response {
+  try {
+    const transforme = transformerCorpsCreationConteneurPourMoteur(parse);
+    return new TextEncoder().encode(JSON.stringify(transforme));
+  } catch (error_) {
+    if (error_ instanceof ErreurCorpsCreationInstance) {
+      journaliserPasserelle({
+        niveau: "info",
+        message: "creation_conteneur_rejet_corps_instance",
+        requestId: c.get("requestId"),
+        metadata: {
+          codeMetier: error_.codeMetier,
+          utilisateurId: utilisateur.id,
+        },
+      });
+      return reponseCorpsCreationInvalide(error_.codeMetier, error_.message);
+    }
+    throw error_;
+  }
+}
+
 /**
  * Liste des conteneurs : relais vers le moteur puis filtrage par propriété en base (route dédiée `GET /` du sous-routeur).
  */
@@ -153,34 +185,20 @@ export async function proxyCreationConteneursPost(
     try {
       parse = JSON.parse(brutCorps) as unknown;
     } catch {
-      return reponseJsonErreur(
+      return reponseCorpsCreationInvalide(
         "CORPS_JSON_INVALIDE",
         "Le corps JSON de création de conteneur est invalide.",
-        400,
       );
     }
-    try {
-      const transforme = transformerCorpsCreationConteneurPourMoteur(parse);
-      corpsRemplacement = new TextEncoder().encode(JSON.stringify(transforme));
-    } catch (error_) {
-      if (error_ instanceof ErreurCorpsCreationInstance) {
-        journaliserPasserelle({
-          niveau: "info",
-          message: "creation_conteneur_rejet_corps_instance",
-          requestId: c.get("requestId"),
-          metadata: {
-            codeMetier: error_.codeMetier,
-            utilisateurId: utilisateur.id,
-          },
-        });
-        return reponseJsonErreur(
-          error_.codeMetier,
-          error_.message,
-          400,
-        );
-      }
-      throw error_;
+    const corpsEncodeOuReponse = encoderCorpsCreationTransformePourMoteur(
+      parse,
+      c,
+      utilisateur,
+    );
+    if (corpsEncodeOuReponse instanceof Response) {
+      return corpsEncodeOuReponse;
     }
+    corpsRemplacement = corpsEncodeOuReponse;
   }
   const amont = await forwardRequestToContainerEngine(c, {
     corpsRemplacement,

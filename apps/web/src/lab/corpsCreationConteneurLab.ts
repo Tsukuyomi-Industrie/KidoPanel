@@ -92,7 +92,13 @@ function fusionObjetsEnregistrements(
   if (!base && !ajout) {
     return undefined;
   }
-  return { ...(base ?? {}), ...(ajout ?? {}) };
+  if (base === undefined) {
+    return ajout;
+  }
+  if (ajout === undefined) {
+    return base;
+  }
+  return { ...base, ...ajout };
 }
 
 /**
@@ -233,9 +239,9 @@ export function construireCorpsCreationConteneurDepuisEtat(
   const securityOpts = listeSepareeVirgules(etat.optionsSecurite);
 
   const memoire = etat.memoireMegaOctets.trim();
-  const memoireNombre = memoire.length > 0 ? Number(memoire) : NaN;
+  const memoireNombre = memoire.length > 0 ? Number(memoire) : Number.NaN;
   const nano = etat.nanoCpus.trim();
-  const nanoNombre = nano.length > 0 ? Number(nano) : NaN;
+  const nanoNombre = nano.length > 0 ? Number(nano) : Number.NaN;
 
   const hostConfig: Record<string, unknown> = {};
   if (portBindings) {

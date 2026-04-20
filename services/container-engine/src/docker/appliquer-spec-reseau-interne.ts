@@ -35,6 +35,7 @@ export function appliquerAttachementReseauInterneKidopanelSurSpec(
   const dual = spec.reseauDualAvecKidopanel === true;
   const pontPersonnalise = spec.reseauBridgeNom?.trim();
   const primaireKido = spec.reseauPrimaireKidopanel !== false;
+  const hostConfigActuel = spec.hostConfig;
 
   if (
     dual &&
@@ -46,10 +47,10 @@ export function appliquerAttachementReseauInterneKidopanelSurSpec(
       : pontPersonnalise;
     return {
       ...spec,
-      hostConfig: {
-        ...(spec.hostConfig ?? {}),
-        networkMode: modePontPrimaire,
-      },
+      hostConfig:
+        hostConfigActuel === undefined
+          ? { networkMode: modePontPrimaire }
+          : { ...hostConfigActuel, networkMode: modePontPrimaire },
     };
   }
 
@@ -59,9 +60,9 @@ export function appliquerAttachementReseauInterneKidopanelSurSpec(
       : NOM_RESEAU_BRIDGE_INTERNE_KIDOPANEL;
   return {
     ...spec,
-    hostConfig: {
-      ...(spec.hostConfig ?? {}),
-      networkMode: modePont,
-    },
+    hostConfig:
+      hostConfigActuel === undefined
+        ? { networkMode: modePont }
+        : { ...hostConfigActuel, networkMode: modePont },
   };
 }

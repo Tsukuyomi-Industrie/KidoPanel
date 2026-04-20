@@ -83,7 +83,6 @@ function PanneauDetailServeurInstanceJeux({
       {onglet === "console" ? (
         <ConsoleServeur idInstanceJeux={instance.id} actif={true} />
       ) : (
-        <>
           <section className="kp-panel-corps kp-marges-haut-sm">
             <div className="kp-marges-haut-sm">
               <BarrePilotageDetailServeur
@@ -139,7 +138,6 @@ function PanneauDetailServeurInstanceJeux({
             </dl>
             <BasculeAffichageHotePublicConnexion />
           </section>
-        </>
       )}
     </>
   );

@@ -68,7 +68,7 @@ export function FournisseurHotePublicConnexionJeux({
   const [hotePublicPourJeux, setHotePublicPourJeux] = useState<string | null>(
     null,
   );
-  const [prefererHoteNavigateur, setPrefererHoteNavigateurEtat] =
+  const [prefererHoteNavigateur, setPrefererHoteNavigateur] =
     useState<boolean>(lireValeurPersistantePrefererNavigateur);
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export function FournisseurHotePublicConnexionJeux({
       if (ev.key !== CLE_STOCKAGE_PREFERER_NAVIGATEUR) {
         return;
       }
-      setPrefererHoteNavigateurEtat(lireValeurPersistantePrefererNavigateur());
+      setPrefererHoteNavigateur(lireValeurPersistantePrefererNavigateur());
     };
     globalThis.window.addEventListener("storage", surChangementStockage);
     return () => globalThis.window.removeEventListener("storage", surChangementStockage);
@@ -106,7 +106,7 @@ export function FournisseurHotePublicConnexionJeux({
 
   const definirPrefererHoteNavigateur = useCallback((valeur: boolean) => {
     ecrireValeurPersistantePrefererNavigateur(valeur);
-    setPrefererHoteNavigateurEtat(valeur);
+    setPrefererHoteNavigateur(valeur);
   }, []);
 
   const valeur = useMemo(

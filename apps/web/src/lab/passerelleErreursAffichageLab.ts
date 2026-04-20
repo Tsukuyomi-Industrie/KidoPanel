@@ -39,7 +39,8 @@ export function formaterErreurReseauFetch(
   urlComplete: string,
   erreur: unknown,
 ): string {
-  const msg = erreur instanceof Error ? erreur.message : String(erreur);
+  const msg =
+    erreur instanceof Error ? erreur.message : valeurArbitraireVersTexteErreurPanel(erreur);
   const verifs: string[] = [];
 
   if (urlUtiliseProxyPasserelleDev(urlComplete)) {

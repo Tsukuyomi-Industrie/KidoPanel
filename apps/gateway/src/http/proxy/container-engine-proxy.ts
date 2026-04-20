@@ -19,6 +19,32 @@ const EN_TETES_HOP_PAR_HOP = new Set([
 
 const EN_TETES_REPONSE_A_FILTRER = new Set(["transfer-encoding", "connection"]);
 
+function estErreurAbortFetch(error_: unknown): boolean {
+  return (
+    error_ instanceof Error &&
+    (error_.name === "AbortError" ||
+      (typeof DOMException !== "undefined" &&
+        error_ instanceof DOMException &&
+        error_.name === "AbortError"))
+  );
+}
+
+function reponseAmontIndisponible(): Response {
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "UPSTREAM_UNAVAILABLE",
+        message:
+          "Le service container-engine n’est pas joignable depuis la passerelle.",
+      },
+    }),
+    {
+      status: 502,
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+}
+
 /** Options optionnelles pour ajuster l’URL relais sans modifier la requête cliente. */
 export type OptionsRelaisVersContainerEngine = {
   /**
@@ -99,13 +125,7 @@ export async function forwardRequestToContainerEngine(
       ...(signalAnnulation ? { signal: signalAnnulation } : {}),
     });
   } catch (error_) {
-    if (
-      error_ instanceof Error &&
-      (error_.name === "AbortError" ||
-        (typeof DOMException !== "undefined" &&
-          error_ instanceof DOMException &&
-          error_.name === "AbortError"))
-    ) {
+    if (estErreurAbortFetch(error_)) {
       return new Response(null, { status: 204 });
     }
     journaliserErreurPasserelle(
@@ -113,19 +133,7 @@ export async function forwardRequestToContainerEngine(
       error_,
       idCorrelation,
     );
-    return new Response(
-      JSON.stringify({
-        error: {
-          code: "UPSTREAM_UNAVAILABLE",
-          message:
-            "Le service container-engine n’est pas joignable depuis la passerelle.",
-        },
-      }),
-      {
-        status: 502,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return reponseAmontIndisponible();
   }
 
   const sortie = new Headers(amont.headers);

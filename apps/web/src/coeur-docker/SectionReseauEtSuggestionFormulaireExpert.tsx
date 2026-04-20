@@ -30,6 +30,54 @@ function cleDedupPortConteneur(l: {
   return `${l.portConteneur.trim()}/${l.protocole}`;
 }
 
+function appliquerPortsSuggeresAbsents(
+  lignesPorts: EtatFormulaireExpertConteneur["lignesPorts"],
+  exposedPorts: string[],
+): EtatFormulaireExpertConteneur["lignesPorts"] {
+  const nvPorts = [...lignesPorts];
+  const portsDeja = new Set(
+    nvPorts
+      .filter((l) => l.portConteneur.trim().length > 0)
+      .map((l) => cleDedupPortConteneur(l)),
+  );
+  for (const cle of exposedPorts) {
+    const { portConteneur, protocole } = parserClePortExposee(cle);
+    if (portConteneur.length === 0) {
+      continue;
+    }
+    const idDedup = cleDedupPortConteneur({ portConteneur, protocole });
+    if (portsDeja.has(idDedup)) {
+      continue;
+    }
+    portsDeja.add(idDedup);
+    nvPorts.push({
+      id: crypto.randomUUID(),
+      portConteneur,
+      portHote: "0",
+      protocole,
+    });
+  }
+  return nvPorts;
+}
+
+function appliquerVariablesEnvSuggereesAbsentes(
+  lignesEnv: EtatFormulaireExpertConteneur["lignesEnv"],
+  envSuggere: Record<string, string>,
+): EtatFormulaireExpertConteneur["lignesEnv"] {
+  const nvEnv = [...lignesEnv];
+  const clesDeja = new Set(nvEnv.map((l) => l.cle.trim()));
+  for (const [cle, valeur] of Object.entries(envSuggere)) {
+    if (!clesDeja.has(cle)) {
+      nvEnv.push({
+        id: crypto.randomUUID(),
+        cle,
+        valeur,
+      });
+    }
+  }
+  return nvEnv;
+}
+
 /** Libellé du placeholder du sélecteur de pont utilisateur lorsque les données sont en cours ou absentes. */
 function libelleOptionPontFormulaireExpertDefaut(
   chargementPonts: boolean,
@@ -85,40 +133,14 @@ export function SectionReseauEtSuggestionFormulaireExpert({
       const suggestion = await chargerSuggestionConfigurationImageDocker({
         imageReference: ref,
       });
-      const nvPorts = [...etat.lignesPorts];
-      const portsDeja = new Set(
-        nvPorts
-          .filter((l) => l.portConteneur.trim().length > 0)
-          .map((l) => cleDedupPortConteneur(l)),
+      const nvPorts = appliquerPortsSuggeresAbsents(
+        etat.lignesPorts,
+        suggestion.exposedPorts ?? [],
       );
-      for (const cle of suggestion.exposedPorts ?? []) {
-        const { portConteneur, protocole } = parserClePortExposee(cle);
-        if (portConteneur.length === 0) {
-          continue;
-        }
-        const idDedup = cleDedupPortConteneur({ portConteneur, protocole });
-        if (portsDeja.has(idDedup)) {
-          continue;
-        }
-        portsDeja.add(idDedup);
-        nvPorts.push({
-          id: crypto.randomUUID(),
-          portConteneur,
-          portHote: "0",
-          protocole,
-        });
-      }
-      const nvEnv = [...etat.lignesEnv];
-      const clesDeja = new Set(nvEnv.map((l) => l.cle.trim()));
-      for (const [cle, valeur] of Object.entries(suggestion.env ?? {})) {
-        if (!clesDeja.has(cle)) {
-          nvEnv.push({
-            id: crypto.randomUUID(),
-            cle,
-            valeur,
-          });
-        }
-      }
+      const nvEnv = appliquerVariablesEnvSuggereesAbsentes(
+        etat.lignesEnv,
+        suggestion.env ?? {},
+      );
       const cmdTxt =
         suggestion.cmd !== undefined && suggestion.cmd.length > 0
           ? suggestion.cmd.join(" ")

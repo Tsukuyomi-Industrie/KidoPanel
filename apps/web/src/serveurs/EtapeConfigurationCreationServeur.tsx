@@ -1,5 +1,7 @@
-import type { ChampGabaritDockerRapide } from "@kidopanel/container-catalog";
-import type { GabaritJeuCatalogueInstance } from "@kidopanel/container-catalog";
+import type {
+  ChampGabaritDockerRapide,
+  GabaritJeuCatalogueInstance,
+} from "@kidopanel/container-catalog";
 import { FormulaireGabarit } from "../interface/FormulaireGabarit.js";
 import { BlocChoixReseauCreationServeur } from "./BlocChoixReseauCreationServeur.js";
 import type { StrategieReseauCreationInstanceJeux } from "./traducteur-formulaire-vers-api.js";

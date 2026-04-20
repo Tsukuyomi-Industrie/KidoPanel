@@ -82,7 +82,7 @@ export async function inscrireViaPasserelle(
   }
   const u = (json as { user: { id?: unknown; email?: unknown } }).user;
   if (typeof u.id !== "string" || typeof u.email !== "string") {
-    throw new Error("Profil utilisateur incomplet dans la réponse d’inscription.");
+    throw new TypeError("Profil utilisateur incomplet dans la réponse d’inscription.");
   }
   return {
     jeton: (json as { token: string }).token,
@@ -129,7 +129,7 @@ export async function connecterViaPasserelle(
   }
   const u = (json as { user: { id?: unknown; email?: unknown } }).user;
   if (typeof u.id !== "string" || typeof u.email !== "string") {
-    throw new Error("Profil utilisateur incomplet dans la réponse de connexion.");
+    throw new TypeError("Profil utilisateur incomplet dans la réponse de connexion.");
   }
   return {
     jeton: (json as { token: string }).token,

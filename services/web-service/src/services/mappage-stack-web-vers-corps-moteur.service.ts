@@ -51,7 +51,10 @@ function fusionnerCorpsGabaritRapide(params: {
     ...base,
     name: params.nomConteneurDocker,
     imageCatalogId: params.gabarit.imageCatalogId,
-    env: { ...((base.env as Record<string, string> | undefined) ?? {}), ...params.env },
+    env:
+      base.env === undefined
+        ? params.env
+        : { ...(base.env as Record<string, string>), ...params.env },
     hostConfig: {
       ...hostConfig,
       memoryBytes: params.memoryMb * 1024 * 1024,

@@ -1,12 +1,9 @@
 /** Valeurs exposées dans le JWT et les réponses `/auth/*` pour la passerelle applicative. */
 export type RoleUtilisateurKidoPanel = "ADMIN" | "USER" | "VIEWER";
 
-/** Identifiant stable d’un compte (UUID). */
-export type IdentifiantUtilisateur = string;
-
 /** Enregistrement utilisateur côté persistance (jamais exposé tel quel au client). */
 export interface UtilisateurStocke {
-  id: IdentifiantUtilisateur;
+  id: string;
   emailNormalise: string;
   hashMotDePasse: string;
   creeLeIso: string;
@@ -15,7 +12,7 @@ export interface UtilisateurStocke {
 
 /** Représentation publique renvoyée après inscription ou dans le profil minimal du JWT. */
 export interface UtilisateurPublic {
-  id: IdentifiantUtilisateur;
+  id: string;
   email: string;
   role: RoleUtilisateurKidoPanel;
 }

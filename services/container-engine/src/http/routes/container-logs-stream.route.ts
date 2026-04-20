@@ -58,10 +58,11 @@ export function mountContainerLogStreamRoute(
           const fermerSurArretClient = (): void => {
             flux.fermer();
           };
-          requeteEntrante.signal.addEventListener("abort", fermerSurArretClient);
-          const minuteurPing = setInterval(() => {
+          const envoyerPingSurFlux = (): void => {
             sse.writeSSE({ event: "ping", data: "1" }).catch(() => {});
-          }, 25_000);
+          };
+          requeteEntrante.signal.addEventListener("abort", fermerSurArretClient);
+          const minuteurPing = setInterval(envoyerPingSurFlux, 25_000);
           try {
             const decodeur = new StringDecoder("utf8");
             let reste = "";

@@ -191,10 +191,11 @@ export function useFluxJournauxConteneur(
         let tamponSse = "";
         let abandonSurEvenementErreurSse = false;
 
-        lectureFlux: while (!executionAnnulee) {
+        let demandeArretLecture = false;
+        while (!executionAnnulee && demandeArretLecture === false) {
           const { done, value } = await lecteur.read();
           if (done) {
-            break lectureFlux;
+            break;
           }
           tamponSse += decodeur.decode(value, { stream: true });
           const { tamponRestant, evenements } =
@@ -213,7 +214,8 @@ export function useFluxJournauxConteneur(
                 setDernierMessageErreur(ev.donnees);
               }
               abandonSurEvenementErreurSse = true;
-              break lectureFlux;
+              demandeArretLecture = true;
+              break;
             }
             try {
               const parse = JSON.parse(ev.donnees) as { line?: string };

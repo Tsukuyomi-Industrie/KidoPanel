@@ -80,8 +80,7 @@ export function construireSuggestionConfigurationDepuisInspectionImage(
   } else if (
     cmdPresent &&
     epPresent === false &&
-    cmdSuggere !== undefined &&
-    cmdSuggere.length === 1
+    cmdSuggere?.length === 1
   ) {
     const seul = cmdSuggere[0].toLowerCase();
     if (

@@ -246,12 +246,12 @@ export function etatDepuisCorpsCreationConteneurLab(
     etat.nom = nom;
   }
   if (Array.isArray(c.cmd)) {
-    etat.cmdLignes = c.cmd.map((x) => String(x)).join("\n");
+    etat.cmdLignes = c.cmd.map(String).join("\n");
   } else if (typeof c.cmd === "string" && c.cmd.length > 0) {
     etat.cmdLignes = c.cmd;
   }
   if (Array.isArray(c.entrypoint)) {
-    etat.entrypointLignes = c.entrypoint.map((x) => String(x)).join("\n");
+    etat.entrypointLignes = c.entrypoint.map(String).join("\n");
   } else if (typeof c.entrypoint === "string" && c.entrypoint.length > 0) {
     etat.entrypointLignes = c.entrypoint;
   }

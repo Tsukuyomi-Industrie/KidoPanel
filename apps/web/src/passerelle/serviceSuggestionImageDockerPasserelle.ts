@@ -40,6 +40,24 @@ export type SuggestionImageDockerPasserelle = {
   avertissements: string[];
 };
 
+async function lireJsonOuErreurHttp(reponse: Response): Promise<unknown> {
+  try {
+    return (await reponse.json()) as unknown;
+  } catch {
+    throw new Error(`Erreur HTTP ${String(reponse.status)} (réponse non JSON).`);
+  }
+}
+
+function validerReponseSuggestionImage(
+  reponse: Response,
+  json: unknown,
+): SuggestionImageDockerPasserelle {
+  if (!reponse.ok) {
+    throw new Error(extraireMessageErreurCorpsHttp(json, reponse.status));
+  }
+  return json as SuggestionImageDockerPasserelle;
+}
+
 /** Interroge le moteur via la passerelle pour obtenir une configuration minimale cohérente avec l’image (après tirage éventuel). */
 export async function chargerSuggestionConfigurationImageDocker(
   params: { imageReference: string },
@@ -67,16 +85,8 @@ export async function chargerSuggestionConfigurationImageDocker(
         Authorization: `Bearer ${jeton}`,
       },
     });
-    let json: unknown;
-    try {
-      json = (await reponse.json()) as unknown;
-    } catch {
-      throw new Error(`Erreur HTTP ${String(reponse.status)} (réponse non JSON).`);
-    }
-    if (!reponse.ok) {
-      throw new Error(extraireMessageErreurCorpsHttp(json, reponse.status));
-    }
-    return json as SuggestionImageDockerPasserelle;
+    const json = await lireJsonOuErreurHttp(reponse);
+    return validerReponseSuggestionImage(reponse, json);
   } catch (error_) {
     throw new Error(formaterErreurReseauFetch(url, error_));
   }

@@ -26,6 +26,29 @@ function serieNormaliseeInstancesActives(
   );
 }
 
+function determinerLibelleLatencePostgres(
+  donnees: IndicateursTableauPasserelle | null,
+  chargement: boolean,
+): string {
+  if (donnees === null || chargement) {
+    return "—";
+  }
+  return donnees.postgresql.latenceMs === undefined
+    ? "N/D"
+    : `${String(donnees.postgresql.latenceMs)} ms`;
+}
+
+function determinerStatutServiceCourt(
+  donnees: IndicateursTableauPasserelle | null,
+  chargement: boolean,
+  service: "postgresql" | "moteurDocker",
+): string {
+  if (donnees === null || chargement) {
+    return "…";
+  }
+  return donnees[service].joignable ? "Joignable" : "Injoignable";
+}
+
 type PropsGrilleMetriquesResumeTableau = {
   readonly donnees: IndicateursTableauPasserelle | null;
   readonly chargement: boolean;
@@ -94,23 +117,20 @@ export function TableauBordPresentationKidoPanel({
   const recentes = instancesJeux.slice(0, 5);
   const serieSparkline = serieNormaliseeInstancesActives(instancesJeux);
 
-  let libelleLatencePostgresTableau = "—";
-  if (donnees !== null && chargement === false) {
-    libelleLatencePostgresTableau =
-      donnees.postgresql.latenceMs === undefined
-        ? `${String(donnees.postgresql.latenceMs)} ms`
-        : "N/D";
-  }
-
-  let statutCourtPostgreSQL = "…";
-  if (donnees !== null && chargement === false) {
-    statutCourtPostgreSQL = donnees.postgresql.joignable ? "Joignable" : "Injoignable";
-  }
-
-  let statutCourtMoteurDocker = "…";
-  if (donnees !== null && chargement === false) {
-    statutCourtMoteurDocker = donnees.moteurDocker.joignable ? "Joignable" : "Injoignable";
-  }
+  const libelleLatencePostgresTableau = determinerLibelleLatencePostgres(
+    donnees,
+    chargement,
+  );
+  const statutCourtPostgreSQL = determinerStatutServiceCourt(
+    donnees,
+    chargement,
+    "postgresql",
+  );
+  const statutCourtMoteurDocker = determinerStatutServiceCourt(
+    donnees,
+    chargement,
+    "moteurDocker",
+  );
 
   return (
     <div className="kp-dash-travail">

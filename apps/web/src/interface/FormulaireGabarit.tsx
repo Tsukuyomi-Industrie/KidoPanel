@@ -114,9 +114,9 @@ export function FormulaireGabarit({
                 onChange={(e) => majValeur(champ.cle, e.target.value)}
               />
             )}
-            {champ.aide !== undefined ? (
+            {champ.aide === undefined ? null : (
               <p className="kp-champ__aide">{champ.aide}</p>
-            ) : null}
+            )}
             {texteErreur.length > 0 ? (
               <p className="kp-champ__erreur" role="alert">
                 {texteErreur}
@@ -125,11 +125,11 @@ export function FormulaireGabarit({
           </div>
         );
       })}
-      {messageErreur !== null ? (
+      {messageErreur === null ? null : (
         <div className="bandeau-erreur-auth" role="alert">
           {messageErreur}
         </div>
-      ) : null}
+      )}
       <button type="submit" className="bouton-principal-kido" disabled={enCours}>
         {enCours ? "Patience…" : libelleAction}
       </button>

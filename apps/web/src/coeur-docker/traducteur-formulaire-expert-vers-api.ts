@@ -1,5 +1,94 @@
 import type { EtatFormulaireExpertConteneur } from "./etat-formulaire-expert-conteneur.js";
 
+function extraireEnvDepuisFormulaire(etat: EtatFormulaireExpertConteneur): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const ligne of etat.lignesEnv) {
+    const cle = ligne.cle.trim();
+    if (cle.length === 0) {
+      continue;
+    }
+    env[cle] = ligne.valeur;
+  }
+  return env;
+}
+
+function extrairePortsDepuisFormulaire(etat: EtatFormulaireExpertConteneur): {
+  exposedPorts: string[];
+  portBindings: Record<string, Array<{ hostIp: string; hostPort: string }>>;
+} {
+  const exposedPorts: string[] = [];
+  const portBindings: Record<string, Array<{ hostIp: string; hostPort: string }>> = {};
+  for (const ligne of etat.lignesPorts) {
+    const pc = ligne.portConteneur.trim();
+    const ph = ligne.portHote.trim();
+    if (pc.length === 0 || ph.length === 0) {
+      continue;
+    }
+    const clePort = `${pc}/${ligne.protocole}`;
+    exposedPorts.push(clePort);
+    portBindings[clePort] = [{ hostIp: "", hostPort: ph }];
+  }
+  return { exposedPorts, portBindings };
+}
+
+function extraireBindsDepuisFormulaire(etat: EtatFormulaireExpertConteneur): string[] {
+  const binds: string[] = [];
+  for (const ligne of etat.lignesVolumes) {
+    const h = ligne.cheminHote.trim();
+    const c = ligne.cheminConteneur.trim();
+    if (h.length === 0 || c.length === 0) {
+      continue;
+    }
+    binds.push(`${h}:${c}`);
+  }
+  return binds;
+}
+
+function extraireSysctlsDepuisFormulaire(
+  etat: EtatFormulaireExpertConteneur,
+): Record<string, string> {
+  const sysctls: Record<string, string> = {};
+  for (const ligne of etat.lignesSysctl) {
+    const cle = ligne.cle.trim();
+    if (cle.length === 0) {
+      continue;
+    }
+    sysctls[cle] = ligne.valeur;
+  }
+  return sysctls;
+}
+
+function appliquerStrategieReseauPontUtilisateur(
+  etat: EtatFormulaireExpertConteneur,
+  corps: Record<string, unknown>,
+): void {
+  if (etat.modeReseau !== "bridge") {
+    return;
+  }
+  const nd = etat.nomDockerPontUtilisateur.trim();
+  if (etat.strategieReseauKidoPanel === "pont_utilisateur_seul") {
+    if (nd.length === 0) {
+      throw new Error(
+        "Choisissez un pont dans la liste ou la stratégie « Réseau KidoPanel uniquement ».",
+      );
+    }
+    corps.reseauBridgeNom = nd;
+    return;
+  }
+  if (etat.strategieReseauKidoPanel === "kidopanel_et_pont") {
+    if (nd.length === 0) {
+      throw new Error(
+        "Pour le double réseau, sélectionnez un pont utilisateur créé depuis le panel.",
+      );
+    }
+    corps.reseauBridgeNom = nd;
+    corps.reseauDualAvecKidopanel = true;
+    if (!etat.primaireReseauKidopanelEnDouble) {
+      corps.reseauPrimaireKidopanel = false;
+    }
+  }
+}
+
 /**
  * Transforme l'état du formulaire expert structuré en corps `POST /containers`
  * pour le moteur de conteneurs (aucune chaîne JSON saisie par l'utilisateur).
@@ -16,49 +105,10 @@ export function traduireFormulaireExpertVersCorpsApi(
     throw new Error("La référence d'image Docker est obligatoire.");
   }
 
-  const env: Record<string, string> = {};
-  for (const ligne of etat.lignesEnv) {
-    const cle = ligne.cle.trim();
-    if (cle.length === 0) {
-      continue;
-    }
-    env[cle] = ligne.valeur;
-  }
-
-  const exposedPorts: string[] = [];
-  const portBindings: Record<
-    string,
-    Array<{ hostIp: string; hostPort: string }>
-  > = {};
-  for (const ligne of etat.lignesPorts) {
-    const pc = ligne.portConteneur.trim();
-    const ph = ligne.portHote.trim();
-    if (pc.length === 0 || ph.length === 0) {
-      continue;
-    }
-    const clePort = `${pc}/${ligne.protocole}`;
-    exposedPorts.push(clePort);
-    portBindings[clePort] = [{ hostIp: "", hostPort: ph }];
-  }
-
-  const binds: string[] = [];
-  for (const ligne of etat.lignesVolumes) {
-    const h = ligne.cheminHote.trim();
-    const c = ligne.cheminConteneur.trim();
-    if (h.length === 0 || c.length === 0) {
-      continue;
-    }
-    binds.push(`${h}:${c}`);
-  }
-
-  const sysctls: Record<string, string> = {};
-  for (const ligne of etat.lignesSysctl) {
-    const cle = ligne.cle.trim();
-    if (cle.length === 0) {
-      continue;
-    }
-    sysctls[cle] = ligne.valeur;
-  }
+  const env = extraireEnvDepuisFormulaire(etat);
+  const { exposedPorts, portBindings } = extrairePortsDepuisFormulaire(etat);
+  const binds = extraireBindsDepuisFormulaire(etat);
+  const sysctls = extraireSysctlsDepuisFormulaire(etat);
 
   const hostConfig: Record<string, unknown> = {
     memoryBytes: Math.round(etat.memoireMo) * 1024 * 1024,
@@ -122,29 +172,7 @@ export function traduireFormulaireExpertVersCorpsApi(
     corps.workingDir = wd;
   }
 
-  if (etat.modeReseau === "bridge") {
-    if (etat.strategieReseauKidoPanel === "pont_utilisateur_seul") {
-      const nd = etat.nomDockerPontUtilisateur.trim();
-      if (nd.length === 0) {
-        throw new Error(
-          "Choisissez un pont dans la liste ou la stratégie « Réseau KidoPanel uniquement ».",
-        );
-      }
-      corps.reseauBridgeNom = nd;
-    } else if (etat.strategieReseauKidoPanel === "kidopanel_et_pont") {
-      const nd = etat.nomDockerPontUtilisateur.trim();
-      if (nd.length === 0) {
-        throw new Error(
-          "Pour le double réseau, sélectionnez un pont utilisateur créé depuis le panel.",
-        );
-      }
-      corps.reseauBridgeNom = nd;
-      corps.reseauDualAvecKidopanel = true;
-      if (!etat.primaireReseauKidopanelEnDouble) {
-        corps.reseauPrimaireKidopanel = false;
-      }
-    }
-  }
+  appliquerStrategieReseauPontUtilisateur(etat, corps);
 
   return corps;
 }

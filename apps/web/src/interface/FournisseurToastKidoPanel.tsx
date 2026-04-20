@@ -21,14 +21,15 @@ type EntreeToast = {
  */
 export function FournisseurToastKidoPanel({ children }: { readonly children: ReactNode }) {
   const [file, setFile] = useState<EntreeToast[]>([]);
+  const retirerToastParId = useCallback((id: string) => {
+    setFile((courant) => courant.filter((toastCourant) => toastCourant.id !== id));
+  }, []);
 
   const pousserToast = useCallback((message: string, variante: VarianteToastKidoPanel) => {
     const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
     setFile((courant) => [...courant, { id, message, variante }]);
-    globalThis.setTimeout(() => {
-      setFile((courant) => courant.filter((t) => t.id !== id));
-    }, 5200);
-  }, []);
+    globalThis.setTimeout(() => retirerToastParId(id), 5200);
+  }, [retirerToastParId]);
 
   const valeur = useMemo<ValeurToastKidoPanel>(() => ({ pousserToast }), [pousserToast]);
 

@@ -35,6 +35,16 @@ function corpsJson(obj: unknown, statut = 200): Response {
   });
 }
 
+function resoudreHrefEntreeFetch(entree: RequestInfo | URL): string {
+  if (typeof entree === "string") {
+    return entree;
+  }
+  if (entree instanceof URL) {
+    return entree.href;
+  }
+  return entree.url;
+}
+
 /**
  * Fabrique un `fetch` qui intercepte uniquement les URL du moteur simulé et délègue le reste à `fetchReel`.
  */
@@ -43,14 +53,7 @@ export function creerFetchMockMoteurConteneurs(
   fetchReel: typeof fetch,
 ): typeof fetch {
   return async (entree, init) => {
-    let href: string;
-    if (typeof entree === "string") {
-      href = entree;
-    } else if (entree instanceof URL) {
-      href = entree.href;
-    } else {
-      href = entree.url;
-    }
+    const href = resoudreHrefEntreeFetch(entree);
     if (!href.startsWith(etat.urlBase)) {
       return fetchReel(entree, init);
     }

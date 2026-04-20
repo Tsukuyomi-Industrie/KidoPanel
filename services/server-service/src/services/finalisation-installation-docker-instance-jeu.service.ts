@@ -69,24 +69,14 @@ export async function finaliserInstallationConteneurDockerInstanceJeux(params: {
     throw new ErreurMetierInstanceJeux(
       "MOTEUR_CONTENEURS_ERREUR",
       "Création du conteneur refusée par le moteur.",
-      reponseCreation.status >= 400 && reponseCreation.status < 600
-        ? reponseCreation.status
-        : 502,
+      reponseMoteurStatutOuDefaut502(reponseCreation.status),
       { corpsAmont: texteCreation.slice(0, 2000) },
     );
   }
 
   let idDocker: string;
   try {
-    const parse = JSON.parse(texteCreation) as { id?: unknown };
-    if (typeof parse.id !== "string" || parse.id.length === 0) {
-      throw new ErreurMetierInstanceJeux(
-        "MOTEUR_CONTENEURS_ERREUR",
-        "Réponse moteur sans identifiant conteneur.",
-        502,
-      );
-    }
-    idDocker = parse.id;
+    idDocker = extraireIdentifiantConteneurDepuisCreation(texteCreation);
   } catch (error_) {
     if (error_ instanceof ErreurMetierInstanceJeux) {
       throw error_;
@@ -122,9 +112,7 @@ export async function finaliserInstallationConteneurDockerInstanceJeux(params: {
     throw new ErreurMetierInstanceJeux(
       "MOTEUR_CONTENEURS_ERREUR",
       "Le conteneur a été créé mais le démarrage a échoué.",
-      reponseDemarrage.status >= 400 && reponseDemarrage.status < 600
-        ? reponseDemarrage.status
-        : 502,
+      reponseMoteurStatutOuDefaut502(reponseDemarrage.status),
     );
   }
 
@@ -139,4 +127,20 @@ export async function finaliserInstallationConteneurDockerInstanceJeux(params: {
     ligne: ligneDemarree,
     identifiantRequeteHttp: params.identifiantRequeteHttp,
   });
+}
+
+function reponseMoteurStatutOuDefaut502(statut: number): number {
+  return statut >= 400 && statut < 600 ? statut : 502;
+}
+
+function extraireIdentifiantConteneurDepuisCreation(texteCreation: string): string {
+  const parse = JSON.parse(texteCreation) as { id?: unknown };
+  if (typeof parse.id !== "string" || parse.id.length === 0) {
+    throw new ErreurMetierInstanceJeux(
+      "MOTEUR_CONTENEURS_ERREUR",
+      "Réponse moteur sans identifiant conteneur.",
+      502,
+    );
+  }
+  return parse.id;
 }

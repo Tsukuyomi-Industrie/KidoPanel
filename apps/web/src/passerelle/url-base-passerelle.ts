@@ -115,6 +115,39 @@ function urlPasserelleDevSansVariableExplicite(): string {
   return urlPasserelleHorsEnvSurMemeHoteQueLaPage();
 }
 
+function urlPasserellePourHotePageNonLoopback(): string | null {
+  if (globalThis.window === undefined) {
+    return null;
+  }
+  const h = globalThis.window.location.hostname;
+  if (h === "" || hoteEstLoopback(h)) {
+    return null;
+  }
+  let depuisEnvHorsLocal = urlDepuisVariableEnv();
+  if (
+    depuisEnvHorsLocal !== null &&
+    envLoopbackIncompatibleAvecPage(depuisEnvHorsLocal)
+  ) {
+    depuisEnvHorsLocal = null;
+  }
+  if (
+    import.meta.env.DEV &&
+    devPasserelleUtiliseProxyVite() &&
+    depuisEnvHorsLocal !== null &&
+    envDevMemeHotePortPasserelleStandard(depuisEnvHorsLocal)
+  ) {
+    depuisEnvHorsLocal = null;
+  }
+  if (depuisEnvHorsLocal !== null) {
+    return depuisEnvHorsLocal;
+  }
+  if (import.meta.env.DEV && devPasserelleUtiliseProxyVite()) {
+    return `${globalThis.window.location.origin}${CHEMIN_PROXY_PASSERELLE_DEV}`;
+  }
+  const scheme = globalThis.window.location.protocol === "https:" ? "https" : "http";
+  return `${scheme}://${h}:3000`;
+}
+
 /**
  * Base des appels à la passerelle.
  * En **dev** (`pnpm dev`), le proxy Vite `/__kidopanel_gateway` est utilisé par défaut pour toutes les origines,
@@ -122,33 +155,9 @@ function urlPasserelleDevSansVariableExplicite(): string {
  * En **preview / prod**, ou si `VITE_GATEWAY_DEV_USE_PROXY=0`, l’API suit `VITE_GATEWAY_BASE_URL` ou `http(s)://<hôte>:3000`.
  */
 export function urlBasePasserelle(): string {
-  if (globalThis.window !== undefined) {
-    const h = globalThis.window.location.hostname;
-    if (h !== "" && !hoteEstLoopback(h)) {
-      let depuisEnvHorsLocal = urlDepuisVariableEnv();
-      if (
-        depuisEnvHorsLocal !== null &&
-        envLoopbackIncompatibleAvecPage(depuisEnvHorsLocal)
-      ) {
-        depuisEnvHorsLocal = null;
-      }
-      if (
-        import.meta.env.DEV &&
-        devPasserelleUtiliseProxyVite() &&
-        depuisEnvHorsLocal !== null &&
-        envDevMemeHotePortPasserelleStandard(depuisEnvHorsLocal)
-      ) {
-        depuisEnvHorsLocal = null;
-      }
-      if (depuisEnvHorsLocal !== null) {
-        return depuisEnvHorsLocal;
-      }
-      if (import.meta.env.DEV && devPasserelleUtiliseProxyVite()) {
-        return `${globalThis.window.location.origin}${CHEMIN_PROXY_PASSERELLE_DEV}`;
-      }
-      const scheme = globalThis.window.location.protocol === "https:" ? "https" : "http";
-      return `${scheme}://${h}:3000`;
-    }
+  const urlPageNonLoopback = urlPasserellePourHotePageNonLoopback();
+  if (urlPageNonLoopback !== null) {
+    return urlPageNonLoopback;
   }
 
   let depuisEnv = urlDepuisVariableEnv();

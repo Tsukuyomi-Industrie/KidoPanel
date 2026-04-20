@@ -41,6 +41,58 @@ function construireMetaTirageDepuisResolution(
   };
 }
 
+function determinerModeReseauCreation(spec: ContainerCreateSpec): {
+  pontPerso?: string;
+  dual: boolean;
+  primaireKido: boolean;
+  uniquementKidopanel: boolean;
+  uniquementPontPerso: boolean;
+  modeDoublePont: boolean;
+} {
+  const pontPerso = spec.reseauBridgeNom?.trim();
+  const dual = spec.reseauDualAvecKidopanel === true;
+  const primaireKido = spec.reseauPrimaireKidopanel !== false;
+  const uniquementKidopanel =
+    (pontPerso === undefined || pontPerso.length === 0) && !dual;
+  const uniquementPontPerso =
+    pontPerso !== undefined && pontPerso.length > 0 && !dual;
+  const modeDoublePont =
+    pontPerso !== undefined && pontPerso.length > 0 && dual;
+  return {
+    pontPerso,
+    dual,
+    primaireKido,
+    uniquementKidopanel,
+    uniquementPontPerso,
+    modeDoublePont,
+  };
+}
+
+async function preparerReseauxAvantCreationConteneur(
+  docker: DockerClient,
+  mode: ReturnType<typeof determinerModeReseauCreation>,
+  requestId?: string,
+): Promise<void> {
+  if (mode.dual && (mode.pontPerso === undefined || mode.pontPerso.length === 0)) {
+    throw new ContainerEngineError(
+      "INVALID_SPEC",
+      "Le mode double réseau exige « reseauBridgeNom » vers un pont utilisateur existant.",
+    );
+  }
+  if (mode.uniquementKidopanel) {
+    await garantirReseauKidopanelNetworkParDefaut(docker, { requestId });
+    return;
+  }
+  if (mode.uniquementPontPerso && mode.pontPerso !== undefined) {
+    await verifierPontReseauNomExisteSurHote(docker, mode.pontPerso);
+    return;
+  }
+  if (mode.modeDoublePont && mode.pontPerso !== undefined) {
+    await garantirReseauKidopanelNetworkParDefaut(docker, { requestId });
+    await verifierPontReseauNomExisteSurHote(docker, mode.pontPerso);
+  }
+}
+
 /**
  * Chaîne catalogue ou référence libre, création du réseau interne, attachement bridge,
  * création Docker et lecture de l’IPv4 privée depuis l’inspection du conteneur.
@@ -62,32 +114,8 @@ export async function executerCreationConteneurDocker(
     requestId,
   );
 
-  const pontPerso = spec.reseauBridgeNom?.trim();
-  const dual = spec.reseauDualAvecKidopanel === true;
-  const primaireKido = spec.reseauPrimaireKidopanel !== false;
-
-  if (dual && (pontPerso === undefined || pontPerso.length === 0)) {
-    throw new ContainerEngineError(
-      "INVALID_SPEC",
-      "Le mode double réseau exige « reseauBridgeNom » vers un pont utilisateur existant.",
-    );
-  }
-
-  const uniquementKidopanel =
-    (pontPerso === undefined || pontPerso.length === 0) && !dual;
-  const uniquementPontPerso =
-    pontPerso !== undefined && pontPerso.length > 0 && !dual;
-  const modeDoublePont =
-    pontPerso !== undefined && pontPerso.length > 0 && dual;
-
-  if (uniquementKidopanel) {
-    await garantirReseauKidopanelNetworkParDefaut(deps.docker, { requestId });
-  } else if (uniquementPontPerso) {
-    await verifierPontReseauNomExisteSurHote(deps.docker, pontPerso);
-  } else if (modeDoublePont) {
-    await garantirReseauKidopanelNetworkParDefaut(deps.docker, { requestId });
-    await verifierPontReseauNomExisteSurHote(deps.docker, pontPerso);
-  }
+  const modeReseau = determinerModeReseauCreation(spec);
+  await preparerReseauxAvantCreationConteneur(deps.docker, modeReseau, requestId);
 
   const specAvecReseau = appliquerAttachementReseauInterneKidopanelSurSpec(spec);
   const opts = traduireOptionsCreationConteneur(specAvecReseau, resolu.referenceDocker);
@@ -95,8 +123,10 @@ export async function executerCreationConteneurDocker(
     const container = await deps.docker.createContainer(opts);
 
     let nomReseauAdjointPourIp: string | undefined;
-    if (modeDoublePont && pontPerso !== undefined) {
-      const nomAdjoint = primaireKido ? pontPerso : NOM_RESEAU_BRIDGE_INTERNE_KIDOPANEL;
+    if (modeReseau.modeDoublePont && modeReseau.pontPerso !== undefined) {
+      const nomAdjoint = modeReseau.primaireKido
+        ? modeReseau.pontPerso
+        : NOM_RESEAU_BRIDGE_INTERNE_KIDOPANEL;
       await connecterConteneurIdentifiantAuReseauParNomDocker(
         deps.docker,
         container.id,

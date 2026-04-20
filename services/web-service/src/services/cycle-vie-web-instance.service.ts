@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { WebStack } from "@kidopanel/database";
-import { Prisma } from "@kidopanel/database";
+import { Prisma, type PrismaClient, type WebStack } from "@kidopanel/database";
 import type { DepotWebInstance } from "../repositories/depot-web-instance.repository.js";
 import type { DepotProprieteConteneur } from "../repositories/depot-propriete-conteneur.repository.js";
 import type { DepotDomaineProxy } from "../repositories/depot-domaine-proxy.repository.js";
@@ -13,7 +12,6 @@ import {
 import { validerQuotasPourNouvelleInstanceWeb } from "./valider-quotas-utilisateur-web.service.js";
 import { finaliserInstallationConteneurWeb } from "./finalisation-installation-web-instance.service.js";
 import type { ProxyManagerService } from "./proxy-manager.service.js";
-import type { PrismaClient } from "@kidopanel/database";
 import { ErreurMetierWebInstance } from "../erreurs/erreurs-metier-web-instance.js";
 import { CycleVieWebInstancePilotage } from "./cycle-vie-web-instance-pilotage.service.js";
 

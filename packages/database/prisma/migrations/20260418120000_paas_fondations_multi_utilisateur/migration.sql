@@ -109,4 +109,5 @@ ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_userId_fkey" FOREIGN KEY ("userI
 INSERT INTO "UserQuota" ("id", "userId")
 SELECT gen_random_uuid(), u."id"
 FROM "User" u
-WHERE NOT EXISTS (SELECT 1 FROM "UserQuota" q WHERE q."userId" = u."id");
+LEFT JOIN "UserQuota" q ON q."userId" = u."id"
+WHERE q."userId" IS NULL;

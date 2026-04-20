@@ -30,6 +30,26 @@ export type GatewayEnv = {
 const URL_SERVEUR_JEUX_LOCAL_PAR_DEFAUT = "http://127.0.0.1:8790";
 const URL_SERVICE_WEB_LOCAL_PAR_DEFAUT = "http://127.0.0.1:8791";
 
+function variableBooleenneActive(variable: string | undefined): boolean {
+  const brut = variable?.trim();
+  return brut === "1" || brut?.toLowerCase() === "true";
+}
+
+function resoudreUrlServiceBase(params: {
+  urlBrute: string | undefined;
+  desactive: boolean;
+  valeurParDefaut: string;
+}): string | undefined {
+  if (params.desactive) {
+    return undefined;
+  }
+  const candidate = params.urlBrute?.trim();
+  if (candidate !== undefined && candidate.length > 0) {
+    return normaliserUrlBasePourFetchLoopbackIpv4(candidate.replace(/\/+$/, ""));
+  }
+  return normaliserUrlBasePourFetchLoopbackIpv4(params.valeurParDefaut);
+}
+
 /** Retourne l’URL de base du container-engine, sans barre oblique finale. */
 export function getContainerEngineBaseUrl(): string {
   const brut = process.env.CONTAINER_ENGINE_BASE_URL?.trim();
@@ -64,41 +84,16 @@ export function loadGatewayEnv(): GatewayEnv {
   }
   const exp = Number(process.env.GATEWAY_JWT_EXPIRES_SECONDS ?? "86400");
   const bcryptCost = Number(process.env.GATEWAY_BCRYPT_COST ?? "12");
-  const serveurJeuxBrut = process.env.SERVER_SERVICE_BASE_URL?.trim();
-  const serviceJeuxExplicitementDesactive =
-    process.env.SERVER_SERVICE_DISABLED?.trim() === "1" ||
-    process.env.SERVER_SERVICE_DISABLED?.trim()?.toLowerCase() === "true";
-
-  let serverServiceBaseUrl: string | undefined;
-  if (serviceJeuxExplicitementDesactive) {
-    serverServiceBaseUrl = undefined;
-  } else if (
-    typeof serveurJeuxBrut === "string" &&
-    serveurJeuxBrut.length > 0
-  ) {
-    serverServiceBaseUrl = serveurJeuxBrut.replace(/\/+$/, "");
-  } else {
-    serverServiceBaseUrl = URL_SERVEUR_JEUX_LOCAL_PAR_DEFAUT;
-  }
-  if (typeof serverServiceBaseUrl === "string") {
-    serverServiceBaseUrl = normaliserUrlBasePourFetchLoopbackIpv4(serverServiceBaseUrl);
-  }
-
-  const serviceWebBrut = process.env.WEB_SERVICE_BASE_URL?.trim();
-  const serviceWebDesactive =
-    process.env.WEB_SERVICE_DISABLED?.trim() === "1" ||
-    process.env.WEB_SERVICE_DISABLED?.trim()?.toLowerCase() === "true";
-  let webServiceBaseUrl: string | undefined;
-  if (serviceWebDesactive) {
-    webServiceBaseUrl = undefined;
-  } else if (typeof serviceWebBrut === "string" && serviceWebBrut.length > 0) {
-    webServiceBaseUrl = serviceWebBrut.replace(/\/+$/, "");
-  } else {
-    webServiceBaseUrl = URL_SERVICE_WEB_LOCAL_PAR_DEFAUT;
-  }
-  if (typeof webServiceBaseUrl === "string") {
-    webServiceBaseUrl = normaliserUrlBasePourFetchLoopbackIpv4(webServiceBaseUrl);
-  }
+  const serverServiceBaseUrl = resoudreUrlServiceBase({
+    urlBrute: process.env.SERVER_SERVICE_BASE_URL,
+    desactive: variableBooleenneActive(process.env.SERVER_SERVICE_DISABLED),
+    valeurParDefaut: URL_SERVEUR_JEUX_LOCAL_PAR_DEFAUT,
+  });
+  const webServiceBaseUrl = resoudreUrlServiceBase({
+    urlBrute: process.env.WEB_SERVICE_BASE_URL,
+    desactive: variableBooleenneActive(process.env.WEB_SERVICE_DISABLED),
+    valeurParDefaut: URL_SERVICE_WEB_LOCAL_PAR_DEFAUT,
+  });
 
   return {
     rateLimitMax: Number.isFinite(max) && max > 0 ? max : 120,
