@@ -530,6 +530,7 @@ activer_pnpm() {
 # Valeur factice du dépôt : doit être remplacée par un secret aléatoire pour que la passerelle démarre.
 PLACEHOLDER_GATEWAY_JWT_SECRET="remplacer-par-une-chaine-longue-et-aleatoire"
 # Aligné sur docker-compose.yml : le mot de passe provient de POSTGRES_PASSWORD dans le fichier .env racine (aucun littéral dans ce script).
+KIDOPANEL_POSTGRES_IDENTIFIANTS_GENERES=0
 
 generer_secret_jwt_hex() {
   if command -v openssl >/dev/null 2>&1; then
@@ -551,6 +552,53 @@ ecrire_ligne_gateway_jwt_secret_env() {
   return 0
 }
 
+# Réécrit une variable clé=valeur dans .env sans dépendre de sed.
+ecrire_ligne_variable_env_racine() {
+  local cle="$1"
+  local valeur="$2"
+  local tmp
+  tmp="$(mktemp)"
+  grep -v "^${cle}=" "$RACINE_DEPOT/.env" >"$tmp"
+  mv "$tmp" "$RACINE_DEPOT/.env"
+  printf '%s\n' "${cle}=${valeur}" >>"$RACINE_DEPOT/.env"
+  return 0
+}
+
+# Génère un identifiant PostgreSQL compatible (lettres/chiffres, préfixe explicite).
+generer_utilisateur_postgres_aleatoire() {
+  local suffixe
+  suffixe="$(tr -dc 'a-z0-9' </dev/urandom | head -c 10)"
+  printf 'kp_%s' "$suffixe"
+  return 0
+}
+
+# Génère un mot de passe robuste sans caractères spéciaux qui casseraient DATABASE_URL.
+generer_mot_de_passe_postgres_aleatoire() {
+  tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
+  return 0
+}
+
+# Garantit des identifiants PostgreSQL non vides ; les génère automatiquement si manquants.
+assurer_identifiants_postgres_env_racine() {
+  local utilisateur_postgres mot_de_passe
+  [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] || return 0
+  utilisateur_postgres="$(grep '^POSTGRES_USER=' "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
+  mot_de_passe="$(grep '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
+  if [[ -z "${utilisateur_postgres// /}" ]]; then
+    utilisateur_postgres="$(generer_utilisateur_postgres_aleatoire)"
+    ecrire_ligne_variable_env_racine "POSTGRES_USER" "$utilisateur_postgres"
+    echo "POSTGRES_USER généré automatiquement."
+    KIDOPANEL_POSTGRES_IDENTIFIANTS_GENERES=1
+  fi
+  if [[ -z "${mot_de_passe// /}" ]]; then
+    mot_de_passe="$(generer_mot_de_passe_postgres_aleatoire)"
+    ecrire_ligne_variable_env_racine "POSTGRES_PASSWORD" "$mot_de_passe"
+    echo "POSTGRES_PASSWORD généré automatiquement."
+    KIDOPANEL_POSTGRES_IDENTIFIANTS_GENERES=1
+  fi
+  return 0
+}
+
 # Garantit un jeton JWT fort si la ligne est absente, vide ou encore au placeholder du dépôt.
 assurer_gateway_jwt_secret_env_racine() {
   local secret actuel besoin
@@ -569,9 +617,20 @@ assurer_gateway_jwt_secret_env_racine() {
 
 # En mode PostgreSQL via docker-compose : impose DATABASE_URL si absent ou vide (sinon migrations Prisma échouent).
 assurer_database_url_si_postgres_docker() {
-  local val tmp mot_de_passe database_url_defaut
+  local val tmp mot_de_passe utilisateur_postgres database_url_defaut
   [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] || return 0
   mot_de_passe=""
+  utilisateur_postgres=""
+  if [[ -f "$RACINE_DEPOT/.env" ]] && grep -q '^POSTGRES_USER=' "$RACINE_DEPOT/.env"; then
+    utilisateur_postgres="$(grep '^POSTGRES_USER=' "$RACINE_DEPOT/.env" | head -n1 | cut -d= -f2- | tr -d '\r')"
+  fi
+  if [[ -z "${utilisateur_postgres// /}" ]]; then
+    utilisateur_postgres="${POSTGRES_USER:-}"
+  fi
+  if [[ -z "${utilisateur_postgres// /}" ]]; then
+    echo_err "POSTGRES_USER absent ou vide : renseignez-le dans .env (docker-compose et DATABASE_URL)."
+    return 1
+  fi
   if [[ -f "$RACINE_DEPOT/.env" ]] && grep -q '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env"; then
     mot_de_passe="$(grep '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env" | head -n1 | cut -d= -f2- | tr -d '\r')"
   fi
@@ -582,10 +641,10 @@ assurer_database_url_si_postgres_docker() {
     echo_err "POSTGRES_PASSWORD absent ou vide : renseignez-le dans .env (docker-compose et DATABASE_URL)."
     return 1
   fi
-  database_url_defaut="postgresql://kydopanel:${mot_de_passe}@127.0.0.1:5432/kydopanel"
+  database_url_defaut="postgresql://${utilisateur_postgres}:${mot_de_passe}@127.0.0.1:5432/kydopanel"
   if grep -q '^DATABASE_URL=' "$RACINE_DEPOT/.env"; then
     val="$(grep '^DATABASE_URL=' "$RACINE_DEPOT/.env" | head -n1 | cut -d= -f2- | tr -d '\r')"
-    if [[ -n "${val// /}" ]]; then
+    if [[ -n "${val// /}" ]] && [[ "$KIDOPANEL_POSTGRES_IDENTIFIANTS_GENERES" -eq 0 ]]; then
       echo "DATABASE_URL déjà renseigné (non écrasé)."
       return 0
     fi
@@ -594,7 +653,7 @@ assurer_database_url_si_postgres_docker() {
     mv "$tmp" "$RACINE_DEPOT/.env"
   fi
   printf '%s\n' "DATABASE_URL=${database_url_defaut}" >>"$RACINE_DEPOT/.env"
-  echo "DATABASE_URL défini pour le conteneur PostgreSQL du compose (kydopanel@127.0.0.1:5432)."
+  echo "DATABASE_URL défini pour le conteneur PostgreSQL du compose (${utilisateur_postgres}@127.0.0.1:5432)."
 }
 
 # Retourne 0 si l’IPv4 doit être traitée comme joignable depuis Internet (exclut RFC1918, lien local, CGNAT 100.64/10, boucle).
@@ -684,6 +743,7 @@ preparer_fichier_env_racine() {
     echo "Fichier .env présent : vérification des variables obligatoires (sans écraser vos réglages métier)."
   fi
   assurer_gateway_jwt_secret_env_racine
+  assurer_identifiants_postgres_env_racine
   assurer_database_url_si_postgres_docker
   detecter_et_ecrire_ip_publique_gateway
   return 0
