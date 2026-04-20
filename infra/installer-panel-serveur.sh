@@ -778,15 +778,20 @@ preparer_stack_postgres_avant_montee() {
 }
 
 demarrer_postgres_et_attendre() {
+  local utilisateur_postgres
   assurer_docker_moteur
   assurer_docker_compose
   preparer_stack_postgres_avant_montee
+  utilisateur_postgres="$(grep '^POSTGRES_USER=' "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
+  if [[ -z "${utilisateur_postgres// /}" ]]; then
+    utilisateur_postgres="kydopanel"
+  fi
   "${DOCKER_COMPOSE[@]}" -f "$CHEMIN_COMPOSE_POSTGRES" up -d
   echo "Attente PostgreSQL…"
   local t=0
   while [[ $t -lt 60 ]]; do
     if "${DOCKER_COMPOSE[@]}" -f "$CHEMIN_COMPOSE_POSTGRES" exec -T postgres \
-      pg_isready -U kydopanel -d kydopanel >/dev/null 2>&1; then
+      pg_isready -U "$utilisateur_postgres" -d kydopanel >/dev/null 2>&1; then
       echo "PostgreSQL prêt."
       return 0
     fi
@@ -989,13 +994,13 @@ installation_premiere_fois() {
   assurer_nodejs
   charger_chemin_node_si_present
   activer_pnpm
+  preparer_fichier_env_racine || return 1
   if [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]]; then
     demarrer_postgres_et_attendre
   else
     echo "Sans postgres docker : vérifiez DATABASE_URL ; Docker reste requis pour le moteur de conteneurs."
     assurer_docker_moteur
   fi
-  preparer_fichier_env_racine
   preparer_env_web
   configurer_sudoers_parefeu_si_possible
   [[ -f "$RACINE_DEPOT/.env" ]] || exit 1
@@ -1010,8 +1015,8 @@ mettre_a_jour_et_redemarrer() {
   assurer_nodejs
   charger_chemin_node_si_present
   activer_pnpm
-  [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] && demarrer_postgres_et_attendre || assurer_docker_moteur
   preparer_fichier_env_racine || return 1
+  [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] && demarrer_postgres_et_attendre || assurer_docker_moteur
   [[ -f "$RACINE_DEPOT/.env" ]] || {
     echo_err ".env manquant."
     return 1
