@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useHotePublicConnexionJeux } from "../../interface/FournisseurHotePublicConnexionJeux.js";
 
 function hostnameNavigateurLisible(): string {
-  if (typeof globalThis.window === "undefined") {
+  if (globalThis.window === undefined) {
     return "";
   }
   const h = globalThis.window.location.hostname;

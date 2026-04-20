@@ -54,7 +54,7 @@ export function monterRoutesProxyManager(params: {
           );
         }
         const instance = await params.depotWeb.trouverParId(corps.webInstanceId);
-        if (!instance || instance.userId !== uid) {
+        if (instance?.userId !== uid) {
           throw new ErreurMetierWebInstance(
             "INSTANCE_WEB_NON_TROUVEE",
             "Instance web introuvable ou non autorisée.",

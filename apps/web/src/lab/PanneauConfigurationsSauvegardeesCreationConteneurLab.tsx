@@ -305,7 +305,6 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
             justifyContent: "center",
             boxSizing: "border-box",
           }}
-          onClick={fermerModal}
         >
           <div
             style={{
@@ -319,8 +318,6 @@ export function PanneauConfigurationsSauvegardeesCreationConteneurLab({
               borderRadius: 8,
               border: "1px solid #444",
             }}
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
           >
             <h3 id="kp-modal-config-json-titre" style={{ marginTop: 0, fontSize: "1rem" }}>
               {modal === "creation"

@@ -29,7 +29,7 @@ type ContexteHotePublicConnexionJeux = {
 const Contexte = createContext<ContexteHotePublicConnexionJeux | null>(null);
 
 function lireValeurPersistantePrefererNavigateur(): boolean {
-  if (typeof globalThis.window === "undefined") {
+  if (globalThis.window === undefined) {
     return false;
   }
   try {
@@ -41,7 +41,7 @@ function lireValeurPersistantePrefererNavigateur(): boolean {
 }
 
 function ecrireValeurPersistantePrefererNavigateur(valeur: boolean): void {
-  if (typeof globalThis.window === "undefined") {
+  if (globalThis.window === undefined) {
     return;
   }
   try {
@@ -91,7 +91,7 @@ export function FournisseurHotePublicConnexionJeux({
   }, []);
 
   useEffect(() => {
-    if (typeof globalThis.window === "undefined") {
+    if (globalThis.window === undefined) {
       return;
     }
     const surChangementStockage = (ev: StorageEvent) => {

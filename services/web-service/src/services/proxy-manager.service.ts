@@ -123,7 +123,7 @@ export class ProxyManagerService {
     const rid = identifiantRequeteHttp ?? randomUUID();
     const idProxy = await this.verifierProxyDisponible(rid);
     const chemin = obtenirCheminConfGenereeDansProxy();
-    const commande = `cat > '${chemin.replaceAll("'", "'\\''")}' && nginx -t && nginx -s reload`;
+    const commande = String.raw`cat > '${chemin.replaceAll("'", "'\\''")}' && nginx -t && nginx -s reload`;
     const reponseExec = await this.clientMoteur.posterExecDansConteneur(
       idProxy,
       {

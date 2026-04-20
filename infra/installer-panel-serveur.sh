@@ -531,6 +531,7 @@ activer_pnpm() {
 PLACEHOLDER_GATEWAY_JWT_SECRET="remplacer-par-une-chaine-longue-et-aleatoire"
 # Aligné sur docker-compose.yml : le mot de passe provient de POSTGRES_PASSWORD dans le fichier .env racine (aucun littéral dans ce script).
 KIDOPANEL_POSTGRES_IDENTIFIANTS_GENERES=0
+MOTIF_VARIABLE_POSTGRES_USER_ENV='^POSTGRES_USER='
 
 generer_secret_jwt_hex() {
   if command -v openssl >/dev/null 2>&1; then
@@ -582,7 +583,7 @@ generer_mot_de_passe_postgres_aleatoire() {
 assurer_identifiants_postgres_env_racine() {
   local utilisateur_postgres mot_de_passe
   [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] || return 0
-  utilisateur_postgres="$(grep '^POSTGRES_USER=' "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
+  utilisateur_postgres="$(grep "$MOTIF_VARIABLE_POSTGRES_USER_ENV" "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
   mot_de_passe="$(grep '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
   if [[ -z "${utilisateur_postgres// /}" ]]; then
     utilisateur_postgres="$(generer_utilisateur_postgres_aleatoire)"
@@ -621,8 +622,8 @@ assurer_database_url_si_postgres_docker() {
   [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] || return 0
   mot_de_passe=""
   utilisateur_postgres=""
-  if [[ -f "$RACINE_DEPOT/.env" ]] && grep -q '^POSTGRES_USER=' "$RACINE_DEPOT/.env"; then
-    utilisateur_postgres="$(grep '^POSTGRES_USER=' "$RACINE_DEPOT/.env" | head -n1 | cut -d= -f2- | tr -d '\r')"
+  if [[ -f "$RACINE_DEPOT/.env" ]] && grep -q "$MOTIF_VARIABLE_POSTGRES_USER_ENV" "$RACINE_DEPOT/.env"; then
+    utilisateur_postgres="$(grep "$MOTIF_VARIABLE_POSTGRES_USER_ENV" "$RACINE_DEPOT/.env" | head -n1 | cut -d= -f2- | tr -d '\r')"
   fi
   if [[ -z "${utilisateur_postgres// /}" ]]; then
     utilisateur_postgres="${POSTGRES_USER:-}"
@@ -782,7 +783,7 @@ demarrer_postgres_et_attendre() {
   assurer_docker_moteur
   assurer_docker_compose
   preparer_stack_postgres_avant_montee
-  utilisateur_postgres="$(grep '^POSTGRES_USER=' "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
+  utilisateur_postgres="$(grep "$MOTIF_VARIABLE_POSTGRES_USER_ENV" "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
   if [[ -z "${utilisateur_postgres// /}" ]]; then
     utilisateur_postgres="kydopanel"
   fi

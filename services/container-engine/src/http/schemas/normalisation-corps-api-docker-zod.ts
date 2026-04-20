@@ -57,9 +57,9 @@ export function normaliserLogConfigHostPourValidationZod(entree: unknown): unkno
       typeEffectif = enregistrement.type.trim();
     } else if (
       typeof enregistrement.Type === "string" &&
-      (enregistrement.Type as string).trim().length > 0
+      enregistrement.Type.trim().length > 0
     ) {
-      typeEffectif = (enregistrement.Type as string).trim();
+      typeEffectif = enregistrement.Type.trim();
     }
     if (typeEffectif === undefined) {
       return undefined;

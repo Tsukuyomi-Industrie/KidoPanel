@@ -19,7 +19,7 @@ function urlDepuisVariableEnv(): string | null {
  * pas du serveur — d’où « Failed to fetch » alors que la passerelle écoute sur le VPS.
  */
 function envLoopbackIncompatibleAvecPage(urlAbsolue: string): boolean {
-  if (typeof globalThis.window === "undefined") {
+  if (globalThis.window === undefined) {
     return false;
   }
   try {
@@ -40,7 +40,7 @@ function envLoopbackIncompatibleAvecPage(urlAbsolue: string): boolean {
  * Une API sur un autre hôte ou un port ≠ 3000 reste prise en compte.
  */
 function envDevMemeHotePortPasserelleStandard(urlAbsolue: string): boolean {
-  if (typeof globalThis.window === "undefined") {
+  if (globalThis.window === undefined) {
     return false;
   }
   try {
@@ -60,7 +60,7 @@ function envDevMemeHotePortPasserelleStandard(urlAbsolue: string): boolean {
 }
 
 function urlPasserelleHorsEnvSurMemeHoteQueLaPage(): string {
-  if (typeof globalThis.window === "undefined") {
+  if (globalThis.window === undefined) {
     return "http://127.0.0.1:3000";
   }
   const h = globalThis.window.location.hostname;
@@ -82,7 +82,7 @@ function devPasserelleUtiliseProxyVite(): boolean {
   if (v === "0" || v === "false" || v === "no" || v === "off") {
     return false;
   }
-  if (!import.meta.env.DEV || typeof globalThis.window === "undefined") {
+  if (!import.meta.env.DEV || globalThis.window === undefined) {
     return false;
   }
   return true;
@@ -106,7 +106,7 @@ function urlEstPasserelleLoopbackPort3000(urlAbsolue: string): boolean {
  * sinon URL directe loopback vers le port 3000.
  */
 function urlPasserelleDevSansVariableExplicite(): string {
-  if (typeof globalThis.window === "undefined") {
+  if (globalThis.window === undefined) {
     return "http://127.0.0.1:3000";
   }
   if (devPasserelleUtiliseProxyVite()) {
@@ -122,7 +122,7 @@ function urlPasserelleDevSansVariableExplicite(): string {
  * En **preview / prod**, ou si `VITE_GATEWAY_DEV_USE_PROXY=0`, l’API suit `VITE_GATEWAY_BASE_URL` ou `http(s)://<hôte>:3000`.
  */
 export function urlBasePasserelle(): string {
-  if (typeof globalThis.window !== "undefined") {
+  if (globalThis.window !== undefined) {
     const h = globalThis.window.location.hostname;
     if (h !== "" && !hoteEstLoopback(h)) {
       let depuisEnvHorsLocal = urlDepuisVariableEnv();
@@ -156,7 +156,7 @@ export function urlBasePasserelle(): string {
     depuisEnv = null;
   }
 
-  if (import.meta.env.DEV && typeof globalThis.window !== "undefined") {
+  if (import.meta.env.DEV && globalThis.window !== undefined) {
     if (depuisEnv === null) {
       return urlPasserelleDevSansVariableExplicite();
     }

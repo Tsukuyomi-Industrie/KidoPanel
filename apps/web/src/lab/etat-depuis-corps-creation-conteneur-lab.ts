@@ -168,10 +168,10 @@ export function etatDepuisCorpsCreationConteneurLab(
     throw new Error("La configuration doit être un objet JSON.");
   }
   if (Array.isArray(brut)) {
-    throw new Error("La configuration doit être un objet JSON.");
+    throw new TypeError("La configuration doit être un objet JSON.");
   }
   if (typeof brut !== "object") {
-    throw new Error("La configuration doit être un objet JSON.");
+    throw new TypeError("La configuration doit être un objet JSON.");
   }
   const nettoye = retirerNullProfond(brut);
   if (

@@ -77,6 +77,10 @@ export function useFluxJournauxConteneur(
     let executionAnnulee = false;
     let idTemporisation: ReturnType<typeof setTimeout> | undefined;
     let controleurAnnulation: AbortController | undefined;
+    const relancerFluxApresAttente = (): void => {
+      idTemporisation = undefined;
+      etablirFlux().catch(() => {});
+    };
 
     const programmerReconnexion = (): void => {
       if (executionAnnulee) {
@@ -98,10 +102,7 @@ export function useFluxJournauxConteneur(
         clearTimeout(idTemporisation);
       }
       const attente = delaiReconnexionMs(refTentatives.current);
-      idTemporisation = setTimeout(() => {
-        idTemporisation = undefined;
-        etablirFlux().catch(() => {});
-      }, attente);
+      idTemporisation = setTimeout(relancerFluxApresAttente, attente);
     };
 
     const etablirFlux = async (): Promise<void> => {

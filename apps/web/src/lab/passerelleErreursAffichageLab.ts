@@ -8,7 +8,7 @@ function hoteUrlEstLoopback(urlComplete: string): boolean {
 }
 
 function hoteUrlEgaleHotePage(urlComplete: string): boolean {
-  if (typeof globalThis.window === "undefined") {
+  if (globalThis.window === undefined) {
     return false;
   }
   try {
@@ -19,7 +19,7 @@ function hoteUrlEgaleHotePage(urlComplete: string): boolean {
 }
 
 function hotePageEstLoopback(): boolean {
-  if (typeof globalThis.window === "undefined") {
+  if (globalThis.window === undefined) {
     return true;
   }
   const h = globalThis.window.location.hostname.toLowerCase();
@@ -94,7 +94,7 @@ function valeurArbitraireVersTexteErreurPanel(valeur: unknown): string {
     return String(valeur);
   }
   if (valeur === null || valeur === undefined) {
-    return String(valeur);
+    return "";
   }
   try {
     return JSON.stringify(valeur);

@@ -12,14 +12,13 @@ export function construireAdresseConnexionJeux(params: {
   hotePublicConfigurePasserelle?: string | null;
   forcerHotePageNavigateur?: boolean;
 }): string {
-  let hoteNavigateur = "";
-  if (typeof globalThis.window === "undefined") {
-    hoteNavigateur = "";
-  } else {
-    const h = globalThis.window.location.hostname;
-    hoteNavigateur =
-      h === "localhost" || h === "127.0.0.1" || h === "[::1]" ? "127.0.0.1" : h;
-  }
+  const hoteNavigateurBrut = globalThis.window?.location.hostname ?? "";
+  const hoteNavigateur =
+    hoteNavigateurBrut === "localhost" ||
+    hoteNavigateurBrut === "127.0.0.1" ||
+    hoteNavigateurBrut === "[::1]"
+      ? "127.0.0.1"
+      : hoteNavigateurBrut;
   if (params.forcerHotePageNavigateur === true && hoteNavigateur.length > 0) {
     return `${hoteNavigateur}:${String(params.port)}`;
   }
