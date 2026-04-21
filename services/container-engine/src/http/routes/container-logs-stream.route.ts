@@ -16,6 +16,9 @@ import {
 } from "../schemas/container-api.schemas.js";
 
 type MorceauFlux = Buffer | string | Uint8Array;
+type EcrivainSse = {
+  writeSSE: (event: { data: string; event?: string }) => Promise<void>;
+};
 
 function morceauVersBuffer(m: MorceauFlux): Buffer {
   if (Buffer.isBuffer(m)) {
@@ -25,6 +28,30 @@ function morceauVersBuffer(m: MorceauFlux): Buffer {
     return Buffer.from(m);
   }
   return Buffer.from(m);
+}
+
+async function relayerFluxJournauxVersSse(
+  flux: AsyncIterable<MorceauFlux>,
+  sse: EcrivainSse,
+): Promise<void> {
+  const decodeur = new StringDecoder("utf8");
+  let reste = "";
+  for await (const morceau of flux) {
+    reste += decodeur.write(morceauVersBuffer(morceau));
+    const lignes = reste.split("\n");
+    reste = lignes.pop() ?? "";
+    for (const ligne of lignes) {
+      await sse.writeSSE({
+        data: JSON.stringify({ line: ligne }),
+      });
+    }
+  }
+  reste += decodeur.end();
+  if (reste.length > 0) {
+    await sse.writeSSE({
+      data: JSON.stringify({ line: reste }),
+    });
+  }
 }
 
 /**
@@ -55,34 +82,14 @@ export function mountContainerLogStreamRoute(
             metadata: { idConteneur: id },
           });
           const requeteEntrante = c.req.raw;
-          const fermerSurArretClient = (): void => {
-            flux.fermer();
-          };
-          const envoyerPingSurFlux = (): void => {
-            sse.writeSSE({ event: "ping", data: "1" }).catch(() => {});
-          };
+          const fermerSurArretClient = () => flux.fermer();
           requeteEntrante.signal.addEventListener("abort", fermerSurArretClient);
-          const minuteurPing = setInterval(envoyerPingSurFlux, 25_000);
+          const minuteurPing = setInterval(() => {
+            sse.writeSSE({ event: "ping", data: "1" }).catch(() => {});
+          }, 25_000);
           try {
-            const decodeur = new StringDecoder("utf8");
-            let reste = "";
             const iterable = flux.readable as AsyncIterable<MorceauFlux>;
-            for await (const morceau of iterable) {
-              reste += decodeur.write(morceauVersBuffer(morceau));
-              const lignes = reste.split("\n");
-              reste = lignes.pop() ?? "";
-              for (const ligne of lignes) {
-                await sse.writeSSE({
-                  data: JSON.stringify({ line: ligne }),
-                });
-              }
-            }
-            reste += decodeur.end();
-            if (reste.length > 0) {
-              await sse.writeSSE({
-                data: JSON.stringify({ line: reste }),
-              });
-            }
+            await relayerFluxJournauxVersSse(iterable, sse);
           } catch (error_) {
             const meta: Record<string, unknown> = { idConteneur: id };
             if (error_ instanceof Error) {

@@ -28,6 +28,7 @@ CHEMIN_ENV_NODE_PANEL="${DIR_RUN}/env-chemin-node.sh"
 CHEMIN_COMPOSE_POSTGRES="${RACINE_DEPOT}/docker-compose.yml"
 # Doit rester aligné sur `container_name` du service postgres dans docker-compose.yml.
 NOM_CONTENEUR_POSTGRES_PANEL="kydopanel-postgres"
+MOTIF_VARIABLE_POSTGRES_PASSWORD_ENV='^POSTGRES_PASSWORD='
 
 echo_err() {
   echo "$*" >&2
@@ -586,7 +587,7 @@ assurer_identifiants_postgres_env_racine() {
   local utilisateur_postgres mot_de_passe
   [[ "$SANS_POSTGRES_DOCKER" -eq 0 ]] || return 0
   utilisateur_postgres="$(grep "$MOTIF_VARIABLE_POSTGRES_USER_ENV" "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
-  mot_de_passe="$(grep '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
+  mot_de_passe="$(grep "$MOTIF_VARIABLE_POSTGRES_PASSWORD_ENV" "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
   if [[ -z "${utilisateur_postgres// /}" ]] || [[ "$utilisateur_postgres" == "$VALEUR_EXEMPLE_POSTGRES_USER" ]]; then
     utilisateur_postgres="$(generer_utilisateur_postgres_aleatoire)"
     ecrire_ligne_variable_env_racine "POSTGRES_USER" "$utilisateur_postgres"
@@ -634,8 +635,8 @@ assurer_database_url_si_postgres_docker() {
     echo_err "POSTGRES_USER absent ou vide : renseignez-le dans .env (docker-compose et DATABASE_URL)."
     return 1
   fi
-  if [[ -f "$RACINE_DEPOT/.env" ]] && grep -q '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env"; then
-    mot_de_passe="$(grep '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env" | head -n1 | cut -d= -f2- | tr -d '\r')"
+  if [[ -f "$RACINE_DEPOT/.env" ]] && grep -q "$MOTIF_VARIABLE_POSTGRES_PASSWORD_ENV" "$RACINE_DEPOT/.env"; then
+    mot_de_passe="$(grep "$MOTIF_VARIABLE_POSTGRES_PASSWORD_ENV" "$RACINE_DEPOT/.env" | head -n1 | cut -d= -f2- | tr -d '\r')"
   fi
   if [[ -z "${mot_de_passe// /}" ]]; then
     mot_de_passe="${POSTGRES_PASSWORD:-}"
@@ -809,7 +810,7 @@ demarrer_postgres_et_attendre() {
 verifier_auth_postgres_depuis_env() {
   local utilisateur_postgres mot_de_passe
   utilisateur_postgres="$(grep "$MOTIF_VARIABLE_POSTGRES_USER_ENV" "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
-  mot_de_passe="$(grep '^POSTGRES_PASSWORD=' "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
+  mot_de_passe="$(grep "$MOTIF_VARIABLE_POSTGRES_PASSWORD_ENV" "$RACINE_DEPOT/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r' || true)"
   [[ -n "${utilisateur_postgres// /}" ]] || return 1
   [[ -n "${mot_de_passe// /}" ]] || return 1
   "${DOCKER_COMPOSE[@]}" -f "$CHEMIN_COMPOSE_POSTGRES" exec -T postgres \

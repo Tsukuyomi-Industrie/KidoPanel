@@ -69,7 +69,7 @@ function journaliserRefusAccesConteneur(
 }
 
 function reponseCorpsCreationInvalide(
-  code: "CORPS_JSON_INVALIDE" | string,
+  code: string,
   message: string,
 ): Response {
   return reponseJsonErreur(code, message, 400);

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { GameType } from "@kidopanel/database";
+import type { GameType, PrismaClient } from "@kidopanel/database";
 import { Prisma } from "@kidopanel/database";
 import type { DepotInstanceServeur } from "../repositories/depot-instance-serveur.repository.js";
 import type { DepotProprieteConteneurInstance } from "../repositories/depot-propriete-conteneur-instance.repository.js";
@@ -10,7 +10,6 @@ import { validerEtFusionnerVariablesEnvJeux } from "./installateur-variables-env
 import { ErreurMetierInstanceJeux } from "../erreurs/erreurs-metier-instance-jeu.js";
 import { finaliserInstallationConteneurDockerInstanceJeux } from "./finalisation-installation-docker-instance-jeu.service.js";
 import { synchroniserPortInstanceApresDemarrageSurMoteur } from "./synchroniser-port-instance-apres-demarrage-moteur.service.js";
-import type { PrismaClient } from "@kidopanel/database";
 import { validerRessourcesAvantCreationInstanceJeu } from "./valider-ressources-instance-jeu.service.js";
 
 type RoleInterne = "ADMIN" | "USER" | "VIEWER";
