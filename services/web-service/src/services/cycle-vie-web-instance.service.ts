@@ -103,12 +103,14 @@ export class CycleVieWebInstance {
         403,
       );
     }
-    await validerQuotasPourNouvelleInstanceWeb(
-      this.db,
-      params.utilisateurIdProprietaire,
-      params.memoryMb,
-      params.diskGb,
-    );
+    if (params.role !== "ADMIN") {
+      await validerQuotasPourNouvelleInstanceWeb(
+        this.db,
+        params.utilisateurIdProprietaire,
+        params.memoryMb,
+        params.diskGb,
+      );
+    }
     let nomPontDocker: string | undefined;
     const idReseauBrut = params.reseauInterneUtilisateurId?.trim();
     if (idReseauBrut !== undefined && idReseauBrut.length > 0) {

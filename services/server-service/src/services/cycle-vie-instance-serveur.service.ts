@@ -94,13 +94,15 @@ export class CycleVieInstanceServeur {
         403,
       );
     }
-    await validerRessourcesAvantCreationInstanceJeu({
-      db: this.db,
-      userId: params.utilisateurIdProprietaire,
-      memoryMb: params.memoryMb,
-      cpuCores: params.cpuCores,
-      diskGb: params.diskGb,
-    });
+    if (params.role !== "ADMIN") {
+      await validerRessourcesAvantCreationInstanceJeu({
+        db: this.db,
+        userId: params.utilisateurIdProprietaire,
+        memoryMb: params.memoryMb,
+        cpuCores: params.cpuCores,
+        diskGb: params.diskGb,
+      });
+    }
     const gabarit = resoudreGabaritJeuPourType(params.gameType);
     const fusionEnv = validerEtFusionnerVariablesEnvJeux({
       gabarit,
