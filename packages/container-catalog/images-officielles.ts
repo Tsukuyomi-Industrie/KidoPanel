@@ -89,7 +89,7 @@ export const IMAGES_OFFICIELLES: readonly EntreeImageOfficielleCatalogue[] = [
   },
   {
     id: "jeu-valheim",
-    referenceDocker: "lloesche/valheim-server:latest",
+    referenceDocker: "ghcr.io/community-valheim-tools/valheim-server:latest",
     description: "Serveur dédié Valheim ; prévoir variables serveur et monde.",
     categorie: "jeu",
   },
