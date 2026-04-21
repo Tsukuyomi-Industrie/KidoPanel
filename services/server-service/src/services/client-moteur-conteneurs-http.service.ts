@@ -16,6 +16,18 @@ export class ClientMoteurConteneursHttp {
     return `${base}${suffixe}`;
   }
 
+  private protocoleReseauParDefautPourGabarit(
+    gabarit: GabaritJeuCatalogueInstance,
+  ): "tcp" | "udp" {
+    if (
+      gabarit.id === "tmpl-jeu-minecraft-bedrock" ||
+      gabarit.id === "tmpl-jeu-valheim"
+    ) {
+      return "udp";
+    }
+    return "tcp";
+  }
+
   /** Compose le corps JSON `POST /containers` à partir de l’instance persistée et du gabarit jeu. */
   construireCorpsCreationDocker(params: {
     nomConteneur: string;
@@ -28,8 +40,9 @@ export class ClientMoteurConteneursHttp {
     reseauDualAvecKidopanel?: boolean;
     reseauPrimaireKidopanel?: boolean;
   }): CorpsCreationConteneurMoteur {
-    const protocolePortsJeu =
-      params.gabarit.id === "tmpl-jeu-minecraft-bedrock" ? "udp" : "tcp";
+    const protocolePortsJeu = this.protocoleReseauParDefautPourGabarit(
+      params.gabarit,
+    );
     const liaisonsPorts: Record<string, Array<{ hostIp: string; hostPort: string }>> =
       {};
     const portsExposes: string[] = [];

@@ -13,6 +13,18 @@ function normaliserIdConteneurCompare(id: string): string {
   return id.replace(/^sha256:/i, "").toLowerCase();
 }
 
+function protocoleReseauParDefautPourGabaritId(
+  gabaritId: string,
+): "tcp" | "udp" {
+  if (
+    gabaritId === "tmpl-jeu-minecraft-bedrock" ||
+    gabaritId === "tmpl-jeu-valheim"
+  ) {
+    return "udp";
+  }
+  return "tcp";
+}
+
 /**
  * Indique si l’identifiant issu de `docker ps` (souvent tronqué) correspond à l’id stocké côté Prisma.
  */
@@ -40,8 +52,7 @@ export async function synchroniserPortInstanceApresDemarrageSurMoteur(params: {
   }
   const gabarit = resoudreGabaritJeuPourType(params.ligne.gameType);
   const portPriveJeu = gabarit.defaultPorts[0];
-  const protocoleAttendu =
-    gabarit.id === "tmpl-jeu-minecraft-bedrock" ? "udp" : "tcp";
+  const protocoleAttendu = protocoleReseauParDefautPourGabaritId(gabarit.id);
   if (portPriveJeu === undefined) {
     return params.ligne;
   }

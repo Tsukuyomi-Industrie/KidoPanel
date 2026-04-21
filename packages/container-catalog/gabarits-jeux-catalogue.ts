@@ -90,7 +90,7 @@ export const LISTE_GABARITS_JEU_INSTANCE: readonly GabaritJeuCatalogueInstance[]
     category: "game",
     requiredEnv: ["SERVER_PASS", "SERVER_NAME"],
     optionalEnv: ["WORLD_NAME", "PUBLIC"],
-    defaultPorts: [2456, 2457],
+    defaultPorts: [2456, 2457, 2458],
     defaultMemoryMb: 4096,
     defaultCpuCores: 2,
     installTimeEstimateSeconds: 240,
