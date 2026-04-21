@@ -4,6 +4,7 @@ import { BadgeStatut } from "../interface/BadgeStatut.js";
 import { statutBadgeDepuisChaineApi } from "../interface/statutBadgeInstanceJeux.js";
 import { useToastKidoPanel } from "../interface/useToastKidoPanel.js";
 import { ConsoleServeur } from "./composants/ConsoleServeur.js";
+import { GestionnaireFichiersInstanceServeur } from "./composants/GestionnaireFichiersInstanceServeur.js";
 import {
   obtenirInstanceServeurJeuxPasserelle,
   type InstanceServeurJeuxPasserelle,
@@ -15,7 +16,7 @@ import { construireAdresseConnexionJeux } from "./construire-adresse-connexion-j
 import { useHotePublicConnexionJeux } from "../interface/FournisseurHotePublicConnexionJeux.js";
 import { BasculeAffichageHotePublicConnexion } from "./composants/BasculeAffichageHotePublicConnexion.js";
 
-type OngletDetailServeur = "resume" | "console";
+type OngletDetailServeur = "resume" | "console" | "fichiers";
 
 function libelleStatutPilotage(statut: string): string {
   switch (statut) {
@@ -78,10 +79,33 @@ function PanneauDetailServeurInstanceJeux({
         >
           Console
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={onglet === "fichiers"}
+          className={`kp-btn kp-btn--sm${onglet === "fichiers" ? " kp-btn--primaire" : ""}`}
+          onClick={() => definirOnglet("fichiers")}
+        >
+          Fichiers
+        </button>
       </div>
 
       {onglet === "console" ? (
-        <ConsoleServeur idInstanceJeux={instance.id} actif={true} />
+        <ConsoleServeur
+          idInstanceJeux={instance.id}
+          actif={true}
+          execDisponible={
+            instance.containerId !== null && instance.containerId.trim().length > 0
+          }
+        />
+      ) : onglet === "fichiers" ? (
+        instance.containerId !== null && instance.containerId.trim().length > 0 ? (
+          <GestionnaireFichiersInstanceServeur idInstance={instance.id} actif={true} />
+        ) : (
+          <p className="kp-texte-muted kp-marges-haut-sm">
+            Aucun conteneur associé : explorateur de fichiers indisponible.
+          </p>
+        )
       ) : (
           <section className="kp-panel-corps kp-marges-haut-sm">
             <div className="kp-marges-haut-sm">

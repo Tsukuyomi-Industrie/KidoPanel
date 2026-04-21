@@ -36,9 +36,7 @@ export const stopContainerJsonSchema = z.object({
   timeoutSeconds: z.number().int().min(1).max(300).optional(),
 });
 
-/** Corps pour exécuter une commande dans un conteneur (proxy Nginx, maintenance). */
-export const execConteneurJsonSchema = z.object({
-  cmd: z.array(z.string().min(1)).min(1).max(48),
-  stdinUtf8: z.string().max(2_000_000).optional(),
-});
+export {
+  execConteneurCorpsSchema as execConteneurJsonSchema,
+} from "@kidopanel/database";
 

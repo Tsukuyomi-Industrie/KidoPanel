@@ -11,6 +11,7 @@ import {
   creerMiddlewareIdentiteInterneObligatoire,
 } from "../http/middleware/identite-interne.middleware.js";
 import { ErreurMetierInstanceJeux } from "../erreurs/erreurs-metier-instance-jeu.js";
+import { monterRelaisMoteurExecEtFsInstanceServeurJeux } from "./relai-moteur-instance-serveur-jeux.routes.js";
 
 /** Routes HTTP cycle de vie : liste, création et pilotage des instances jeu. */
 export function monterRoutesCycleInstanceServeurJeux(
@@ -57,6 +58,13 @@ export function monterRoutesCycleInstanceServeurJeux(
     } catch (error_) {
       return repondreErreurMetierInstanceJeux(c, error_);
     }
+  });
+
+  monterRelaisMoteurExecEtFsInstanceServeurJeux({
+    routes,
+    cycleVie,
+    clientMoteur,
+    repondreErreurMetierInstanceJeux,
   });
 
   routes.get("/", async (c) => {

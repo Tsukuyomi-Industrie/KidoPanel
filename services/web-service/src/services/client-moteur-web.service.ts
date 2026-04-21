@@ -39,22 +39,4 @@ export class ClientMoteurWebHttp extends ClientMoteurHttpPartage {
     }
   }
 
-  async posterExecDansConteneur(
-    idConteneurDocker: string,
-    corps: { cmd: string[]; stdinUtf8?: string },
-    identifiantRequete: string,
-  ): Promise<Response> {
-    return fetch(
-      this.construireUrl(`/containers/${encodeURIComponent(idConteneurDocker)}/exec`),
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Request-Id": identifiantRequete,
-        },
-        body: JSON.stringify(corps),
-      },
-    );
-  }
-
 }

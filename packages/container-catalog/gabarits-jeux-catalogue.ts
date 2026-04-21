@@ -31,6 +31,11 @@ export type GabaritJeuCatalogueInstance = {
   etiquetteBadgeUx: string;
   /** Espace disque suggéré pour la création (Go). */
   disqueParDefautGb: number;
+  /**
+   * Stratégie d’interaction privilégiée pour les commandes : shell Docker, RCON jeu, client SQL ou journaux seuls.
+   * Indicateur UX ; l’API `exec` shell reste disponible lorsque le gabarit l’autorise côté image.
+   */
+  modeConsolePrefere?: "shell" | "rcon" | "client_sql" | "journaux";
 };
 
 /**
@@ -62,6 +67,7 @@ export const LISTE_GABARITS_JEU_INSTANCE: readonly GabaritJeuCatalogueInstance[]
     iconeRepresentation: "⛏",
     etiquetteBadgeUx: "Sandbox",
     disqueParDefautGb: 20,
+    modeConsolePrefere: "shell",
   },
   {
     id: "tmpl-jeu-minecraft-bedrock",
@@ -80,6 +86,7 @@ export const LISTE_GABARITS_JEU_INSTANCE: readonly GabaritJeuCatalogueInstance[]
     iconeRepresentation: "🧱",
     etiquetteBadgeUx: "Sandbox",
     disqueParDefautGb: 12,
+    modeConsolePrefere: "shell",
   },
   {
     id: "tmpl-jeu-valheim",
@@ -98,6 +105,7 @@ export const LISTE_GABARITS_JEU_INSTANCE: readonly GabaritJeuCatalogueInstance[]
     iconeRepresentation: "🛡",
     etiquetteBadgeUx: "Survie",
     disqueParDefautGb: 25,
+    modeConsolePrefere: "shell",
   },
   {
     id: "tmpl-jeu-terraria",
@@ -115,6 +123,7 @@ export const LISTE_GABARITS_JEU_INSTANCE: readonly GabaritJeuCatalogueInstance[]
     iconeRepresentation: "🌿",
     etiquetteBadgeUx: "Aventure",
     disqueParDefautGb: 8,
+    modeConsolePrefere: "shell",
   },
   {
     id: "tmpl-jeu-satisfactory",
@@ -133,6 +142,7 @@ export const LISTE_GABARITS_JEU_INSTANCE: readonly GabaritJeuCatalogueInstance[]
     iconeRepresentation: "🏭",
     etiquetteBadgeUx: "Usine",
     disqueParDefautGb: 40,
+    modeConsolePrefere: "shell",
   },
   {
     id: "tmpl-jeu-cs2",
@@ -151,6 +161,7 @@ export const LISTE_GABARITS_JEU_INSTANCE: readonly GabaritJeuCatalogueInstance[]
     iconeRepresentation: "🎯",
     etiquetteBadgeUx: "Tir",
     disqueParDefautGb: 35,
+    modeConsolePrefere: "shell",
   },
   {
     id: "tmpl-jeu-ark",
@@ -169,6 +180,7 @@ export const LISTE_GABARITS_JEU_INSTANCE: readonly GabaritJeuCatalogueInstance[]
     iconeRepresentation: "🦖",
     etiquetteBadgeUx: "Survie",
     disqueParDefautGb: 50,
+    modeConsolePrefere: "shell",
   },
   {
     id: "tmpl-jeu-personnalise",
@@ -187,6 +199,7 @@ export const LISTE_GABARITS_JEU_INSTANCE: readonly GabaritJeuCatalogueInstance[]
     iconeRepresentation: "✎",
     etiquetteBadgeUx: "Personnalisé",
     disqueParDefautGb: 10,
+    modeConsolePrefere: "shell",
   },
 ];
 

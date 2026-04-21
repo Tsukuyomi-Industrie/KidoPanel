@@ -1,4 +1,5 @@
 import { useConsoleServeur } from "../hooks/useConsoleServeur.js";
+import { useExecLigneConsoleInstanceServeur } from "../hooks/useExecLigneConsoleInstanceServeur.js";
 import { urlBasePasserelle } from "../../passerelle/url-base-passerelle.js";
 import { lireJetonStockage } from "../../lab/passerelleClient.js";
 import { ConsoleFluxInstance } from "../../interface/ConsoleFluxInstance.js";
@@ -6,12 +7,17 @@ import { ConsoleFluxInstance } from "../../interface/ConsoleFluxInstance.js";
 type PropsConsoleServeur = {
   readonly idInstanceJeux: string;
   readonly actif: boolean;
+  readonly execDisponible: boolean;
 };
 
 /**
- * Console style terminal : flux SSE des journaux conteneur pour une instance jeu.
+ * Console : flux SSE Docker et saisie `exec` lorsque le conteneur existe.
  */
-export function ConsoleServeur({ idInstanceJeux, actif }: PropsConsoleServeur) {
+export function ConsoleServeur({
+  idInstanceJeux,
+  actif,
+  execDisponible,
+}: PropsConsoleServeur) {
   const jeton = lireJetonStockage();
   const { lignes, etatConnexion, dernierMessageErreur, effacer } =
     useConsoleServeur({
@@ -22,13 +28,31 @@ export function ConsoleServeur({ idInstanceJeux, actif }: PropsConsoleServeur) {
       tailEntrees: 500,
       lignesMaxAffichage: 500,
     });
+  const execActif = actif && execDisponible;
+  const {
+    lignesSortieExec,
+    chargementExec,
+    erreurExecSaisie,
+    envoyerLigneShell,
+    effacerSortiesExec,
+  } = useExecLigneConsoleInstanceServeur({
+    idInstanceJeux,
+    actif: execActif,
+  });
+
   return (
     <ConsoleFluxInstance
       titre="console — instance jeu"
       lignes={lignes}
       etatConnexion={etatConnexion}
       dernierMessageErreur={dernierMessageErreur}
-      surEffacer={effacer}
+      surEffacerFlux={effacer}
+      lignesSortieExec={lignesSortieExec}
+      modeSaisieExec={execActif}
+      surEnvoyerLigneCommande={(ligne) => envoyerLigneShell(ligne)}
+      chargementExec={chargementExec}
+      erreurExecSaisie={erreurExecSaisie}
+      surEffacerSortiesExec={effacerSortiesExec}
     />
   );
 }

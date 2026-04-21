@@ -4,6 +4,11 @@ export {
   type CorpsCreationConteneurMoteurPartage,
 } from "./client-moteur-http-partage.js";
 export {
+  execConteneurCorpsSchema,
+  type ExecConteneurCorps,
+} from "./exec-conteneur-corps.schema.js";
+export { construireReponseRelayDepuisFetchMoteur } from "./relayer-reponse-json-moteur-http.js";
+export {
   lireIdentiteInterneDepuisEnTetes,
   type RoleUtilisateurInterne,
 } from "./identite-interne-http.js";

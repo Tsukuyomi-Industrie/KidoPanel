@@ -8,6 +8,7 @@ import { corpsCreationWebInstanceSchema } from "../http/schemas/web-instance-cor
 import { creerMiddlewareIdentiteInterneObligatoire } from "../http/middleware/identite-interne.middleware.js";
 import { ErreurMetierWebInstance } from "../erreurs/erreurs-metier-web-instance.js";
 import type { WebStack } from "@kidopanel/database";
+import { monterRelaisMoteurExecEtFsWebInstance } from "./relai-moteur-web-instance.routes.js";
 
 /** Routes `/web-instances` : liste, création, pilotage et flux journaux. */
 export function monterRoutesCycleWebInstances(
@@ -51,6 +52,13 @@ export function monterRoutesCycleWebInstances(
     } catch (error_) {
       return repondreErreurWeb(c, error_);
     }
+  });
+
+  monterRelaisMoteurExecEtFsWebInstance({
+    routes,
+    cycleVie,
+    clientMoteur,
+    repondreErreurWebInstance: repondreErreurWeb,
   });
 
   routes.get("/", async (c) => {

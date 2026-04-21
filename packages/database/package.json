@@ -30,7 +30,8 @@
   "dependencies": {
     "@prisma/client": "^6.19.0",
     "dotenv": "^16.6.1",
-    "hono": "^4.12.12"
+    "hono": "^4.12.12",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^24.12.2",

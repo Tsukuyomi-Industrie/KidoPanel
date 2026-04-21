@@ -17,14 +17,16 @@ import {
   type DomaineProxyPasserelle,
 } from "../passerelle/serviceProxyManagerPasserelle.js";
 import { ConsoleWebInstance } from "./composants/ConsoleWebInstance.js";
+import { GestionnaireFichiersInstanceWeb } from "./composants/GestionnaireFichiersInstanceWeb.js";
 
-type Onglet = "resume" | "console" | "domaines";
+type Onglet = "resume" | "console" | "domaines" | "fichiers";
 
-/** Titre lisible pour les onglets vue / journaux / domaines proxy. */
+/** Titre lisible pour les onglets vue / journaux / domaines proxy / fichiers. */
 function titreOngletDetailWeb(o: Onglet): string {
   if (o === "resume") return "Vue d’ensemble";
   if (o === "console") return "Journaux";
-  return "Domaines";
+  if (o === "domaines") return "Domaines";
+  return "Fichiers";
 }
 
 /** Détail instance web avec onglets vue, journaux SSE et domaines proxy liés. */
@@ -125,7 +127,7 @@ export function PageDetailWebInstance() {
       {instance === null ? null : (
         <>
           <div className="kp-marges-haut-sm" role="tablist">
-            {(["resume", "console", "domaines"] as const).map((o) => (
+            {(["resume", "console", "domaines", "fichiers"] as const).map((o) => (
               <button
                 key={o}
                 type="button"
@@ -221,7 +223,23 @@ export function PageDetailWebInstance() {
           ) : null}
 
           {onglet === "console" ? (
-            <ConsoleWebInstance idInstanceWeb={instance.id} actif={onglet === "console"} />
+            <ConsoleWebInstance
+              idInstanceWeb={instance.id}
+              actif={onglet === "console"}
+              execDisponible={
+                instance.containerId !== null && instance.containerId.trim().length > 0
+              }
+            />
+          ) : null}
+
+          {onglet === "fichiers" ? (
+            instance.containerId !== null && instance.containerId.trim().length > 0 ? (
+              <GestionnaireFichiersInstanceWeb idInstanceWeb={instance.id} actif={true} />
+            ) : (
+              <p className="kp-texte-muted kp-marges-haut-sm">
+                Aucun conteneur associé : explorateur de fichiers indisponible.
+              </p>
+            )
           ) : null}
 
           {onglet === "domaines" ? (
