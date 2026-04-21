@@ -10,6 +10,8 @@ import { validerEtFusionnerVariablesEnvJeux } from "./installateur-variables-env
 import { ErreurMetierInstanceJeux } from "../erreurs/erreurs-metier-instance-jeu.js";
 import { finaliserInstallationConteneurDockerInstanceJeux } from "./finalisation-installation-docker-instance-jeu.service.js";
 import { synchroniserPortInstanceApresDemarrageSurMoteur } from "./synchroniser-port-instance-apres-demarrage-moteur.service.js";
+import type { PrismaClient } from "@kidopanel/database";
+import { validerRessourcesAvantCreationInstanceJeu } from "./valider-ressources-instance-jeu.service.js";
 
 type RoleInterne = "ADMIN" | "USER" | "VIEWER";
 
@@ -29,6 +31,7 @@ function peutGererInstance(
  */
 export class CycleVieInstanceServeur {
   constructor(
+    private readonly db: PrismaClient,
     private readonly depot: DepotInstanceServeur,
     private readonly depotPropriete: DepotProprieteConteneurInstance,
     private readonly clientMoteur: ClientMoteurConteneursHttp,
@@ -91,6 +94,13 @@ export class CycleVieInstanceServeur {
         403,
       );
     }
+    await validerRessourcesAvantCreationInstanceJeu({
+      db: this.db,
+      userId: params.utilisateurIdProprietaire,
+      memoryMb: params.memoryMb,
+      cpuCores: params.cpuCores,
+      diskGb: params.diskGb,
+    });
     const gabarit = resoudreGabaritJeuPourType(params.gameType);
     const fusionEnv = validerEtFusionnerVariablesEnvJeux({
       gabarit,

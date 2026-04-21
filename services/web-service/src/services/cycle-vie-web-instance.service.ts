@@ -107,6 +107,7 @@ export class CycleVieWebInstance {
       this.db,
       params.utilisateurIdProprietaire,
       params.memoryMb,
+      params.diskGb,
     );
     let nomPontDocker: string | undefined;
     const idReseauBrut = params.reseauInterneUtilisateurId?.trim();

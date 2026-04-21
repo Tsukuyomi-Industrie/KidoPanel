@@ -28,6 +28,7 @@ export function creerApplicationServeurJeux(): Hono<{
     obtenirUrlBaseMoteurConteneurs(),
   );
   const cycleVie = new CycleVieInstanceServeur(
+    prisma,
     depot,
     depotPropriete,
     clientMoteur,
