@@ -28,11 +28,13 @@ export class ClientMoteurConteneursHttp {
     reseauDualAvecKidopanel?: boolean;
     reseauPrimaireKidopanel?: boolean;
   }): CorpsCreationConteneurMoteur {
+    const protocolePortsJeu =
+      params.gabarit.id === "tmpl-jeu-minecraft-bedrock" ? "udp" : "tcp";
     const liaisonsPorts: Record<string, Array<{ hostIp: string; hostPort: string }>> =
       {};
     const portsExposes: string[] = [];
     for (const port of params.gabarit.defaultPorts) {
-      const cle = `${String(port)}/tcp`;
+      const cle = `${String(port)}/${protocolePortsJeu}`;
       portsExposes.push(cle);
       liaisonsPorts[cle] = [{ hostIp: "0.0.0.0", hostPort: "0" }];
     }

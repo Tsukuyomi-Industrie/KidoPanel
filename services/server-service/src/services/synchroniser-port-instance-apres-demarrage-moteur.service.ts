@@ -40,6 +40,8 @@ export async function synchroniserPortInstanceApresDemarrageSurMoteur(params: {
   }
   const gabarit = resoudreGabaritJeuPourType(params.ligne.gameType);
   const portPriveJeu = gabarit.defaultPorts[0];
+  const protocoleAttendu =
+    gabarit.id === "tmpl-jeu-minecraft-bedrock" ? "udp" : "tcp";
   if (portPriveJeu === undefined) {
     return params.ligne;
   }
@@ -85,7 +87,7 @@ export async function synchroniserPortInstanceApresDemarrageSurMoteur(params: {
 
   const pub = entree.ports.find(
     (p) =>
-      p.type === "tcp" &&
+      p.type.toLowerCase() === protocoleAttendu &&
       p.privatePort === portPriveJeu &&
       typeof p.publicPort === "number",
   );
