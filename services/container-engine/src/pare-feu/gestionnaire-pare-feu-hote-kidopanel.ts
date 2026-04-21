@@ -3,7 +3,9 @@ import { journaliserMoteur } from "../observabilite/journal-json.js";
 import { collecterPublicationsHoteApresDemarrageDocker } from "./collecter-publications-hote-apres-demarrage-docker.js";
 import {
   fermerPortPareFeuHoteUnifie,
+  fermerSortiePareFeuHoteUnifie,
   ouvrirPortPareFeuHoteUnifie,
+  ouvrirSortiePareFeuHoteUnifie,
   rechargerRuntimeFirewalldApresModifications,
 } from "./executer-pare-feu-unifie-hote.js";
 import {
@@ -13,6 +15,7 @@ import {
 import { obtenirMessageDiagnosticAucunBackendPareFeuActif } from "./diagnostic-backend-pare-feu-inactif.js";
 import { obtenirBackendPareFeuHote } from "./selection-backend-pare-feu-hote.js";
 import type { PublicationHotePareFeu } from "./types-publication-hote-pare-feu.js";
+import type { RegleSortanteUfw } from "./executer-pare-feu-ufw-hote.js";
 
 function clePublication(p: PublicationHotePareFeu): string {
   return `${p.protocole}:${String(p.numero)}`;
@@ -21,6 +24,11 @@ function clePublication(p: PublicationHotePareFeu): string {
 function pareFeuAutomatiqueActiveDepuisEnv(): boolean {
   return process.env.CONTAINER_ENGINE_PAREFEU_AUTO?.trim() !== "0";
 }
+
+const REGLES_SORTANTES_STEAM_VALHEIM: RegleSortanteUfw[] = [
+  { protocole: "tcp", debutPort: 27017, finPort: 27050 },
+  { protocole: "udp", debutPort: 27000, finPort: 27100 },
+];
 
 /**
  * Orchestre l’ouverture et la fermeture des ports sur le pare-feu hôte (firewalld ou UFW selon détection),
@@ -82,6 +90,7 @@ export class GestionnairePareFeuHoteKidopanel {
 
     let publications: PublicationHotePareFeu[];
     let idCanonique: string;
+    let estValheim = false;
     try {
       const recolte = await collecterPublicationsHoteApresDemarrageDocker(
         docker,
@@ -89,6 +98,15 @@ export class GestionnairePareFeuHoteKidopanel {
       );
       publications = recolte.publications;
       idCanonique = recolte.idCanonique;
+      try {
+        const inspect = await docker.getContainer(idCanonique).inspect();
+        const image = inspect?.Config?.Image?.toLowerCase() ?? "";
+        estValheim =
+          image.includes("valheim-server") ||
+          image.includes("community-valheim-tools/valheim-server");
+      } catch {
+        estValheim = false;
+      }
     } catch {
       return;
     }
@@ -183,12 +201,58 @@ export class GestionnairePareFeuHoteKidopanel {
       }
     }
 
+    const anciennesSorties = existante?.entree.sorties ?? [];
+    const sortiesSouhaitees = estValheim ? REGLES_SORTANTES_STEAM_VALHEIM : [];
+    const cleSortie = (r: RegleSortanteUfw): string =>
+      `${r.protocole}:${String(r.debutPort)}-${String(r.finPort)}`;
+    const cleSortiesAnc = new Set(
+      anciennesSorties.map((r) => `${r.protocole}:${String(r.debutPort)}-${String(r.finPort)}`),
+    );
+    const cleSortiesNouv = new Set(sortiesSouhaitees.map(cleSortie));
+
+    for (const ancienne of anciennesSorties) {
+      const regleAncienne: RegleSortanteUfw = {
+        protocole: ancienne.protocole,
+        debutPort: ancienne.debutPort,
+        finPort: ancienne.finPort,
+      };
+      if (cleSortiesNouv.has(cleSortie(regleAncienne)) === false) {
+        const res = await fermerSortiePareFeuHoteUnifie(regleAncienne);
+        if (res.ok === false) {
+          journaliserMoteur({
+            niveau: "warn",
+            message: "pare_feu_hote_fermeture_sortie_echec",
+            requestId: options?.requestId,
+            metadata: { regle: regleAncienne, erreur: res.messageErreur, backend: res.backend },
+          });
+        }
+      }
+    }
+
+    for (const regle of sortiesSouhaitees) {
+      if (cleSortiesAnc.has(cleSortie(regle)) === false) {
+        const res = await ouvrirSortiePareFeuHoteUnifie(regle);
+        if (res.ok === false) {
+          journaliserMoteur({
+            niveau: "warn",
+            message: "pare_feu_hote_ouverture_sortie_echec",
+            requestId: options?.requestId,
+            metadata: { regle, erreur: res.messageErreur, backend: res.backend },
+          });
+        }
+      }
+    }
+
     if (firewalldModifie) {
       await rechargerRuntimeFirewalldApresModifications();
     }
 
     if (publications.length > 0) {
-      await this.depot.remplacerEntreeConteneur(idCanonique, publications);
+      await this.depot.remplacerEntreeConteneur(
+        idCanonique,
+        publications,
+        sortiesSouhaitees,
+      );
     } else {
       await this.depot.retirerEntreePourIdConteneur(idCanonique);
     }
@@ -206,6 +270,8 @@ export class GestionnairePareFeuHoteKidopanel {
     }
 
     let firewalldModifie = false;
+    const entreeCourante = await this.depot.trouverEntreePourIdConteneur(idConteneur);
+    const sorties = entreeCourante?.entree.sorties ?? [];
     const ports = await this.depot.retirerEntreePourIdConteneur(idConteneur);
     for (const pub of ports) {
       const res = await fermerPortPareFeuHoteUnifie(pub);
@@ -223,6 +289,17 @@ export class GestionnairePareFeuHoteKidopanel {
             erreur: res.messageErreur,
             backend: res.backend,
           },
+        });
+      }
+    }
+    for (const regle of sorties) {
+      const res = await fermerSortiePareFeuHoteUnifie(regle);
+      if (!res.ok) {
+        journaliserMoteur({
+          niveau: "warn",
+          message: "pare_feu_hote_fermeture_sortie_echec",
+          requestId: options?.requestId,
+          metadata: { regle, erreur: res.messageErreur, backend: res.backend },
         });
       }
     }

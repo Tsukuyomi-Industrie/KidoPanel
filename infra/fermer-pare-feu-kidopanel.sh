@@ -39,6 +39,12 @@ for e in d.get(\"entrees\", []) or []:
         num = p.get(\"numero\")
         if isinstance(num, int) and proto in (\"tcp\", \"udp\"):
             vu.add((proto, num))
+    for s in e.get(\"sorties\", []) or []:
+        proto = s.get(\"protocole\", \"tcp\")
+        debut = s.get(\"debutPort\")
+        fin = s.get(\"finPort\")
+        if isinstance(debut, int) and isinstance(fin, int) and proto in (\"tcp\", \"udp\"):
+            vu.add((f\"out:{proto}\", f\"{debut}:{fin}\" if debut != fin else str(debut)))
 for proto, num in sorted(vu):
     print(proto, num)
 " "$CHEMIN_JSON")"; then
@@ -52,6 +58,14 @@ for proto, num in sorted(vu):
   fi
   while read -r proto num; do
     [[ -n "${proto:-}" && -n "${num:-}" ]] || continue
+    if [[ "$proto" == out:* ]]; then
+      local proto_sortie="${proto#out:}"
+      echo "Retrait pare-feu sortie : ${num}/${proto_sortie}"
+      if command -v ufw >/dev/null 2>&1; then
+        executer_avec_privileges ufw delete allow out proto "$proto_sortie" to any port "$num" >/dev/null 2>&1 || true
+      fi
+      continue
+    fi
     echo "Retrait pare-feu : ${num}/${proto}"
     if command -v firewall-cmd >/dev/null 2>&1 && executer_avec_privileges firewall-cmd --state >/dev/null 2>&1; then
       executer_avec_privileges firewall-cmd --permanent "--remove-port=${num}/${proto}" >/dev/null 2>&1 || true

@@ -7,6 +7,11 @@ type FichierEtatV1 = {
   entrees: Array<{
     idConteneurDocker: string;
     ports: PublicationHotePareFeu[];
+    sorties?: Array<{
+      protocole: "tcp" | "udp";
+      debutPort: number;
+      finPort: number;
+    }>;
   }>;
 };
 
@@ -93,6 +98,11 @@ export class RepositoryEtatPareFeuHoteKidopanel {
   async remplacerEntreeConteneur(
     idCompletDocker: string,
     ports: PublicationHotePareFeu[],
+    sorties?: Array<{
+      protocole: "tcp" | "udp";
+      debutPort: number;
+      finPort: number;
+    }>,
   ): Promise<void> {
     const etat = await this.charger();
     const sansDoublon = etat.entrees.filter(
@@ -101,6 +111,7 @@ export class RepositoryEtatPareFeuHoteKidopanel {
     sansDoublon.push({
       idConteneurDocker: idCompletDocker,
       ports: [...ports],
+      ...(sorties === undefined || sorties.length === 0 ? {} : { sorties }),
     });
     await this.enregistrerComplet({ version: 1, entrees: sansDoublon });
   }

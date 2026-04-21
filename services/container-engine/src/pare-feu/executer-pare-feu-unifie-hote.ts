@@ -7,6 +7,9 @@ import {
 } from "./executer-firewalld-hote.js";
 import {
   fermerPortUfwHote,
+  fermerSortieUfwHote,
+  type RegleSortanteUfw,
+  ouvrirSortieUfwHote,
   ouvrirPortUfwHote,
 } from "./executer-pare-feu-ufw-hote.js";
 import { obtenirBackendPareFeuHote } from "./selection-backend-pare-feu-hote.js";
@@ -75,5 +78,39 @@ export async function fermerPortPareFeuHoteUnifie(
     return { ...r, backend: "firewalld" };
   }
   const r = await fermerPortUfwHote(publication);
+  return { ...r, backend: "ufw" };
+}
+
+/**
+ * Ouvre une règle sortante dédiée (plage TCP/UDP) ; UFW applique la règle, firewalld est laissé inchangé.
+ */
+export async function ouvrirSortiePareFeuHoteUnifie(
+  regle: RegleSortanteUfw,
+): Promise<{ ok: boolean; messageErreur?: string; backend?: string }> {
+  const backend = await obtenirBackendPareFeuHote();
+  if (backend === null) {
+    return { ok: false, messageErreur: "Aucun backend pare-feu actif détecté." };
+  }
+  if (backend === "firewalld") {
+    return { ok: true, backend: "firewalld" };
+  }
+  const r = await ouvrirSortieUfwHote(regle);
+  return { ...r, backend: "ufw" };
+}
+
+/**
+ * Retire une règle sortante dédiée (plage TCP/UDP) ; UFW applique la règle, firewalld est laissé inchangé.
+ */
+export async function fermerSortiePareFeuHoteUnifie(
+  regle: RegleSortanteUfw,
+): Promise<{ ok: boolean; messageErreur?: string; backend?: string }> {
+  const backend = await obtenirBackendPareFeuHote();
+  if (backend === null) {
+    return { ok: true };
+  }
+  if (backend === "firewalld") {
+    return { ok: true, backend: "firewalld" };
+  }
+  const r = await fermerSortieUfwHote(regle);
   return { ...r, backend: "ufw" };
 }

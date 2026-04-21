@@ -94,3 +94,80 @@ export async function fermerPortUfwHote(
     };
   }
 }
+
+export type RegleSortanteUfw = {
+  protocole: "tcp" | "udp";
+  debutPort: number;
+  finPort: number;
+};
+
+function specPlagePortsUfw(regle: RegleSortanteUfw): string {
+  return regle.debutPort === regle.finPort
+    ? String(regle.debutPort)
+    : `${String(regle.debutPort)}:${String(regle.finPort)}`;
+}
+
+/**
+ * Ouvre une plage sortante UFW (`allow out proto ... to any port ...`).
+ */
+export async function ouvrirSortieUfwHote(
+  regle: RegleSortanteUfw,
+): Promise<{ ok: boolean; messageErreur?: string }> {
+  const { executable, prefixeArguments } = resoudreInvocationSudoPourBinaireSysteme({
+    cheminDefautAbsolu: "/usr/sbin/ufw",
+    cleEnvChemin: "CONTAINER_ENGINE_PAREFEU_UFW_CMD",
+  });
+  try {
+    await executerFichier(
+      executable,
+      [
+        ...prefixeArguments,
+        "allow",
+        "out",
+        "proto",
+        regle.protocole,
+        "to",
+        "any",
+        "port",
+        specPlagePortsUfw(regle),
+      ],
+      { timeout: 120_000 },
+    );
+    return { ok: true };
+  } catch (error_) {
+    return { ok: false, messageErreur: formaterErreurExecUfw(error_) };
+  }
+}
+
+/**
+ * Retire une plage sortante UFW (`delete allow out proto ... to any port ...`).
+ */
+export async function fermerSortieUfwHote(
+  regle: RegleSortanteUfw,
+): Promise<{ ok: boolean; messageErreur?: string }> {
+  const { executable, prefixeArguments } = resoudreInvocationSudoPourBinaireSysteme({
+    cheminDefautAbsolu: "/usr/sbin/ufw",
+    cleEnvChemin: "CONTAINER_ENGINE_PAREFEU_UFW_CMD",
+  });
+  try {
+    await executerFichier(
+      executable,
+      [
+        ...prefixeArguments,
+        "delete",
+        "allow",
+        "out",
+        "proto",
+        regle.protocole,
+        "to",
+        "any",
+        "port",
+        specPlagePortsUfw(regle),
+      ],
+      { timeout: 120_000 },
+    );
+    return { ok: true };
+  } catch (error_) {
+    return { ok: false, messageErreur: formaterErreurExecUfw(error_) };
+  }
+}
