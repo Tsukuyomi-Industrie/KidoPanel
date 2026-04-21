@@ -42,5 +42,16 @@ export function validerEtFusionnerVariablesEnvJeux(params: {
       { manquantes },
     );
   }
+  if (params.gabarit.id === "tmpl-jeu-valheim") {
+    const motDePasseServeur = fusionne.SERVER_PASS?.trim() ?? "";
+    if (motDePasseServeur.length < 5) {
+      throw new ErreurMetierInstanceJeux(
+        "ENVIRONNEMENT_INSTANCE_INCOMPLET",
+        "Le mot de passe Valheim doit contenir au moins 5 caractères.",
+        400,
+        { cle: "SERVER_PASS", longueurMinimale: 5 },
+      );
+    }
+  }
   return fusionne;
 }

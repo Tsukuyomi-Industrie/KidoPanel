@@ -65,6 +65,11 @@ export function FormulaireGabarit({
         const brut = (valeurs[champ.cle] ?? "").trim();
         if (champ.requis && brut === "") {
           suivantes[champ.cle] = "Ce champ est obligatoire.";
+          continue;
+        }
+        if (champ.cle === "SERVER_PASS" && brut.length > 0 && brut.length < 5) {
+          suivantes[champ.cle] =
+            "Le mot de passe doit contenir au moins 5 caractères.";
         }
       }
       setErreursChamp(suivantes);
