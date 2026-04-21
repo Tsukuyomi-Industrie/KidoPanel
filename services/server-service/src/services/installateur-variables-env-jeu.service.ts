@@ -10,7 +10,11 @@ export function validerEtFusionnerVariablesEnvJeux(params: {
   memoireMbInstance: number;
 }): Record<string, string> {
   const fusionne: Record<string, string> = {};
-  fusionne.MEMORY = String(params.memoireMbInstance);
+  /**
+   * Les images type itzg/minecraft-server attendent une unité JVM explicite pour MEMORY
+   * (ex. 3072M, 4G). Sans suffixe, Java peut interpréter une taille invalide.
+   */
+  fusionne.MEMORY = `${String(params.memoireMbInstance)}M`;
   for (const [cle, valeur] of Object.entries(params.variablesUtilisateur)) {
     fusionne[cle.trim()] = valeur;
   }
