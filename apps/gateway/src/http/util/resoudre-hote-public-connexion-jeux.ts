@@ -1,5 +1,4 @@
 import type { Context } from "hono";
-import { estIpv4LitteraleReserveeOuNonPubliquePourHoteJeux } from "./ipv4-est-reservee-ou-non-publique.js";
 
 const HOTES_LOOPBACK = new Set([
   "localhost",
@@ -34,17 +33,13 @@ export function estNomHoteLoopbackOuLocal(nom: string): boolean {
 }
 
 /**
- * Ordre : **`GATEWAY_PUBLIC_HOST_FOR_CLIENTS`** (IPv4 littérale privée ignorée pour ne pas masquer les en-têtes),
+ * Ordre : **`GATEWAY_PUBLIC_HOST_FOR_CLIENTS`** (valeur explicite opérateur, y compris IPv4 LAN),
  * puis **`X-Forwarded-Host`** (proxy Vite ou reverse proxy),
  * puis **`Host`** si ce n’est pas une adresse loopback (sinon null — le navigateur utilisera son hostname).
  */
 export function resoudreHotePublicConnexionJeuxDepuisRequete(c: Context): string | null {
   const depuisEnv = process.env.GATEWAY_PUBLIC_HOST_FOR_CLIENTS?.trim();
-  if (
-    depuisEnv !== undefined &&
-    depuisEnv.length > 0 &&
-    !estIpv4LitteraleReserveeOuNonPubliquePourHoteJeux(depuisEnv)
-  ) {
+  if (depuisEnv !== undefined && depuisEnv.length > 0) {
     return depuisEnv;
   }
   const transfere = c.req.header("x-forwarded-host")?.split(",")[0];
