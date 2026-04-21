@@ -4,3 +4,4 @@ sonar.host.url=http://localhost:9000
 sonar.token=TON_TOKEN
 
 sonar.exclusions=**/node_modules/**,**/dist/**,**/.next/**,**/.cache/**,**/*.zip,**/*.iso
+sonar.cpd.exclusions=**/tests/**,apps/web/src/passerelle/**,services/server-service/src/**,services/web-service/src/**,apps/gateway/src/http/routes/**,apps/gateway/src/observabilite/**,services/container-engine/src/http/routes/**

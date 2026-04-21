@@ -1,6 +1,7 @@
-import { formaterErreurReseauFetch } from "../lab/passerelleErreursAffichageLab.js";
-import { lireJetonPasserelle } from "./jetonPasserelleStockage.js";
-import { urlBasePasserelle } from "./url-base-passerelle.js";
+import {
+  appelerJsonAuthentifiePasserelle,
+  lireJsonReponseOuNull,
+} from "./client-http-authentifie-passerelle.js";
 
 export type InstanceServeurJeuxPasserelle = {
   id: string;
@@ -16,12 +17,6 @@ export type InstanceServeurJeuxPasserelle = {
   diskGb: number;
   reseauInterneUtilisateurId?: string | null;
 };
-
-function assemblerUrl(cheminRelatif: string): string {
-  const base = urlBasePasserelle().replace(/\/$/, "");
-  const chemin = cheminRelatif.startsWith("/") ? cheminRelatif : `/${cheminRelatif}`;
-  return `${base}${chemin}`;
-}
 
 /** Construit le message d’error_ affiché (inclut details.causeConnexion si la passerelle l’expose, ex. ECONNREFUSED). */
 function messageErreurPasserelleDepuisJson(
@@ -50,39 +45,14 @@ function messageErreurPasserelleDepuisJson(
   return message;
 }
 
-async function appelerJsonAuthentifie(
-  chemin: string,
-  init: RequestInit,
-): Promise<Response> {
-  const jeton = lireJetonPasserelle().trim();
-  if (!jeton) {
-    throw new Error("Jeton d’accès absent : reconnectez-vous au panel.");
-  }
-  const url = assemblerUrl(chemin);
-  try {
-    return await fetch(url, {
-      ...init,
-      mode: "cors",
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${jeton}`,
-        ...init.headers,
-      },
-    });
-  } catch (error_) {
-    throw new Error(formaterErreurReseauFetch(url, error_));
-  }
-}
-
 /** Liste les instances jeu visibles pour le compte courant (via `/serveurs-jeux/instances`). */
 export async function listerInstancesServeursJeuxPasserelle(): Promise<
   InstanceServeurJeuxPasserelle[]
 > {
-  const reponse = await appelerJsonAuthentifie("/serveurs-jeux/instances", {
+  const reponse = await appelerJsonAuthentifiePasserelle("/serveurs-jeux/instances", {
     method: "GET",
   });
-  const json = (await reponse.json()) as unknown;
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
     throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }
@@ -101,11 +71,11 @@ export async function listerInstancesServeursJeuxPasserelle(): Promise<
 export async function obtenirInstanceServeurJeuxPasserelle(
   idInstance: string,
 ): Promise<InstanceServeurJeuxPasserelle> {
-  const reponse = await appelerJsonAuthentifie(
+  const reponse = await appelerJsonAuthentifiePasserelle(
     `/serveurs-jeux/instances/${encodeURIComponent(idInstance)}`,
     { method: "GET" },
   );
-  const json = (await reponse.json()) as unknown;
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
     throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }
@@ -128,11 +98,11 @@ export type CorpsCreationInstanceServeurJeux = {
 export async function demarrerInstanceServeurJeuxPasserelle(
   idInstance: string,
 ): Promise<InstanceServeurJeuxPasserelle> {
-  const reponse = await appelerJsonAuthentifie(
+  const reponse = await appelerJsonAuthentifiePasserelle(
     `/serveurs-jeux/instances/${encodeURIComponent(idInstance)}/start`,
     { method: "POST" },
   );
-  const json = (await reponse.json()) as unknown;
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
     throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }
@@ -143,11 +113,11 @@ export async function demarrerInstanceServeurJeuxPasserelle(
 export async function arreterInstanceServeurJeuxPasserelle(
   idInstance: string,
 ): Promise<InstanceServeurJeuxPasserelle> {
-  const reponse = await appelerJsonAuthentifie(
+  const reponse = await appelerJsonAuthentifiePasserelle(
     `/serveurs-jeux/instances/${encodeURIComponent(idInstance)}/stop`,
     { method: "POST" },
   );
-  const json = (await reponse.json()) as unknown;
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
     throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }
@@ -158,11 +128,11 @@ export async function arreterInstanceServeurJeuxPasserelle(
 export async function redemarrerInstanceServeurJeuxPasserelle(
   idInstance: string,
 ): Promise<InstanceServeurJeuxPasserelle> {
-  const reponse = await appelerJsonAuthentifie(
+  const reponse = await appelerJsonAuthentifiePasserelle(
     `/serveurs-jeux/instances/${encodeURIComponent(idInstance)}/restart`,
     { method: "POST" },
   );
-  const json = (await reponse.json()) as unknown;
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
     throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }
@@ -171,14 +141,14 @@ export async function redemarrerInstanceServeurJeuxPasserelle(
 
 /** Supprime définitivement une instance jeu et son conteneur orchestré côté moteur. */
 export async function supprimerInstanceServeurJeuxPasserelle(idInstance: string): Promise<void> {
-  const reponse = await appelerJsonAuthentifie(
+  const reponse = await appelerJsonAuthentifiePasserelle(
     `/serveurs-jeux/instances/${encodeURIComponent(idInstance)}`,
     { method: "DELETE" },
   );
   if (!reponse.ok) {
     let corpsJson: unknown = null;
     try {
-      corpsJson = await reponse.json();
+      corpsJson = await lireJsonReponseOuNull(reponse);
     } catch {
       /* réponse vide ou non JSON */
     }
@@ -194,12 +164,12 @@ export async function supprimerInstanceServeurJeuxPasserelle(idInstance: string)
 export async function creerInstanceServeurJeuxPasserelle(
   corps: CorpsCreationInstanceServeurJeux,
 ): Promise<InstanceServeurJeuxPasserelle> {
-  const reponse = await appelerJsonAuthentifie("/serveurs-jeux/instances", {
+  const reponse = await appelerJsonAuthentifiePasserelle("/serveurs-jeux/instances", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(corps),
   });
-  const json = (await reponse.json()) as unknown;
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
     throw new Error(messageErreurPasserelleDepuisJson(json, reponse.status));
   }

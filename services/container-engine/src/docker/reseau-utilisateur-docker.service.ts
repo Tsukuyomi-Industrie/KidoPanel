@@ -6,7 +6,7 @@ import {
   cidrIpv4VersIntervalle,
   intervallesIpv4Uint32Chevauchent,
   type IntervalleIpv4Uint32,
-} from "./util-plage-ipv4-cidr.js";
+} from "@kidopanel/database";
 import {
   validerParametresPontDockerUtilisateur,
   type ParametresReseauPontValides,

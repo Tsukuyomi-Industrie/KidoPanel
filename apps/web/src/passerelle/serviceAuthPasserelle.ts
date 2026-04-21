@@ -1,5 +1,5 @@
 import { formaterErreurReseauFetch } from "../lab/passerelleErreursAffichageLab.js";
-import { urlBasePasserelle } from "./url-base-passerelle.js";
+import { assemblerUrlPasserelle } from "./client-http-authentifie-passerelle.js";
 
 export type UtilisateurPublicPasserelle = {
   id: string;
@@ -10,12 +10,6 @@ export type ResultatConnexionPasserelle = {
   jeton: string;
   utilisateur: UtilisateurPublicPasserelle;
 };
-
-function assemblerUrl(cheminRelatif: string): string {
-  const base = urlBasePasserelle().replace(/\/$/, "");
-  const chemin = cheminRelatif.startsWith("/") ? cheminRelatif : `/${cheminRelatif}`;
-  return `${base}${chemin}`;
-}
 
 function extraireMessageErreurJson(corps: unknown): string | null {
   if (
@@ -43,14 +37,36 @@ async function lireCorpsJson(reponse: Response): Promise<unknown> {
   }
 }
 
-/**
- * Envoie une inscription à la passerelle et renvoie le jeton si la réponse est valide.
- */
-export async function inscrireViaPasserelle(
+function extraireResultatConnexionDepuisJson(
+  json: unknown,
+  contexte: "inscription" | "connexion",
+): ResultatConnexionPasserelle {
+  if (
+    typeof json !== "object" ||
+    json === null ||
+    typeof (json as { token?: unknown }).token !== "string" ||
+    typeof (json as { user?: unknown }).user !== "object" ||
+    (json as { user?: unknown }).user === null
+  ) {
+    throw new Error(`Réponse de ${contexte} inattendue de la passerelle.`);
+  }
+  const u = (json as { user: { id?: unknown; email?: unknown } }).user;
+  if (typeof u.id !== "string" || typeof u.email !== "string") {
+    throw new TypeError(`Profil utilisateur incomplet dans la réponse de ${contexte}.`);
+  }
+  return {
+    jeton: (json as { token: string }).token,
+    utilisateur: { id: u.id, email: u.email },
+  };
+}
+
+async function envoyerAuthentification(
+  chemin: "/auth/register" | "/auth/login",
   email: string,
   motDePasse: string,
+  contexte: "inscription" | "connexion",
 ): Promise<ResultatConnexionPasserelle> {
-  const url = assemblerUrl("/auth/register");
+  const url = assemblerUrlPasserelle(chemin);
   let reponse: Response;
   try {
     reponse = await fetch(url, {
@@ -67,27 +83,25 @@ export async function inscrireViaPasserelle(
   if (!reponse.ok) {
     const detail = extraireMessageErreurJson(json);
     throw new Error(
-      detail ??
-        `L’inscription a échoué (code HTTP ${String(reponse.status)}).`,
+      detail ?? `La ${contexte} a échoué (code HTTP ${String(reponse.status)}).`,
     );
   }
-  if (
-    typeof json !== "object" ||
-    json === null ||
-    typeof (json as { token?: unknown }).token !== "string" ||
-    typeof (json as { user?: unknown }).user !== "object" ||
-    (json as { user?: unknown }).user === null
-  ) {
-    throw new Error("Réponse d’inscription inattendue de la passerelle.");
-  }
-  const u = (json as { user: { id?: unknown; email?: unknown } }).user;
-  if (typeof u.id !== "string" || typeof u.email !== "string") {
-    throw new TypeError("Profil utilisateur incomplet dans la réponse d’inscription.");
-  }
-  return {
-    jeton: (json as { token: string }).token,
-    utilisateur: { id: u.id, email: u.email },
-  };
+  return extraireResultatConnexionDepuisJson(json, contexte);
+}
+
+/**
+ * Envoie une inscription à la passerelle et renvoie le jeton si la réponse est valide.
+ */
+export async function inscrireViaPasserelle(
+  email: string,
+  motDePasse: string,
+): Promise<ResultatConnexionPasserelle> {
+  return envoyerAuthentification(
+    "/auth/register",
+    email,
+    motDePasse,
+    "inscription",
+  );
 }
 
 /**
@@ -97,42 +111,5 @@ export async function connecterViaPasserelle(
   email: string,
   motDePasse: string,
 ): Promise<ResultatConnexionPasserelle> {
-  const url = assemblerUrl("/auth/login");
-  let reponse: Response;
-  try {
-    reponse = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ email, password: motDePasse }),
-      mode: "cors",
-      cache: "no-store",
-    });
-  } catch (error_) {
-    throw new Error(formaterErreurReseauFetch(url, error_));
-  }
-  const json = await lireCorpsJson(reponse);
-  if (!reponse.ok) {
-    const detail = extraireMessageErreurJson(json);
-    throw new Error(
-      detail ??
-        `La connexion a échoué (code HTTP ${String(reponse.status)}).`,
-    );
-  }
-  if (
-    typeof json !== "object" ||
-    json === null ||
-    typeof (json as { token?: unknown }).token !== "string" ||
-    typeof (json as { user?: unknown }).user !== "object" ||
-    (json as { user?: unknown }).user === null
-  ) {
-    throw new Error("Réponse de connexion inattendue de la passerelle.");
-  }
-  const u = (json as { user: { id?: unknown; email?: unknown } }).user;
-  if (typeof u.id !== "string" || typeof u.email !== "string") {
-    throw new TypeError("Profil utilisateur incomplet dans la réponse de connexion.");
-  }
-  return {
-    jeton: (json as { token: string }).token,
-    utilisateur: { id: u.id, email: u.email },
-  };
+  return envoyerAuthentification("/auth/login", email, motDePasse, "connexion");
 }

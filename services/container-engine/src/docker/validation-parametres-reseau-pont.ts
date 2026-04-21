@@ -1,9 +1,9 @@
 import {
   cidrIpv4VersIntervalle,
+  deduirePasserelleIpv4ParDefautDepuisCidr,
   ipv4TexteVersUint32,
-  prefixeReseauIpv4VersMasque,
   type IntervalleIpv4Uint32,
-} from "./util-plage-ipv4-cidr.js";
+} from "@kidopanel/database";
 
 export type ParametresReseauPontValides = {
   sousReseauCidr: string;
@@ -43,34 +43,6 @@ function cidrEstPlagePriveeAutorisee(intervalle: IntervalleIpv4Uint32): boolean 
 }
 
 /**
- * Calcule une passerelle par défaut (.1 du sous-réseau /24 ou premier hôte utilisable pour les autres préfixes).
- */
-export function deduirePasserelleParDefautDepuisCidr(cidr: string): string | undefined {
-  const segment = cidr.trim().split("/");
-  if (segment.length !== 2) {
-    return undefined;
-  }
-  const ipReseau = ipv4TexteVersUint32(segment[0]);
-  const prefixe = Number.parseInt(segment[1], 10);
-  if (ipReseau === undefined || !Number.isInteger(prefixe)) {
-    return undefined;
-  }
-  const masque = prefixeReseauIpv4VersMasque(prefixe);
-  if (masque === undefined) {
-    return undefined;
-  }
-  const baseReseau = ipReseau & masque;
-  const adrPasserelle = (baseReseau + 1) >>> 0;
-  const octets = [
-    (adrPasserelle >>> 24) & 0xff,
-    (adrPasserelle >>> 16) & 0xff,
-    (adrPasserelle >>> 8) & 0xff,
-    adrPasserelle & 0xff,
-  ];
-  return octets.join(".");
-}
-
-/**
  * Valide et normalise sous-réseau et passerelle pour la création d’un pont Docker utilisateur.
  */
 export function validerParametresPontDockerUtilisateur(params: {
@@ -103,7 +75,7 @@ export function validerParametresPontDockerUtilisateur(params: {
   const passerelleCandidate =
     params.passerelleIpv4 !== undefined && params.passerelleIpv4.trim().length > 0
       ? params.passerelleIpv4.trim()
-      : deduirePasserelleParDefautDepuisCidr(cidrBrut);
+      : deduirePasserelleIpv4ParDefautDepuisCidr(cidrBrut);
   if (passerelleCandidate === undefined) {
     return { erreur: "Passerelle IPv4 invalide ou impossible à déduire du CIDR." };
   }

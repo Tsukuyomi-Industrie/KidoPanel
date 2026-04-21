@@ -26,7 +26,7 @@ export function monterRoutesCycleInstanceServeurJeux(
       const ligne = await cycleVie.obtenirDetailPourIdentiteInterne({
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
-        instanceId: c.req.param("idInstance"),
+        instanceId: c.req.param("idInstance")!,
       });
       const idDocker = ligne.containerId?.trim();
       if (!idDocker) {
@@ -86,7 +86,7 @@ export function monterRoutesCycleInstanceServeurJeux(
           cpuCores: corps.cpuCores,
           diskGb: corps.diskGb,
           variablesEnvBrutes: corps.env ?? {},
-          identifiantRequeteHttp: c.get("requestId"),
+          identifiantRequeteHttp: c.get("requestId")!,
           reseauInterneUtilisateurId: corps.reseauInterneUtilisateurId,
           attacherReseauKidopanelComplement: corps.attacherReseauKidopanelComplement,
           reseauPrimaireKidopanel: corps.reseauPrimaireKidopanel,
@@ -103,7 +103,7 @@ export function monterRoutesCycleInstanceServeurJeux(
       const detail = await cycleVie.obtenirDetailPourIdentiteInterne({
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
-        instanceId: c.req.param("idInstance"),
+        instanceId: c.req.param("idInstance")!,
       });
       return c.json(detail);
     } catch (error_) {
@@ -111,46 +111,40 @@ export function monterRoutesCycleInstanceServeurJeux(
     }
   });
 
-  routes.post("/:idInstance/start", async (c) => {
-    try {
-      const ligne = await cycleVie.demarrer({
+  monterRouteActionInstance({
+    routes,
+    chemin: "/:idInstance/start",
+    executer: (c) =>
+      cycleVie.demarrer({
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
-        instanceId: c.req.param("idInstance"),
-        identifiantRequeteHttp: c.get("requestId"),
-      });
-      return c.json(ligne);
-    } catch (error_) {
-      return repondreErreurMetierInstanceJeux(c, error_);
-    }
+        instanceId: c.req.param("idInstance")!,
+        identifiantRequeteHttp: c.get("requestId")!,
+      }),
   });
 
-  routes.post("/:idInstance/stop", async (c) => {
-    try {
-      const ligne = await cycleVie.arreter({
+  monterRouteActionInstance({
+    routes,
+    chemin: "/:idInstance/stop",
+    executer: (c) =>
+      cycleVie.arreter({
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
-        instanceId: c.req.param("idInstance"),
-        identifiantRequeteHttp: c.get("requestId"),
-      });
-      return c.json(ligne);
-    } catch (error_) {
-      return repondreErreurMetierInstanceJeux(c, error_);
-    }
+        instanceId: c.req.param("idInstance")!,
+        identifiantRequeteHttp: c.get("requestId")!,
+      }),
   });
 
-  routes.post("/:idInstance/restart", async (c) => {
-    try {
-      const ligne = await cycleVie.redemarrer({
+  monterRouteActionInstance({
+    routes,
+    chemin: "/:idInstance/restart",
+    executer: (c) =>
+      cycleVie.redemarrer({
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
-        instanceId: c.req.param("idInstance"),
-        identifiantRequeteHttp: c.get("requestId"),
-      });
-      return c.json(ligne);
-    } catch (error_) {
-      return repondreErreurMetierInstanceJeux(c, error_);
-    }
+        instanceId: c.req.param("idInstance")!,
+        identifiantRequeteHttp: c.get("requestId")!,
+      }),
   });
 
   routes.delete("/:idInstance", async (c) => {
@@ -159,7 +153,7 @@ export function monterRoutesCycleInstanceServeurJeux(
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
         instanceId: c.req.param("idInstance"),
-        identifiantRequeteHttp: c.get("requestId"),
+        identifiantRequeteHttp: c.get("requestId")!,
       });
       return c.body(null, 204);
     } catch (error_) {
@@ -204,4 +198,21 @@ function repondreErreurMetierInstanceJeux(
     },
     500,
   );
+}
+
+function monterRouteActionInstance(params: {
+  routes: Hono<{ Variables: VariablesServeurJeux }>;
+  chemin: string;
+  executer: (
+    c: Context<{ Variables: VariablesServeurJeux }>,
+  ) => Promise<unknown>;
+}): void {
+  params.routes.post(params.chemin, async (c) => {
+    try {
+      const ligne = await params.executer(c);
+      return c.json(ligne);
+    } catch (error_) {
+      return repondreErreurMetierInstanceJeux(c, error_);
+    }
+  });
 }

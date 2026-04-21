@@ -1,4 +1,8 @@
-import "./charger-env-racine-monorepo.js";
+import "@kidopanel/database/charger-env-racine-monorepo";
+import {
+  creerJournalPretServeHttp,
+  journaliserRefusDemarrageConfigurationHttp,
+} from "@kidopanel/database";
 import { serve } from "@hono/node-server";
 import { creerApplicationWeb } from "./http/create-application-web.js";
 import {
@@ -13,15 +17,7 @@ let application;
 try {
   application = creerApplicationWeb();
 } catch (error_) {
-  console.error(
-    JSON.stringify({
-      niveau: "error",
-      message: "demarrage_refuse_configuration",
-      detail:
-        error_ instanceof Error ? error_.message : "erreur_initialisation_inconnue",
-    }),
-  );
-  process.exitCode = 1;
+  journaliserRefusDemarrageConfigurationHttp(error_);
 }
 
 if (application) {
@@ -31,15 +27,6 @@ if (application) {
       port,
       hostname: adresseEcoute,
     },
-    (info) => {
-      console.error(
-        JSON.stringify({
-          niveau: "info",
-          message: "web_service_http_pret",
-          port: info.port,
-          adresse: info.address,
-        }),
-      );
-    },
+    creerJournalPretServeHttp({ cleMessage: "web_service_http_pret" }),
   );
 }

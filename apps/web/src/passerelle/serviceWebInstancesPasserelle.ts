@@ -1,6 +1,8 @@
-import { formaterErreurReseauFetch } from "../lab/passerelleErreursAffichageLab.js";
-import { lireJetonPasserelle } from "./jetonPasserelleStockage.js";
-import { urlBasePasserelle } from "./url-base-passerelle.js";
+import {
+  appelerJsonAuthentifiePasserelle,
+  lireJsonReponseOuNull,
+  messageErreurHttpDepuisJson,
+} from "./client-http-authentifie-passerelle.js";
 
 export type DomaineLieWebPasserelle = {
   id: string;
@@ -38,54 +40,11 @@ export type CorpsCreationWebInstance = {
   reseauInterneUtilisateurId?: string;
 };
 
-function assemblerUrl(cheminRelatif: string): string {
-  const base = urlBasePasserelle().replace(/\/$/, "");
-  const chemin = cheminRelatif.startsWith("/") ? cheminRelatif : `/${cheminRelatif}`;
-  return `${base}${chemin}`;
-}
-
-async function appelerJsonAuthentifie(
-  chemin: string,
-  init: RequestInit,
-): Promise<Response> {
-  const jeton = lireJetonPasserelle().trim();
-  if (!jeton) {
-    throw new Error("Jeton d’accès absent : reconnectez-vous au panel.");
-  }
-  const url = assemblerUrl(chemin);
-  try {
-    return await fetch(url, {
-      ...init,
-      mode: "cors",
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${jeton}`,
-        ...init.headers,
-      },
-    });
-  } catch (error_) {
-    throw new Error(formaterErreurReseauFetch(url, error_));
-  }
-}
-
-function messageErreurHttp(reponse: Response, json: unknown): string {
-  if (
-    typeof json === "object" &&
-    json !== null &&
-    "error" in json &&
-    typeof (json as { error?: { message?: unknown } }).error?.message === "string"
-  ) {
-    return (json as { error: { message: string } }).error.message;
-  }
-  return `Erreur HTTP ${String(reponse.status)}`;
-}
-
 export async function listerWebInstancesPasserelle(): Promise<WebInstancePasserelle[]> {
-  const reponse = await appelerJsonAuthentifie("/web-instances", { method: "GET" });
-  const json = (await reponse.json()) as unknown;
+  const reponse = await appelerJsonAuthentifiePasserelle("/web-instances", { method: "GET" });
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
-    throw new Error(messageErreurHttp(reponse, json));
+    throw new Error(messageErreurHttpDepuisJson(reponse, json));
   }
   if (
     typeof json !== "object" ||
@@ -99,13 +58,13 @@ export async function listerWebInstancesPasserelle(): Promise<WebInstancePassere
 }
 
 export async function obtenirWebInstancePasserelle(id: string): Promise<WebInstancePasserelle> {
-  const reponse = await appelerJsonAuthentifie(
+  const reponse = await appelerJsonAuthentifiePasserelle(
     `/web-instances/${encodeURIComponent(id)}`,
     { method: "GET" },
   );
-  const json = (await reponse.json()) as unknown;
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
-    throw new Error(messageErreurHttp(reponse, json));
+    throw new Error(messageErreurHttpDepuisJson(reponse, json));
   }
   return json as WebInstancePasserelle;
 }
@@ -113,61 +72,61 @@ export async function obtenirWebInstancePasserelle(id: string): Promise<WebInsta
 export async function creerWebInstancePasserelle(
   corps: CorpsCreationWebInstance,
 ): Promise<WebInstancePasserelle> {
-  const reponse = await appelerJsonAuthentifie("/web-instances", {
+  const reponse = await appelerJsonAuthentifiePasserelle("/web-instances", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(corps),
   });
-  const json = (await reponse.json()) as unknown;
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
-    throw new Error(messageErreurHttp(reponse, json));
+    throw new Error(messageErreurHttpDepuisJson(reponse, json));
   }
   return json as WebInstancePasserelle;
 }
 
 export async function demarrerWebInstancePasserelle(id: string): Promise<WebInstancePasserelle> {
-  const reponse = await appelerJsonAuthentifie(
+  const reponse = await appelerJsonAuthentifiePasserelle(
     `/web-instances/${encodeURIComponent(id)}/start`,
     { method: "POST" },
   );
-  const json = (await reponse.json()) as unknown;
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
-    throw new Error(messageErreurHttp(reponse, json));
+    throw new Error(messageErreurHttpDepuisJson(reponse, json));
   }
   return json as WebInstancePasserelle;
 }
 
 export async function arreterWebInstancePasserelle(id: string): Promise<WebInstancePasserelle> {
-  const reponse = await appelerJsonAuthentifie(
+  const reponse = await appelerJsonAuthentifiePasserelle(
     `/web-instances/${encodeURIComponent(id)}/stop`,
     { method: "POST" },
   );
-  const json = (await reponse.json()) as unknown;
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
-    throw new Error(messageErreurHttp(reponse, json));
+    throw new Error(messageErreurHttpDepuisJson(reponse, json));
   }
   return json as WebInstancePasserelle;
 }
 
 export async function redemarrerWebInstancePasserelle(id: string): Promise<WebInstancePasserelle> {
-  const reponse = await appelerJsonAuthentifie(
+  const reponse = await appelerJsonAuthentifiePasserelle(
     `/web-instances/${encodeURIComponent(id)}/restart`,
     { method: "POST" },
   );
-  const json = (await reponse.json()) as unknown;
+  const json = await lireJsonReponseOuNull(reponse);
   if (!reponse.ok) {
-    throw new Error(messageErreurHttp(reponse, json));
+    throw new Error(messageErreurHttpDepuisJson(reponse, json));
   }
   return json as WebInstancePasserelle;
 }
 
 export async function supprimerWebInstancePasserelle(id: string): Promise<void> {
-  const reponse = await appelerJsonAuthentifie(
+  const reponse = await appelerJsonAuthentifiePasserelle(
     `/web-instances/${encodeURIComponent(id)}`,
     { method: "DELETE" },
   );
   if (!reponse.ok) {
-    const json = (await reponse.json().catch(() => null)) as unknown;
-    throw new Error(messageErreurHttp(reponse, json));
+    const json = await lireJsonReponseOuNull(reponse);
+    throw new Error(messageErreurHttpDepuisJson(reponse, json));
   }
 }

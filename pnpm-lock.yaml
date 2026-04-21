@@ -124,6 +124,12 @@ importers:
       '@prisma/client':
         specifier: ^6.19.0
         version: 6.19.3(prisma@6.19.3(typescript@6.0.2))(typescript@6.0.2)
+      dotenv:
+        specifier: ^16.6.1
+        version: 16.6.1
+      hono:
+        specifier: ^4.12.12
+        version: 4.12.12
     devDependencies:
       '@types/node':
         specifier: ^24.12.2
@@ -155,6 +161,9 @@ importers:
       '@kidopanel/container-catalog':
         specifier: workspace:*
         version: link:../../packages/container-catalog
+      '@kidopanel/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       dockerode:
         specifier: ^4.0.9
         version: 4.0.10

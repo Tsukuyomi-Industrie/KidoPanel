@@ -1,5 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { Prisma, type PrismaClient, type WebStack } from "@kidopanel/database";
+import {
+  listerDepuisDepotPourIdentiteInterne,
+  obtenirDetailDepuisDepotPourIdentiteInterne,
+  Prisma,
+  resoudreReseauInternePourCreationInstance,
+  type PrismaClient,
+  type WebStack,
+} from "@kidopanel/database";
 import type { DepotWebInstance } from "../repositories/depot-web-instance.repository.js";
 import type { DepotProprieteConteneur } from "../repositories/depot-propriete-conteneur.repository.js";
 import type { DepotDomaineProxy } from "../repositories/depot-domaine-proxy.repository.js";
@@ -16,15 +23,6 @@ import { ErreurMetierWebInstance } from "../erreurs/erreurs-metier-web-instance.
 import { CycleVieWebInstancePilotage } from "./cycle-vie-web-instance-pilotage.service.js";
 
 type RoleInterne = "ADMIN" | "USER" | "VIEWER";
-
-function peutGerer(
-  role: RoleInterne,
-  utilisateurCourantId: string,
-  proprietaireId: string,
-): boolean {
-  if (role === "ADMIN") return true;
-  return proprietaireId === utilisateurCourantId;
-}
 
 /**
  * Cycle de vie des instances web : persistance Prisma et appels au moteur HTTP Docker.
@@ -53,10 +51,7 @@ export class CycleVieWebInstance {
     utilisateurId: string;
     role: RoleInterne;
   }) {
-    if (params.role === "ADMIN") {
-      return this.depot.listerTous();
-    }
-    return this.depot.listerParUtilisateur(params.utilisateurId);
+    return listerDepuisDepotPourIdentiteInterne(this.depot, params);
   }
 
   async obtenirDetailPourIdentiteInterne(params: {
@@ -64,22 +59,20 @@ export class CycleVieWebInstance {
     role: RoleInterne;
     instanceId: string;
   }) {
-    const ligne = await this.depot.trouverParId(params.instanceId);
-    if (!ligne) {
-      throw new ErreurMetierWebInstance(
-        "INSTANCE_WEB_NON_TROUVEE",
-        "Instance introuvable.",
-        404,
-      );
-    }
-    if (!peutGerer(params.role, params.utilisateurId, ligne.userId)) {
-      throw new ErreurMetierWebInstance(
-        "INSTANCE_WEB_ACCES_REFUSE",
-        "Accès à cette instance refusé.",
-        403,
-      );
-    }
-    return ligne;
+    return obtenirDetailDepuisDepotPourIdentiteInterne(this.depot, params, {
+      leverSiIntrouvable: () =>
+        new ErreurMetierWebInstance(
+          "INSTANCE_WEB_NON_TROUVEE",
+          "Instance introuvable.",
+          404,
+        ),
+      leverSiAccesRefuse: () =>
+        new ErreurMetierWebInstance(
+          "INSTANCE_WEB_ACCES_REFUSE",
+          "Accès à cette instance refusé.",
+          403,
+        ),
+    });
   }
 
   async creerEtOrchestrerInstallation(params: {
@@ -111,21 +104,23 @@ export class CycleVieWebInstance {
         params.diskGb,
       );
     }
-    let nomPontDocker: string | undefined;
-    const idReseauBrut = params.reseauInterneUtilisateurId?.trim();
-    if (idReseauBrut !== undefined && idReseauBrut.length > 0) {
-      const enregistrementReseau = await this.depotReseau.trouverPourUtilisateur(
-        idReseauBrut,
-        params.utilisateurIdProprietaire,
-      );
-      if (enregistrementReseau === null) {
-        throw new ErreurMetierWebInstance(
+    const resolutionReseau = await resoudreReseauInternePourCreationInstance({
+      identifiantReseauInterneBrut: params.reseauInterneUtilisateurId,
+      utilisateurIdProprietaire: params.utilisateurIdProprietaire,
+      trouverPourUtilisateur: (idReseau, utilisateurId) =>
+        this.depotReseau.trouverPourUtilisateur(idReseau, utilisateurId),
+      leverSiReseauIntrouvable: () =>
+        new ErreurMetierWebInstance(
           "RESEAU_INTERNE_UTILISATEUR_INTROUVABLE",
           "Réseau interne introuvable ou non associé à ce compte.",
           422,
-        );
-      }
-      nomPontDocker = enregistrementReseau.nomDocker;
+        ),
+    });
+    let nomPontDocker: string | undefined;
+    let idReseauBrut: string | undefined;
+    if (resolutionReseau.mode === "avec_reseau") {
+      nomPontDocker = resolutionReseau.nomPontDocker;
+      idReseauBrut = resolutionReseau.idReseau;
     }
     const idInstance = randomUUID();
     const envJson = params.env as unknown as Prisma.InputJsonValue;
@@ -195,6 +190,15 @@ export class CycleVieWebInstance {
     return instanceFinale;
   }
 
+  async redemarrer(params: {
+    utilisateurId: string;
+    role: RoleInterne;
+    instanceId: string;
+    identifiantRequeteHttp: string;
+  }) {
+    return this.pilotage.redemarrer(params);
+  }
+
   async demarrer(params: {
     utilisateurId: string;
     role: RoleInterne;
@@ -211,15 +215,6 @@ export class CycleVieWebInstance {
     identifiantRequeteHttp: string;
   }) {
     return this.pilotage.arreter(params);
-  }
-
-  async redemarrer(params: {
-    utilisateurId: string;
-    role: RoleInterne;
-    instanceId: string;
-    identifiantRequeteHttp: string;
-  }) {
-    return this.pilotage.redemarrer(params);
   }
 
   async supprimer(params: {

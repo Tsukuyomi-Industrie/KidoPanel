@@ -1,13 +1,11 @@
-import {
-  analyserReferenceDockerLibre,
-  IDENTIFIANTS_IMAGES_CATALOGUE,
-} from "@kidopanel/container-catalog";
+import { IDENTIFIANTS_IMAGES_CATALOGUE } from "@kidopanel/container-catalog";
 import { z } from "zod";
 import {
   normaliserExposedPortsPourValidationZod,
   normaliserLogConfigHostPourValidationZod,
 } from "./normalisation-corps-api-docker-zod.js";
 import { MOTIF_NOM_RESEAU_BRIDGE_UTILISATEUR_KIDOPANEL } from "../../docker/reseau-interne-kidopanel.constantes.js";
+import { appliquerRefinementZodImageCatalogueOuReferenceLibre } from "./refinement-zod-image-catalogue-ou-reference-libre.js";
 
 /** Schéma d’une liaison hôte pour un port conteneur (ex. `80/tcp`). */
 const liaisonPortConteneurSchema = z.object({
@@ -184,39 +182,13 @@ export const createContainerJsonSchema = z
   reseauDualAvecKidopanel: z.boolean().optional(),
   reseauPrimaireKidopanel: z.boolean().optional(),
   })
-  .superRefine((donnees, ctx) => {
-    const analyseReference =
-      donnees.imageReference !== undefined &&
-      typeof donnees.imageReference === "string" &&
-      donnees.imageReference.trim().length > 0
-        ? analyserReferenceDockerLibre(donnees.imageReference)
-        : undefined;
-    if (
-      analyseReference !== undefined &&
-      analyseReference.ok === false
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: analyseReference.message,
-        path: ["imageReference"],
-      });
-      return;
-    }
-    const cataloguePresent =
-      donnees.imageCatalogId !== undefined && donnees.imageCatalogId.length > 0;
-    const referencePresent =
-      analyseReference !== undefined &&
-      analyseReference.ok === true &&
-      analyseReference.valeurNormalisee.length > 0;
-    if (!cataloguePresent && !referencePresent) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "Indiquez « imageReference » pour une image Docker Hub ou registre accessible au démon, ou « imageCatalogId » pour le catalogue KidoPanel.",
-        path: ["imageReference"],
-      });
-    }
-  })
+  .superRefine((donnees, ctx) =>
+    appliquerRefinementZodImageCatalogueOuReferenceLibre(
+      donnees,
+      ctx,
+      "Indiquez « imageReference » pour une image Docker Hub ou registre accessible au démon, ou « imageCatalogId » pour le catalogue KidoPanel.",
+    ),
+  )
   .superRefine((donnees, ctx) => {
     if (donnees.reseauDualAvecKidopanel === true) {
       const pont = donnees.reseauBridgeNom?.trim();

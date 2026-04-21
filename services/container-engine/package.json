@@ -24,6 +24,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@kidopanel/database": "workspace:*",
     "@kidopanel/container-catalog": "workspace:*",
     "@hono/node-server": "^1.19.13",
     "@hono/zod-validator": "^0.7.6",

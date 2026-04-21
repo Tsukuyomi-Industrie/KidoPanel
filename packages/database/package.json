@@ -10,6 +10,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./charger-env-racine-monorepo": {
+      "types": "./dist/charger-env-racine-monorepo.d.ts",
+      "import": "./dist/charger-env-racine-monorepo.js"
+    },
+    "./journal-json-service-stdout": {
+      "types": "./dist/journal-json-service-stdout.d.ts",
+      "import": "./dist/journal-json-service-stdout.js"
     }
   },
   "scripts": {
@@ -20,7 +28,9 @@
     "db:migrate:dev": "prisma migrate dev"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.0"
+    "@prisma/client": "^6.19.0",
+    "dotenv": "^16.6.1",
+    "hono": "^4.12.12"
   },
   "devDependencies": {
     "@types/node": "^24.12.2",

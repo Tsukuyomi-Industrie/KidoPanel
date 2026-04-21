@@ -1,4 +1,8 @@
 /**
+ * Conversions et calculs réseau IPv4 (CIDR, masques, intervalles) partagés entre passerelle et moteur Docker.
+ */
+
+/**
  * Conversion d’une adresse IPv4 textuelle vers entier 32 bits non signé (big-endian).
  */
 export function ipv4TexteVersUint32(ip: string): number | undefined {
@@ -63,4 +67,32 @@ export function intervallesIpv4Uint32Chevauchent(
   b: IntervalleIpv4Uint32,
 ): boolean {
   return a.debut <= b.fin && b.debut <= a.fin;
+}
+
+/**
+ * Première adresse hôte du bloc (réseau + 1), habituelle comme passerelle par défaut sur un pont utilisateur.
+ */
+export function deduirePasserelleIpv4ParDefautDepuisCidr(cidr: string): string | undefined {
+  const segment = cidr.trim().split("/");
+  if (segment.length !== 2) {
+    return undefined;
+  }
+  const ipReseau = ipv4TexteVersUint32(segment[0]);
+  const prefixe = Number.parseInt(segment[1], 10);
+  if (ipReseau === undefined || !Number.isInteger(prefixe)) {
+    return undefined;
+  }
+  const masque = prefixeReseauIpv4VersMasque(prefixe);
+  if (masque === undefined) {
+    return undefined;
+  }
+  const baseReseau = ipReseau & masque;
+  const adrPasserelle = (baseReseau + 1) >>> 0;
+  const octets = [
+    (adrPasserelle >>> 24) & 0xff,
+    (adrPasserelle >>> 16) & 0xff,
+    (adrPasserelle >>> 8) & 0xff,
+    adrPasserelle & 0xff,
+  ];
+  return octets.join(".");
 }

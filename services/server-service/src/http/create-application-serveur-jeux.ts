@@ -1,5 +1,11 @@
 import { Hono } from "hono";
-import { prisma } from "@kidopanel/database";
+import {
+  prisma,
+  creerGestionnaireErreurInterneServiceMetier,
+  creerHandlerSantePostgreSql,
+  creerReponseRouteIntrouvableServiceMetier,
+  exigerDatabaseUrlPourDemarrageService,
+} from "@kidopanel/database";
 import { monterRoutesCycleInstanceServeurJeux } from "../controllers/serverLifecycle.controller.js";
 import { DepotInstanceServeur } from "../repositories/depot-instance-serveur.repository.js";
 import { DepotProprieteConteneurInstance } from "../repositories/depot-propriete-conteneur-instance.repository.js";
@@ -15,11 +21,10 @@ import { lireMetriquesServeurJeuxBrut } from "../observabilite/metriques-serveur
 export function creerApplicationServeurJeux(): Hono<{
   Variables: VariablesServeurJeux;
 }> {
-  if (!process.env.DATABASE_URL?.trim()) {
-    throw new Error(
+  exigerDatabaseUrlPourDemarrageService({
+    messageErreurSiAbsent:
       "Variable DATABASE_URL manquante : obligatoire pour la persistance des instances jeu.",
-    );
-  }
+  });
 
   const depot = new DepotInstanceServeur(prisma);
   const depotPropriete = new DepotProprieteConteneurInstance(prisma);
@@ -47,14 +52,7 @@ export function creerApplicationServeurJeux(): Hono<{
     }),
   );
 
-  app.get("/health", async (c) => {
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      return c.json({ status: "ok" });
-    } catch {
-      return c.json({ status: "error" }, 503);
-    }
-  });
+  app.get("/health", creerHandlerSantePostgreSql(prisma));
 
   app.get("/metrics", () => {
     const m = lireMetriquesServeurJeuxBrut();
@@ -78,37 +76,18 @@ export function creerApplicationServeurJeux(): Hono<{
     monterRoutesCycleInstanceServeurJeux(cycleVie, clientMoteur),
   );
 
-  app.notFound((c) =>
-    c.json(
-      {
-        error: {
-          code: "ROUTE_NOT_FOUND",
-          message: "Route HTTP introuvable sur le service instances jeu.",
-        },
-      },
-      404,
-    ),
+  app.notFound(
+    creerReponseRouteIntrouvableServiceMetier({
+      messageDetail: "Route HTTP introuvable sur le service instances jeu.",
+    }),
   );
 
-  app.onError((erreur, c) => {
-    console.error(
-      JSON.stringify({
-        service: "server-service",
-        message: erreur instanceof Error ? erreur.message : "erreur_inconnue",
-        stack: erreur instanceof Error ? erreur.stack : undefined,
-        requestId: c.get("requestId"),
-      }),
-    );
-    return c.json(
-      {
-        error: {
-          code: "INTERNAL_ERROR",
-          message: "Erreur interne du service instances jeu.",
-        },
-      },
-      500,
-    );
-  });
+  app.onError(
+    creerGestionnaireErreurInterneServiceMetier({
+      cleServiceJournal: "server-service",
+      messageReponseClient: "Erreur interne du service instances jeu.",
+    }),
+  );
 
   return app;
 }

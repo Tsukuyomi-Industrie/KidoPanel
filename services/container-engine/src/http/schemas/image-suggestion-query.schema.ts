@@ -1,8 +1,6 @@
-import {
-  analyserReferenceDockerLibre,
-  IDENTIFIANTS_IMAGES_CATALOGUE,
-} from "@kidopanel/container-catalog";
+import { IDENTIFIANTS_IMAGES_CATALOGUE } from "@kidopanel/container-catalog";
 import { z } from "zod";
+import { appliquerRefinementZodImageCatalogueOuReferenceLibre } from "./refinement-zod-image-catalogue-ou-reference-libre.js";
 
 /** Paramètres `GET /images/suggestion` : même logique de priorité que `POST /containers` pour résoudre l’image. */
 export const suggestionImageQuerySchema = z
@@ -10,33 +8,10 @@ export const suggestionImageQuerySchema = z
     imageCatalogId: z.enum(IDENTIFIANTS_IMAGES_CATALOGUE).optional(),
     imageReference: z.string().max(512).optional(),
   })
-  .superRefine((donnees, ctx) => {
-    const analyseReference =
-      donnees.imageReference !== undefined &&
-      typeof donnees.imageReference === "string" &&
-      donnees.imageReference.trim().length > 0
-        ? analyserReferenceDockerLibre(donnees.imageReference)
-        : undefined;
-    if (analyseReference !== undefined && analyseReference.ok === false) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: analyseReference.message,
-        path: ["imageReference"],
-      });
-      return;
-    }
-    const cataloguePresent =
-      donnees.imageCatalogId !== undefined && donnees.imageCatalogId.length > 0;
-    const referencePresent =
-      analyseReference !== undefined &&
-      analyseReference.ok === true &&
-      analyseReference.valeurNormalisee.length > 0;
-    if (!cataloguePresent && !referencePresent) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "Indiquez « imageReference » ou « imageCatalogId » pour analyser une image Docker.",
-        path: ["imageReference"],
-      });
-    }
-  });
+  .superRefine((donnees, ctx) =>
+    appliquerRefinementZodImageCatalogueOuReferenceLibre(
+      donnees,
+      ctx,
+      "Indiquez « imageReference » ou « imageCatalogId » pour analyser une image Docker.",
+    ),
+  );

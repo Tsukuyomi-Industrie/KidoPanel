@@ -26,3 +26,4 @@ infra/logs/
 # Journaux texte `.log` par conteneur écrits par le moteur (dossier par défaut sous le répertoire de travail au lancement)
 donnees/journaux-conteneurs-moteur/
 .scannerwork/
+.jscpd-report/

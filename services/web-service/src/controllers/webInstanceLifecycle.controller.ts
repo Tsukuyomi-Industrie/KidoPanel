@@ -23,7 +23,7 @@ export function monterRoutesCycleWebInstances(
       const ligne = await cycleVie.obtenirDetailPourIdentiteInterne({
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
-        instanceId: c.req.param("id"),
+        instanceId: c.req.param("id")!,
       });
       const idDocker = ligne.containerId?.trim();
       if (!idDocker) {
@@ -83,7 +83,7 @@ export function monterRoutesCycleWebInstances(
           domaineInitial: corps.domaineInitial,
           gabaritDockerRapideId: corps.gabaritDockerRapideId,
           reseauInterneUtilisateurId: corps.reseauInterneUtilisateurId,
-          identifiantRequeteHttp: c.get("requestId"),
+          identifiantRequeteHttp: c.get("requestId")!,
         });
         return c.json(cree, 201);
       } catch (error_) {
@@ -97,7 +97,7 @@ export function monterRoutesCycleWebInstances(
       const detail = await cycleVie.obtenirDetailPourIdentiteInterne({
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
-        instanceId: c.req.param("id"),
+        instanceId: c.req.param("id")!,
       });
       return c.json(detail);
     } catch (error_) {
@@ -105,46 +105,40 @@ export function monterRoutesCycleWebInstances(
     }
   });
 
-  routes.post("/:id/start", async (c) => {
-    try {
-      const ligne = await cycleVie.demarrer({
+  monterRouteActionWebInstance({
+    routes,
+    chemin: "/:id/start",
+    executer: (c) =>
+      cycleVie.demarrer({
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
-        instanceId: c.req.param("id"),
-        identifiantRequeteHttp: c.get("requestId"),
-      });
-      return c.json(ligne);
-    } catch (error_) {
-      return repondreErreurWeb(c, error_);
-    }
+        instanceId: c.req.param("id")!,
+        identifiantRequeteHttp: c.get("requestId")!,
+      }),
   });
 
-  routes.post("/:id/stop", async (c) => {
-    try {
-      const ligne = await cycleVie.arreter({
+  monterRouteActionWebInstance({
+    routes,
+    chemin: "/:id/stop",
+    executer: (c) =>
+      cycleVie.arreter({
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
-        instanceId: c.req.param("id"),
-        identifiantRequeteHttp: c.get("requestId"),
-      });
-      return c.json(ligne);
-    } catch (error_) {
-      return repondreErreurWeb(c, error_);
-    }
+        instanceId: c.req.param("id")!,
+        identifiantRequeteHttp: c.get("requestId")!,
+      }),
   });
 
-  routes.post("/:id/restart", async (c) => {
-    try {
-      const ligne = await cycleVie.redemarrer({
+  monterRouteActionWebInstance({
+    routes,
+    chemin: "/:id/restart",
+    executer: (c) =>
+      cycleVie.redemarrer({
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
-        instanceId: c.req.param("id"),
-        identifiantRequeteHttp: c.get("requestId"),
-      });
-      return c.json(ligne);
-    } catch (error_) {
-      return repondreErreurWeb(c, error_);
-    }
+        instanceId: c.req.param("id")!,
+        identifiantRequeteHttp: c.get("requestId")!,
+      }),
   });
 
   routes.delete("/:id", async (c) => {
@@ -153,7 +147,7 @@ export function monterRoutesCycleWebInstances(
         utilisateurId: c.get("utilisateurIdInterne")!,
         role: c.get("roleUtilisateurInterne")!,
         instanceId: c.req.param("id"),
-        identifiantRequeteHttp: c.get("requestId"),
+        identifiantRequeteHttp: c.get("requestId")!,
       });
       return c.body(null, 204);
     } catch (error_) {
@@ -178,4 +172,19 @@ function repondreErreurWeb(c: Pick<Context, "json">, erreur: unknown) {
     );
   }
   throw erreur;
+}
+
+function monterRouteActionWebInstance(params: {
+  routes: Hono<{ Variables: VariablesHttpWeb }>;
+  chemin: string;
+  executer: (c: Context<{ Variables: VariablesHttpWeb }>) => Promise<unknown>;
+}): void {
+  params.routes.post(params.chemin, async (c) => {
+    try {
+      const ligne = await params.executer(c);
+      return c.json(ligne);
+    } catch (error_) {
+      return repondreErreurWeb(c, error_);
+    }
+  });
 }

@@ -1,5 +1,5 @@
-import { randomUUID } from "node:crypto";
 import type { Context, Next } from "hono";
+import { executerCorrelationRequeteAvecMesure } from "@kidopanel/database";
 import {
   incrementerErreursPasserelle,
   incrementerRequetesPasserelle,
@@ -17,31 +17,25 @@ export async function middlewareCorrelationRequete(
   c: Context<{ Variables: VariablesGateway }>,
   next: Next,
 ): Promise<void> {
-  const requestId = randomUUID();
-  c.set("requestId", requestId);
+  await executerCorrelationRequeteAvecMesure(c, next, ({ requestId, dureeMs, statut }) => {
+    incrementerRequetesPasserelle();
+    if (statut >= 500) {
+      incrementerErreursPasserelle();
+    }
 
-  const debut = performance.now();
-  await next();
-  const dureeMs = Math.round(performance.now() - debut);
-  const statut = c.res.status;
+    c.header(EN_TETE_ID_REQUETE_INTERNE, requestId);
 
-  incrementerRequetesPasserelle();
-  if (statut >= 500) {
-    incrementerErreursPasserelle();
-  }
-
-  c.header(EN_TETE_ID_REQUETE_INTERNE, requestId);
-
-  journaliserPasserelle({
-    niveau: "info",
-    message: "requete_http_terminee",
-    requestId,
-    metadata: {
-      methode: c.req.method,
-      chemin: c.req.path,
-      statut,
-      dureeMs,
-    },
+    journaliserPasserelle({
+      niveau: "info",
+      message: "requete_http_terminee",
+      requestId,
+      metadata: {
+        methode: c.req.method,
+        chemin: c.req.path,
+        statut,
+        dureeMs,
+      },
+    });
   });
 }
 

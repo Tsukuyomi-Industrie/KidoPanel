@@ -1,4 +1,11 @@
-import type { WebInstance } from "@kidopanel/database";
+import {
+  creerEnregistrerProprietePourConteneurDelegue,
+  creerPersisterConteneurStatutStopAvecIdentifiant,
+  creerPosterDemarrageSurMoteurDelegue,
+  normaliserStatutHttpReponseMoteurPourClient,
+  persisterConteneurCreeEtDemarrageSurMoteur,
+  type WebInstance,
+} from "@kidopanel/database";
 import type { DepotWebInstance } from "../repositories/depot-web-instance.repository.js";
 import type { DepotProprieteConteneur } from "../repositories/depot-propriete-conteneur.repository.js";
 import type { ClientMoteurWebHttp } from "./client-moteur-web.service.js";
@@ -8,10 +15,6 @@ export type ResultatFinalisationInstallationWeb = {
   instance: WebInstance;
   ipReseauInterne?: string;
 };
-
-function statutHttpMoteurOu502(statut: number): number {
-  return statut >= 400 && statut < 600 ? statut : 502;
-}
 
 function extraireCreationConteneurDepuisTexte(texteCreation: string): {
   idDocker: string;
@@ -70,7 +73,7 @@ export async function finaliserInstallationConteneurWeb(params: {
     throw new ErreurMetierWebInstance(
       "MOTEUR_CONTENEURS_ERREUR",
       "Création du conteneur refusée par le moteur.",
-      statutHttpMoteurOu502(reponseCreation.status),
+      normaliserStatutHttpReponseMoteurPourClient(reponseCreation.status),
       { corpsAmont: texteCreation.slice(0, 2000) },
     );
   }
@@ -93,27 +96,27 @@ export async function finaliserInstallationConteneurWeb(params: {
     );
   }
 
-  await depot.mettreAJour(ligne.id, {
-    containerId: idDocker,
-    status: "STOPPED",
-  });
-
-  await depotPropriete.enregistrerProprietePourConteneur(ligne.userId, idDocker);
-
-  const reponseDemarrage = await clientMoteur.posterDemarrage(
+  await persisterConteneurCreeEtDemarrageSurMoteur({
+    ligneId: ligne.id,
+    utilisateurId: ligne.userId,
     idDocker,
-    params.identifiantRequeteHttp,
-  );
-  const texteDemarrage = await reponseDemarrage.text();
-  if (!reponseDemarrage.ok) {
-    await depot.mettreAJour(ligne.id, { status: "ERROR" });
-    throw new ErreurMetierWebInstance(
-      "MOTEUR_CONTENEURS_ERREUR",
-      "Le conteneur a été créé mais le démarrage a échoué.",
-      statutHttpMoteurOu502(reponseDemarrage.status),
-      { corpsAmont: texteDemarrage.slice(0, 1000) },
-    );
-  }
+    identifiantRequeteHttp: params.identifiantRequeteHttp,
+    persisterConteneurStatutStopAvecIdentifiant:
+      creerPersisterConteneurStatutStopAvecIdentifiant(depot),
+    enregistrerProprietePourConteneur:
+      creerEnregistrerProprietePourConteneurDelegue(depotPropriete),
+    posterDemarrage: creerPosterDemarrageSurMoteurDelegue(clientMoteur),
+    persisterErreurApresEchecDemarrage: async (ligneId, _corpsReponseDemarrage) => {
+      await depot.mettreAJour(ligneId, { status: "ERROR" });
+    },
+    leverErreurApresEchecDemarrage: (statutHttpReponseDemarrage, corpsReponseDemarrage) =>
+      new ErreurMetierWebInstance(
+        "MOTEUR_CONTENEURS_ERREUR",
+        "Le conteneur a été créé mais le démarrage a échoué.",
+        normaliserStatutHttpReponseMoteurPourClient(statutHttpReponseDemarrage),
+        { corpsAmont: corpsReponseDemarrage.slice(0, 1000) },
+      ),
+  });
 
   const instanceFinale = await depot.mettreAJour(ligne.id, {
     status: "RUNNING",

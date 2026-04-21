@@ -1,6 +1,8 @@
-import { formaterErreurReseauFetch } from "../lab/passerelleErreursAffichageLab.js";
-import { lireJetonPasserelle } from "./jetonPasserelleStockage.js";
-import { urlBasePasserelle } from "./url-base-passerelle.js";
+import {
+  appelerJsonAuthentifiePasserelle,
+  lireJsonReponseOuNull,
+  messageErreurHttpDepuisJson,
+} from "./client-http-authentifie-passerelle.js";
 
 export type EnregistrementReseauInternePasserelle = {
   id: string;
@@ -15,46 +17,23 @@ export type EnregistrementReseauInternePasserelle = {
 export async function listerReseauxInternesPasserelle(): Promise<
   EnregistrementReseauInternePasserelle[]
 > {
-  const jeton = lireJetonPasserelle().trim();
-  if (!jeton) {
-    throw new Error("Jeton d’accès absent : reconnectez-vous au panel.");
+  const reponse = await appelerJsonAuthentifiePasserelle("/reseaux-internes", {
+    method: "GET",
+  });
+  const json = await lireJsonReponseOuNull(reponse);
+  if (!reponse.ok) {
+    throw new Error(messageErreurHttpDepuisJson(reponse, json));
   }
-  const base = urlBasePasserelle().replace(/\/$/, "");
-  const url = `${base}/reseaux-internes`;
-  try {
-    const reponse = await fetch(url, {
-      method: "GET",
-      mode: "cors",
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${jeton}`,
-      },
-    });
-    const json = (await reponse.json()) as unknown;
-    if (!reponse.ok) {
-      throw new Error(
-        typeof json === "object" &&
-          json !== null &&
-          "error" in json &&
-          typeof (json as { error?: { message?: unknown } }).error?.message === "string"
-          ? (json as { error: { message: string } }).error.message
-          : `Erreur HTTP ${String(reponse.status)}`,
-      );
-    }
-    if (
-      typeof json !== "object" ||
-      json === null ||
-      !("reseauxInternes" in json) ||
-      !Array.isArray((json as { reseauxInternes: unknown }).reseauxInternes)
-    ) {
-      throw new Error("Réponse liste réseaux illisible.");
-    }
-    return (json as { reseauxInternes: EnregistrementReseauInternePasserelle[] })
-      .reseauxInternes;
-  } catch (error_) {
-    throw new Error(formaterErreurReseauFetch(url, error_));
+  if (
+    typeof json !== "object" ||
+    json === null ||
+    !("reseauxInternes" in json) ||
+    !Array.isArray((json as { reseauxInternes: unknown }).reseauxInternes)
+  ) {
+    throw new Error("Réponse liste réseaux illisible.");
   }
+  return (json as { reseauxInternes: EnregistrementReseauInternePasserelle[] })
+    .reseauxInternes;
 }
 
 export type CorpsCreationReseauInternePasserelle = {
@@ -63,40 +42,11 @@ export type CorpsCreationReseauInternePasserelle = {
   sansRouteVersInternetExterne?: boolean;
 };
 
-function assemblerUrlReseaux(idOptionnel?: string): string {
-  const base = urlBasePasserelle().replace(/\/$/, "");
-  if (idOptionnel === undefined || idOptionnel.length === 0) {
-    return `${base}/reseaux-internes`;
-  }
-  return `${base}/reseaux-internes/${encodeURIComponent(idOptionnel)}`;
-}
-
-async function fetchJsonReseaux(url: string, init: RequestInit): Promise<Response> {
-  const jeton = lireJetonPasserelle().trim();
-  if (!jeton) {
-    throw new Error("Jeton d’accès absent : reconnectez-vous au panel.");
-  }
-  try {
-    return await fetch(url, {
-      ...init,
-      mode: "cors",
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${jeton}`,
-        ...init.headers,
-      },
-    });
-  } catch (error_) {
-    throw new Error(formaterErreurReseauFetch(url, error_));
-  }
-}
-
 /** Crée un pont utilisateur (`POST /reseaux-internes`). */
 export async function creerReseauInternePasserelle(
   corps: CorpsCreationReseauInternePasserelle,
 ): Promise<EnregistrementReseauInternePasserelle> {
-  const reponse = await fetchJsonReseaux(assemblerUrlReseaux(), {
+  const reponse = await appelerJsonAuthentifiePasserelle("/reseaux-internes", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(corps),
@@ -134,18 +84,14 @@ export async function creerReseauInternePasserelle(
 
 /** Supprime un réseau sans instance rattachée. */
 export async function supprimerReseauInternePasserelle(idReseau: string): Promise<void> {
-  const reponse = await fetchJsonReseaux(assemblerUrlReseaux(idReseau), {
+  const reponse = await appelerJsonAuthentifiePasserelle(
+    `/reseaux-internes/${encodeURIComponent(idReseau)}`,
+    {
     method: "DELETE",
-  });
+    },
+  );
   if (!reponse.ok) {
-    const json = (await reponse.json().catch(() => null)) as unknown;
-    const msg =
-      typeof json === "object" &&
-      json !== null &&
-      "error" in json &&
-      typeof (json as { error?: { message?: unknown } }).error?.message === "string"
-        ? (json as { error: { message: string } }).error.message
-        : `Erreur HTTP ${String(reponse.status)}`;
-    throw new Error(msg);
+    const json = await lireJsonReponseOuNull(reponse);
+    throw new Error(messageErreurHttpDepuisJson(reponse, json));
   }
 }

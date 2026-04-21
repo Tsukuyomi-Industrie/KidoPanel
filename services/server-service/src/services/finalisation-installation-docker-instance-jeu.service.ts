@@ -1,4 +1,11 @@
-import type { GameServerInstance } from "@kidopanel/database";
+import {
+  creerEnregistrerProprietePourConteneurDelegue,
+  creerPersisterConteneurStatutStopAvecIdentifiant,
+  creerPosterDemarrageSurMoteurDelegue,
+  normaliserStatutHttpReponseMoteurPourClient,
+  persisterConteneurCreeEtDemarrageSurMoteur,
+  type GameServerInstance,
+} from "@kidopanel/database";
 import type { GabaritJeuCatalogueInstance } from "@kidopanel/container-catalog";
 import type { DepotInstanceServeur } from "../repositories/depot-instance-serveur.repository.js";
 import type { DepotProprieteConteneurInstance } from "../repositories/depot-propriete-conteneur-instance.repository.js";
@@ -69,7 +76,7 @@ export async function finaliserInstallationConteneurDockerInstanceJeux(params: {
     throw new ErreurMetierInstanceJeux(
       "MOTEUR_CONTENEURS_ERREUR",
       "Création du conteneur refusée par le moteur.",
-      reponseMoteurStatutOuDefaut502(reponseCreation.status),
+      normaliserStatutHttpReponseMoteurPourClient(reponseCreation.status),
       { corpsAmont: texteCreation.slice(0, 2000) },
     );
   }
@@ -92,29 +99,29 @@ export async function finaliserInstallationConteneurDockerInstanceJeux(params: {
     );
   }
 
-  await depot.mettreAJour(ligne.id, {
-    containerId: idDocker,
-    status: "STOPPED",
-  });
-
-  await depotPropriete.enregistrerProprietePourConteneur(ligne.userId, idDocker);
-
-  const reponseDemarrage = await clientMoteur.posterDemarrage(
+  await persisterConteneurCreeEtDemarrageSurMoteur({
+    ligneId: ligne.id,
+    utilisateurId: ligne.userId,
     idDocker,
-    params.identifiantRequeteHttp,
-  );
-  const texteDemarrage = await reponseDemarrage.text();
-  if (!reponseDemarrage.ok) {
-    await depot.mettreAJour(ligne.id, {
-      status: "ERROR",
-      installLogs: texteDemarrage.slice(0, 8000),
-    });
-    throw new ErreurMetierInstanceJeux(
-      "MOTEUR_CONTENEURS_ERREUR",
-      "Le conteneur a été créé mais le démarrage a échoué.",
-      reponseMoteurStatutOuDefaut502(reponseDemarrage.status),
-    );
-  }
+    identifiantRequeteHttp: params.identifiantRequeteHttp,
+    persisterConteneurStatutStopAvecIdentifiant:
+      creerPersisterConteneurStatutStopAvecIdentifiant(depot),
+    enregistrerProprietePourConteneur:
+      creerEnregistrerProprietePourConteneurDelegue(depotPropriete),
+    posterDemarrage: creerPosterDemarrageSurMoteurDelegue(clientMoteur),
+    persisterErreurApresEchecDemarrage: async (ligneId, corpsReponseDemarrage) => {
+      await depot.mettreAJour(ligneId, {
+        status: "ERROR",
+        installLogs: corpsReponseDemarrage.slice(0, 8000),
+      });
+    },
+    leverErreurApresEchecDemarrage: (statutHttpReponseDemarrage, _corpsReponseDemarrage) =>
+      new ErreurMetierInstanceJeux(
+        "MOTEUR_CONTENEURS_ERREUR",
+        "Le conteneur a été créé mais le démarrage a échoué.",
+        normaliserStatutHttpReponseMoteurPourClient(statutHttpReponseDemarrage),
+      ),
+  });
 
   const ligneDemarree = await depot.mettreAJour(ligne.id, {
     status: "RUNNING",
@@ -127,10 +134,6 @@ export async function finaliserInstallationConteneurDockerInstanceJeux(params: {
     ligne: ligneDemarree,
     identifiantRequeteHttp: params.identifiantRequeteHttp,
   });
-}
-
-function reponseMoteurStatutOuDefaut502(statut: number): number {
-  return statut >= 400 && statut < 600 ? statut : 502;
 }
 
 function extraireIdentifiantConteneurDepuisCreation(texteCreation: string): string {

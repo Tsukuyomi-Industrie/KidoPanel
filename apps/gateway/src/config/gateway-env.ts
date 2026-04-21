@@ -30,6 +30,14 @@ export type GatewayEnv = {
 const URL_SERVEUR_JEUX_LOCAL_PAR_DEFAUT = "http://127.0.0.1:8790";
 const URL_SERVICE_WEB_LOCAL_PAR_DEFAUT = "http://127.0.0.1:8791";
 
+function retirerBarresObliquesFinales(valeur: string): string {
+  let resultat = valeur;
+  while (resultat.endsWith("/")) {
+    resultat = resultat.slice(0, -1);
+  }
+  return resultat;
+}
+
 function variableBooleenneActive(variable: string | undefined): boolean {
   const brut = variable?.trim();
   return brut === "1" || brut?.toLowerCase() === "true";
@@ -45,7 +53,9 @@ function resoudreUrlServiceBase(params: {
   }
   const candidate = params.urlBrute?.trim();
   if (candidate !== undefined && candidate.length > 0) {
-    return normaliserUrlBasePourFetchLoopbackIpv4(candidate.replace(/\/+$/, ""));
+    return normaliserUrlBasePourFetchLoopbackIpv4(
+      retirerBarresObliquesFinales(candidate),
+    );
   }
   return normaliserUrlBasePourFetchLoopbackIpv4(params.valeurParDefaut);
 }
@@ -55,7 +65,9 @@ export function getContainerEngineBaseUrl(): string {
   const brut = process.env.CONTAINER_ENGINE_BASE_URL?.trim();
   const defaut = "http://127.0.0.1:8787";
   if (!brut) return defaut;
-  return normaliserUrlBasePourFetchLoopbackIpv4(brut.replace(/\/+$/, ""));
+  return normaliserUrlBasePourFetchLoopbackIpv4(
+    retirerBarresObliquesFinales(brut),
+  );
 }
 
 /** Encode le secret JWT pour les API `jose` (signature et vérification). */

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   cidrIpv4VersIntervalle,
   intervallesIpv4Uint32Chevauchent,
-} from "./util-plage-ipv4-cidr.js";
+} from "@kidopanel/database";
 
 describe("util-plage-ipv4-cidr", () => {
   it("détecte le chevauchement entre deux blocs qui se superposent", () => {

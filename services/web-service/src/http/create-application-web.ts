@@ -1,5 +1,11 @@
 import { Hono } from "hono";
-import { prisma } from "@kidopanel/database";
+import {
+  prisma,
+  creerGestionnaireErreurInterneServiceMetier,
+  creerHandlerSantePostgreSql,
+  creerReponseRouteIntrouvableServiceMetier,
+  exigerDatabaseUrlPourDemarrageService,
+} from "@kidopanel/database";
 import { DepotWebInstance } from "../repositories/depot-web-instance.repository.js";
 import { DepotDomaineProxy } from "../repositories/depot-domaine-proxy.repository.js";
 import { DepotProprieteConteneur } from "../repositories/depot-propriete-conteneur.repository.js";
@@ -16,11 +22,10 @@ import { lireMetriquesWebServiceBrut } from "../observabilite/metriques-web-serv
 
 /** Assemble l’application HTTP du service instances web et proxy métier. */
 export function creerApplicationWeb(): Hono<{ Variables: VariablesHttpWeb }> {
-  if (!process.env.DATABASE_URL?.trim()) {
-    throw new Error(
+  exigerDatabaseUrlPourDemarrageService({
+    messageErreurSiAbsent:
       "Variable DATABASE_URL manquante : obligatoire pour les instances web.",
-    );
-  }
+  });
 
   const depotWeb = new DepotWebInstance(prisma);
   const depotDomaine = new DepotDomaineProxy(prisma);
@@ -50,14 +55,7 @@ export function creerApplicationWeb(): Hono<{ Variables: VariablesHttpWeb }> {
     }),
   );
 
-  app.get("/health", async (c) => {
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      return c.json({ status: "ok" });
-    } catch {
-      return c.json({ status: "error" }, 503);
-    }
-  });
+  app.get("/health", creerHandlerSantePostgreSql(prisma));
 
   app.get("/metrics", () => {
     const m = lireMetriquesWebServiceBrut();
@@ -90,37 +88,18 @@ export function creerApplicationWeb(): Hono<{ Variables: VariablesHttpWeb }> {
     }),
   );
 
-  app.notFound((c) =>
-    c.json(
-      {
-        error: {
-          code: "ROUTE_NOT_FOUND",
-          message: "Route HTTP introuvable sur le service web.",
-        },
-      },
-      404,
-    ),
+  app.notFound(
+    creerReponseRouteIntrouvableServiceMetier({
+      messageDetail: "Route HTTP introuvable sur le service web.",
+    }),
   );
 
-  app.onError((erreur, c) => {
-    console.error(
-      JSON.stringify({
-        service: "web-service",
-        message: erreur instanceof Error ? erreur.message : "erreur_inconnue",
-        stack: erreur instanceof Error ? erreur.stack : undefined,
-        requestId: c.get("requestId"),
-      }),
-    );
-    return c.json(
-      {
-        error: {
-          code: "INTERNAL_ERROR",
-          message: "Erreur interne du service web.",
-        },
-      },
-      500,
-    );
-  });
+  app.onError(
+    creerGestionnaireErreurInterneServiceMetier({
+      cleServiceJournal: "web-service",
+      messageReponseClient: "Erreur interne du service web.",
+    }),
+  );
 
   return app;
 }
