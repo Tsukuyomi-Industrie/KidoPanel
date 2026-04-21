@@ -18,6 +18,16 @@ export function validerEtFusionnerVariablesEnvJeux(params: {
   for (const [cle, valeur] of Object.entries(params.variablesUtilisateur)) {
     fusionne[cle.trim()] = valeur;
   }
+  /**
+   * Les images Minecraft Java/Bedrock exigent explicitement EULA=TRUE au démarrage.
+   * Ce garde-fou backend évite un crash en boucle si le formulaire n’a pas fourni la variable.
+   */
+  if (
+    params.gabarit.id === "tmpl-jeu-minecraft-java" ||
+    params.gabarit.id === "tmpl-jeu-minecraft-bedrock"
+  ) {
+    fusionne.EULA = "TRUE";
+  }
   const manquantes: string[] = [];
   for (const cle of params.gabarit.requiredEnv) {
     if (!(cle in fusionne) || fusionne[cle]?.trim() === "") {
