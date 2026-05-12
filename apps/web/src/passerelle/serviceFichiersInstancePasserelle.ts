@@ -6,6 +6,9 @@ import {
 export type EntreeListeFichiersPasserelle = {
   nom: string;
   repertoire: boolean;
+  tailleOctets: number | null;
+  dateCreationIso: string | null;
+  dateModificationIso: string | null;
 };
 
 function messageErreurDepuisJson(json: unknown, statutHttp: number): string {
@@ -94,6 +97,42 @@ export async function supprimerCheminInstanceServeurJeuxPasserelle(
   }
 }
 
+/** Compresse un fichier ou dossier en archive zip dans le conteneur d’une instance jeu. */
+export async function compresserCheminInstanceServeurJeuxPasserelle(
+  idInstance: string,
+  sourcePath: string,
+  archivePath: string,
+): Promise<void> {
+  const url = `/serveurs-jeux/instances/${encodeURIComponent(idInstance)}/fs/zip`;
+  const reponse = await appelerJsonAuthentifiePasserelle(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sourcePath, archivePath }),
+  });
+  if (!reponse.ok) {
+    const json = await lireJsonReponseOuNull(reponse);
+    throw new Error(messageErreurDepuisJson(json, reponse.status));
+  }
+}
+
+/** Décompresse une archive zip dans le conteneur d’une instance jeu. */
+export async function decompresserArchiveInstanceServeurJeuxPasserelle(
+  idInstance: string,
+  archivePath: string,
+  destinationPath: string,
+): Promise<void> {
+  const url = `/serveurs-jeux/instances/${encodeURIComponent(idInstance)}/fs/unzip`;
+  const reponse = await appelerJsonAuthentifiePasserelle(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ archivePath, destinationPath }),
+  });
+  if (!reponse.ok) {
+    const json = await lireJsonReponseOuNull(reponse);
+    throw new Error(messageErreurDepuisJson(json, reponse.status));
+  }
+}
+
 /** Liste le contenu d’un répertoire dans le conteneur d’une instance web. */
 export async function listerFichiersInstanceWebPasserelle(
   idInstance: string,
@@ -162,6 +201,42 @@ export async function supprimerCheminInstanceWebPasserelle(
 ): Promise<void> {
   const url = `/web-instances/${encodeURIComponent(idInstance)}/fs?path=${encodeURIComponent(cheminAbsolu)}`;
   const reponse = await appelerJsonAuthentifiePasserelle(url, { method: "DELETE" });
+  if (!reponse.ok) {
+    const json = await lireJsonReponseOuNull(reponse);
+    throw new Error(messageErreurDepuisJson(json, reponse.status));
+  }
+}
+
+/** Compresse un fichier ou dossier en archive zip dans le conteneur d’une instance web. */
+export async function compresserCheminInstanceWebPasserelle(
+  idInstance: string,
+  sourcePath: string,
+  archivePath: string,
+): Promise<void> {
+  const url = `/web-instances/${encodeURIComponent(idInstance)}/fs/zip`;
+  const reponse = await appelerJsonAuthentifiePasserelle(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sourcePath, archivePath }),
+  });
+  if (!reponse.ok) {
+    const json = await lireJsonReponseOuNull(reponse);
+    throw new Error(messageErreurDepuisJson(json, reponse.status));
+  }
+}
+
+/** Décompresse une archive zip dans le conteneur d’une instance web. */
+export async function decompresserArchiveInstanceWebPasserelle(
+  idInstance: string,
+  archivePath: string,
+  destinationPath: string,
+): Promise<void> {
+  const url = `/web-instances/${encodeURIComponent(idInstance)}/fs/unzip`;
+  const reponse = await appelerJsonAuthentifiePasserelle(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ archivePath, destinationPath }),
+  });
   if (!reponse.ok) {
     const json = await lireJsonReponseOuNull(reponse);
     throw new Error(messageErreurDepuisJson(json, reponse.status));

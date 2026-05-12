@@ -6,6 +6,8 @@ import { tryRespondWithEngineError } from "../respond-route-error.js";
 import type { VariablesMoteurHttp } from "../variables-moteur-http.js";
 import { containerIdParamSchema } from "../schemas/container-api.schemas.js";
 import {
+  compresserCheminViaExec,
+  decompresserArchiveZipViaExec,
   ecrireFichierTexteViaExec,
   listerRepertoireViaExec,
   lireFichierTexteViaExec,
@@ -14,6 +16,16 @@ import {
 
 const cheminQuerySchema = z.object({
   path: z.string().min(1).max(4096),
+});
+
+const compressionFsSchema = z.object({
+  sourcePath: z.string().min(1).max(4096),
+  archivePath: z.string().min(1).max(4096),
+});
+
+const decompressionFsSchema = z.object({
+  archivePath: z.string().min(1).max(4096),
+  destinationPath: z.string().min(1).max(4096),
 });
 
 /** Routes lecture / écriture fichiers conteneur (via exec Docker uniquement). */
@@ -115,6 +127,56 @@ export function mountContainerFichiersRoutes(
         const message =
           error_ instanceof Error ? error_.message : "Suppression impossible.";
         return c.json({ error: { code: "FS_DELETE_ERROR", message } }, 400);
+      }
+    },
+  );
+
+  app.post(
+    "/containers/:id/fs/zip",
+    zValidator("param", containerIdParamSchema),
+    zValidator("json", compressionFsSchema),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const corps = c.req.valid("json");
+      try {
+        await compresserCheminViaExec({
+          engine,
+          idConteneur: id,
+          cheminSourceAbsoluBrut: corps.sourcePath,
+          cheminArchiveAbsoluBrut: corps.archivePath,
+        });
+        return new Response(null, { status: 204 });
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
+        if (response) return response;
+        const message =
+          error_ instanceof Error ? error_.message : "Compression zip impossible.";
+        return c.json({ error: { code: "FS_ZIP_ERROR", message } }, 400);
+      }
+    },
+  );
+
+  app.post(
+    "/containers/:id/fs/unzip",
+    zValidator("param", containerIdParamSchema),
+    zValidator("json", decompressionFsSchema),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const corps = c.req.valid("json");
+      try {
+        await decompresserArchiveZipViaExec({
+          engine,
+          idConteneur: id,
+          cheminArchiveAbsoluBrut: corps.archivePath,
+          cheminDestinationAbsoluBrut: corps.destinationPath,
+        });
+        return new Response(null, { status: 204 });
+      } catch (error_) {
+        const response = tryRespondWithEngineError(c, error_);
+        if (response) return response;
+        const message =
+          error_ instanceof Error ? error_.message : "Décompression zip impossible.";
+        return c.json({ error: { code: "FS_UNZIP_ERROR", message } }, 400);
       }
     },
   );

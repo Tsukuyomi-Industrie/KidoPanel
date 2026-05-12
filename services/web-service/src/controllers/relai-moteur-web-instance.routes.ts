@@ -188,4 +188,68 @@ export function monterRelaisMoteurExecEtFsWebInstance(params: {
       return repondreErreurWebInstance(c, error_);
     }
   });
+
+  routes.post("/:id/fs/zip", async (c) => {
+    try {
+      const ligne = await cycleVie.obtenirDetailPourIdentiteInterne({
+        utilisateurId: c.get("utilisateurIdInterne")!,
+        role: c.get("roleUtilisateurInterne")!,
+        instanceId: c.req.param("id")!,
+      });
+      const idDocker = ligne.containerId?.trim();
+      if (!idDocker) {
+        return c.json(
+          {
+            error: {
+              code: "CONTENEUR_INSTANCE_ABSENT",
+              message: "Aucun conteneur associé : fichiers indisponibles.",
+            },
+          },
+          404,
+        );
+      }
+      const corps = await c.req.json();
+      const amont = await clientMoteur.compresserCheminFsConteneur({
+        idConteneurDocker: idDocker,
+        cheminSourceAbsolu: String((corps as { sourcePath?: unknown }).sourcePath ?? ""),
+        cheminArchiveAbsolu: String((corps as { archivePath?: unknown }).archivePath ?? ""),
+        identifiantRequete: c.get("requestId"),
+      });
+      return construireReponseRelayDepuisFetchMoteur(amont);
+    } catch (error_) {
+      return repondreErreurWebInstance(c, error_);
+    }
+  });
+
+  routes.post("/:id/fs/unzip", async (c) => {
+    try {
+      const ligne = await cycleVie.obtenirDetailPourIdentiteInterne({
+        utilisateurId: c.get("utilisateurIdInterne")!,
+        role: c.get("roleUtilisateurInterne")!,
+        instanceId: c.req.param("id")!,
+      });
+      const idDocker = ligne.containerId?.trim();
+      if (!idDocker) {
+        return c.json(
+          {
+            error: {
+              code: "CONTENEUR_INSTANCE_ABSENT",
+              message: "Aucun conteneur associé : fichiers indisponibles.",
+            },
+          },
+          404,
+        );
+      }
+      const corps = await c.req.json();
+      const amont = await clientMoteur.decompresserArchiveFsConteneur({
+        idConteneurDocker: idDocker,
+        cheminArchiveAbsolu: String((corps as { archivePath?: unknown }).archivePath ?? ""),
+        cheminDestinationAbsolu: String((corps as { destinationPath?: unknown }).destinationPath ?? ""),
+        identifiantRequete: c.get("requestId"),
+      });
+      return construireReponseRelayDepuisFetchMoteur(amont);
+    } catch (error_) {
+      return repondreErreurWebInstance(c, error_);
+    }
+  });
 }

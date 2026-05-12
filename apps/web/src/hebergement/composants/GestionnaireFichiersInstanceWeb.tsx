@@ -6,6 +6,10 @@ import {
   supprimerCheminInstanceWebPasserelle,
   type EntreeListeFichiersPasserelle,
 } from "../../passerelle/serviceFichiersInstancePasserelle.js";
+import {
+  LIMITE_OCTETS_EDITION_FICHIER_TEXTE,
+  creerMessageFichierTropVolumineux,
+} from "../../fichiers/limites-edition-texte.js";
 
 type Props = {
   readonly idInstanceWeb: string;
@@ -65,8 +69,17 @@ export function GestionnaireFichiersInstanceWeb({ idInstanceWeb, actif }: Props)
     definirContenuEdition("");
   };
 
-  const ouvrirFichier = async (nom: string): Promise<void> => {
-    const chemin = joindreChemin(cheminRepertoire, nom);
+  const ouvrirFichier = async (entree: EntreeListeFichiersPasserelle): Promise<void> => {
+    const chemin = joindreChemin(cheminRepertoire, entree.nom);
+    if (
+      typeof entree.tailleOctets === "number" &&
+      entree.tailleOctets > LIMITE_OCTETS_EDITION_FICHIER_TEXTE
+    ) {
+      definirFichierOuvert(null);
+      definirContenuEdition("");
+      definirErreur(creerMessageFichierTropVolumineux(entree.tailleOctets));
+      return;
+    }
     definirFichierOuvert(chemin);
     definirChargementFichier(true);
     definirErreur(null);
@@ -114,6 +127,11 @@ export function GestionnaireFichiersInstanceWeb({ idInstanceWeb, actif }: Props)
   const importerFichierLocal = (evt: ChangeEvent<HTMLInputElement>): void => {
     const fichier = evt.target.files?.[0];
     if (fichier === undefined) return;
+    if (fichier.size > LIMITE_OCTETS_EDITION_FICHIER_TEXTE) {
+      definirErreur(creerMessageFichierTropVolumineux(fichier.size));
+      evt.target.value = "";
+      return;
+    }
     const lecteur = new FileReader();
     lecteur.onload = () => {
       definirContenuEdition(typeof lecteur.result === "string" ? lecteur.result : "");
@@ -169,7 +187,7 @@ export function GestionnaireFichiersInstanceWeb({ idInstanceWeb, actif }: Props)
                   [dossier] {e.nom}
                 </button>
               ) : (
-                <button type="button" className="kp-lien-inline" onClick={() => ouvrirFichier(e.nom).catch(() => {})}>
+                <button type="button" className="kp-lien-inline" onClick={() => ouvrirFichier(e).catch(() => {})}>
                   [fichier] {e.nom}
                 </button>
               )}

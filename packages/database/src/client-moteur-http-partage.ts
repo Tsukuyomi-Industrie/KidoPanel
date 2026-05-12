@@ -206,4 +206,50 @@ export class ClientMoteurHttpPartage {
       },
     });
   }
+
+  /** Compresse un chemin conteneur vers une archive zip (`POST …/fs/zip`). */
+  async compresserCheminFsConteneur(params: {
+    idConteneurDocker: string;
+    cheminSourceAbsolu: string;
+    cheminArchiveAbsolu: string;
+    identifiantRequete: string;
+  }): Promise<Response> {
+    return fetch(
+      this.construireUrl(`/containers/${encodeURIComponent(params.idConteneurDocker)}/fs/zip`),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          [EN_TETE_CORRELATION]: params.identifiantRequete,
+        },
+        body: JSON.stringify({
+          sourcePath: params.cheminSourceAbsolu,
+          archivePath: params.cheminArchiveAbsolu,
+        }),
+      },
+    );
+  }
+
+  /** Décompresse une archive zip conteneur (`POST …/fs/unzip`). */
+  async decompresserArchiveFsConteneur(params: {
+    idConteneurDocker: string;
+    cheminArchiveAbsolu: string;
+    cheminDestinationAbsolu: string;
+    identifiantRequete: string;
+  }): Promise<Response> {
+    return fetch(
+      this.construireUrl(`/containers/${encodeURIComponent(params.idConteneurDocker)}/fs/unzip`),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          [EN_TETE_CORRELATION]: params.identifiantRequete,
+        },
+        body: JSON.stringify({
+          archivePath: params.cheminArchiveAbsolu,
+          destinationPath: params.cheminDestinationAbsolu,
+        }),
+      },
+    );
+  }
 }

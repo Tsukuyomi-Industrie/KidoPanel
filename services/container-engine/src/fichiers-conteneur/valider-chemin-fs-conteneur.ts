@@ -1,6 +1,3 @@
-/** Taille maximale pour lecture ou écriture « fichiers » via HTTP (protection mémoire). */
-export const FS_CONTENEUR_OCTETS_MAX_FICHIER_TEXTE = 524_288;
-
 /** Caractères autorisés dans un segment de chemin absolu (chemins métier prévisibles). */
 const SEGMENT_CHEMIN_SAFE = /^[a-zA-Z0-9_.-]+$/;
 

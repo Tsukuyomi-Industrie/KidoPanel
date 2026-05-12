@@ -60,12 +60,12 @@ function PanneauDetailServeurInstanceJeux({
 
   return (
     <>
-      <div className="kp-marges-haut-sm" role="tablist" aria-label="Sections détail serveur">
+      <div className="kp-marges-haut-sm kp-onglets-detail-serveur" role="tablist" aria-label="Sections détail serveur">
         <button
           type="button"
           role="tab"
           aria-selected={onglet === "resume"}
-          className={`kp-btn kp-btn--sm${onglet === "resume" ? " kp-btn--primaire" : ""}`}
+          className={`kp-btn kp-btn--sm kp-onglets-detail-serveur__bouton${onglet === "resume" ? " kp-btn--primaire" : " kp-btn--ghost"}`}
           onClick={() => definirOnglet("resume")}
         >
           Vue d’ensemble
@@ -74,7 +74,7 @@ function PanneauDetailServeurInstanceJeux({
           type="button"
           role="tab"
           aria-selected={onglet === "console"}
-          className={`kp-btn kp-btn--sm${onglet === "console" ? " kp-btn--primaire" : ""}`}
+          className={`kp-btn kp-btn--sm kp-onglets-detail-serveur__bouton${onglet === "console" ? " kp-btn--primaire" : " kp-btn--ghost"}`}
           onClick={() => definirOnglet("console")}
         >
           Console
@@ -83,7 +83,7 @@ function PanneauDetailServeurInstanceJeux({
           type="button"
           role="tab"
           aria-selected={onglet === "fichiers"}
-          className={`kp-btn kp-btn--sm${onglet === "fichiers" ? " kp-btn--primaire" : ""}`}
+          className={`kp-btn kp-btn--sm kp-onglets-detail-serveur__bouton${onglet === "fichiers" ? " kp-btn--primaire" : " kp-btn--ghost"}`}
           onClick={() => definirOnglet("fichiers")}
         >
           Fichiers

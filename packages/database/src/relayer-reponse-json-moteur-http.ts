@@ -8,7 +8,10 @@ export async function construireReponseRelayDepuisFetchMoteur(
   amont: Response,
 ): Promise<Response> {
   const corps = await amont.text();
-  const statut = normaliserStatutHttpReponseMoteurPourClient(amont.status);
+  const statut =
+    amont.status >= 400
+      ? normaliserStatutHttpReponseMoteurPourClient(amont.status)
+      : amont.status;
   const typeContenu =
     amont.headers.get("Content-Type") ?? "application/json; charset=utf-8";
   return new Response(corps, {
